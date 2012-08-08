@@ -1,20 +1,16 @@
-docopts - shell interface for docopt, the CLI description language
-==================================================================
+``docopts``: shell interface for docopt, the CLI description language
+=====================================================================
 
-.. contents::
+Synopses::
 
-Synopsis
---------
-| ``docopts`` *var* *doc* *version* -- [*argument*...]
-| ``docopts`` *var* *doc* -- [*argument*...]
-| ``docopts`` *var* -- [*argument*...]
-| ``docopts`` -- [*argument*...]
+    docopts <var> <doc> <version> -- [<argument>...]
+    docopts <var> <doc> -- [<argument>...]
+    docopts <var> -- [<argument>...]
+    docopts -- [<argument>...]
 
-Description
------------
 ``docopts`` parses command line *argument*\s according to the *doc* string and
-echoes a Bash-4_ code snippet to standard output.  Passing this snippet to
-eval_ will result in one of the four following effects:
+echoes a `Bash 4.x`_ code snippet to standard output.  Passing this snippet to
+`eval`_ will result in one of the four following effects:
 
 - If one of the *argument*\s is ``--help`` or ``-h`` and *doc* specifies such an
   option, the process echoes *doc* to standard output and exits successfully.
@@ -23,14 +19,14 @@ eval_ will result in one of the four following effects:
   *version* to standard output and exits successfully.
 - If the *argument*\s do not match a valid usage pattern in *doc*, the process
   echoes an appropriate error message to standard error and exits with status
-  64 (``EX_USAGE`` in sysexits.h_.)
+  64 (``EX_USAGE`` in `sysexits.h`_.)
 - If the *argument*\s match a valid usage pattern in *doc*, an associative
   array called *var* is introduced to the process environment, mapping
   subcommand, argument and long option names defined in *doc* to their
   parsed values.  The values are parsed as follows:
   
-  - Subcommands and argumentless options will map to the program true_ if found
-    and false_ if not.
+  - Subcommands and argumentless options will map to the program `true`_ if found
+    and `false`_ if not.
   - Option-arguments and arguments accepting single values will map to
     their value if found and to the empty string if not.
   - Arguments accepting multiple values will be stored as fake nested arrays::
@@ -39,8 +35,8 @@ eval_ will result in one of the four following effects:
         ${args[ARG,0]} # the first argument to ARG
         ${args[ARG,1]} # the argument to ARG, etc.
 
-``docopts`` expects *doc* to be valid docopt_ text and *var* to be a valid
-Bash-4_ identifier.
+``docopts`` expects *doc* to be valid `docopt`_ text and *var* to be a valid
+`Bash 4.x`_ identifier.
 
 If *doc* is not given, it is read from standard input.  *version* can also be
 given via standard input by separating it from *doc* with a sequence of four
@@ -49,9 +45,9 @@ arguments or via standard input, their order does not matter; ``docopts``
 considers the first string with a valid usage pattern to be *doc*.
 
 If *var* is not given, ``docopts`` is invoked in test mode, echoing
-``"user-error"`` on error and a JSON_ representation of the parsed
+``"user-error"`` on error and a `JSON`_ representation of the parsed
 arguments on success, both to standard output.  The output is compatible
-with docopt_'s language agnostic test suite.
+with `docopt`_'s language agnostic test suite.
 
 Options
 -------
@@ -121,20 +117,20 @@ To install from source, execute the following command in the release directory::
 
 Versioning
 ----------
-The ``docopts`` version number always matches that of the docopt_ Python
-reference implementation version which it was built against.  As docopt_
-follows semantic versioning, ``docopts`` should work with any docopt_ release
+The ``docopts`` version number always matches that of the `docopt`_ Python
+reference implementation version which it was built against.  As `docopt`_
+follows semantic versioning, ``docopts`` should work with any `docopt`_ release
 it shares the major version number with; however, as both ``docopts`` and
-docopt_ are in major version number 0 at the moment of writing this
+`docopt`_ are in major version number 0 at the moment of writing this
 (2012-08-08), ``docopts`` can only be relied to work with the version of
-docopt_ with the exact same version number.
+`docopt`_ with the exact same version number.
 
-References
-----------
-.. [Bash-4]     http://tldp.org/LDP/abs/html/bashver4.html
-.. [docopt]     http://docopt.org
-.. [JSON]       http://json.org
-.. [sysexits.h] http://man.cx/sysexits
-.. [eval]       http://man.cx/eval
-.. [true]       http://man.cx/true
-.. [false]      http://man.cx/false
+
+
+.. _Bash 4.x:   http://tldp.org/LDP/abs/html/bashver4.html
+.. _docopt:     http://docopt.org
+.. _JSON:       http://json.org
+.. _sysexits.h: http://man.cx/sysexits
+.. _eval:       http://man.cx/eval
+.. _true:       http://man.cx/true
+.. _false:      http://man.cx/false
