@@ -1,0 +1,126 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+docopts 0.4.2
+Copyright (C) 2012  Lari Rasku
+License MIT <http://opensource.org/licenses/MIT>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+----
+Shell interface for docopt, the command-line interface description language.
+
+Usage:
+ docopts <var> <doc> <version> -- [<argument>...]
+ docopts <var> <doc> -- [<argument>...]
+ docopts <var> -- [<argument>...]
+ docopts -- [<argument>...]
+
+Options:
+ --help     Show help options.
+ --version  Print program version.
+"""
+
+from docopt import *
+import re
+
+# Python 3 compatibility
+try:
+    basestring
+except NameError:
+    basestring = str
+
+# shell functions
+def shellquote(s):
+    return "'" + s.replace("'", r"'\''") + "'"
+
+def isshellidentifier(s):
+    return s and re.match(r'[A-Za-z_][0-9A-Za-z_]*', s)
+
+# parse docopts's own arguments
+version, doc = (page.strip() for page in __doc__.split('----'))
+args = docopt(doc=doc, version=version)
+
+# assert that <var> is a shell identifier or empty
+if not args['<var>'] or isshellidentifier(args['<var>']):
+    var = args['<var>']
+else:
+    exit("%s: %s: not a valid identifier" % (sys.argv[0], args['<var>']))
+
+# If <doc> is not given, read <doc> and <version> from standard input,
+# separating them at the first occurrence of four dashes
+if not args['<doc>']:
+    pages = [page.strip() for page in sys.stdin.read().split('----')]
+    if len(pages) >= 2:
+        doc, version = pages[0], '----'.join(pages[1:])
+    else:
+        doc = pages[0]
+        version = None
+else:
+    doc = args['<doc>']
+    version = args['<version>']
+
+# swap <doc> and <version> in case they were given in the opposite order
+try:
+    printable_usage(doc)
+except DocoptLanguageError:
+    doc, version = version, doc
+
+# parse options or abort if there is an error in docopt
+try:
+    DocoptExit.usage = usage = printable_usage(doc)
+    pot_options = parse_doc_options(doc)
+    formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
+    argv = parse_argv(args['<argument>'], options=pot_options)
+except DocoptExit as e:
+    if var:
+        print("echo %s >&2; exit 64" % shellquote(e.message))
+    else:
+        print('"user-error"')
+    exit()
+except Exception as e:
+    exit("%s: %s" % sys.argv[0], e)
+
+# handle -h, --help, and --version flags
+if doc and any((o.name in ('-h', '--help')) and o.value for o in argv):
+    if var:
+        print("echo %s; exit 0" % shellquote(doc))
+        exit()
+if version and any(o.name == '--version' and o.value for o in argv):
+    if var:
+        print("echo %s; exit 0" % shellquote(version))
+        exit()
+
+# attempt to match arguments with an usage pattern; exit on mismatch
+matched, left, arguments = formal_pattern.fix().match(argv)
+if not (matched and left == []):
+    if var:
+        print("echo %s >&2; exit 64" % shellquote(usage))
+    else:
+        print('"user-error"')
+    exit()
+
+# construct dict of command line arguments
+options = [o for o in argv if type(o) is Option]
+pot_arguments = [a for a in formal_pattern.flat
+    if type(a) in (Argument, Command)]
+args = dict((a.name, a.value)
+    for a in (pot_options + options + pot_arguments + arguments))
+
+# generate commands to store the dict as a Bash 4.x associative array, or dump
+# it as JSON if <var> was not given
+if var:
+    print("declare -A %s" % var)
+    for argument, value in args.items():
+        if isinstance(value, list):
+            print("%s[%s,#]=%d" % (var, argument, len(value)))
+            for i, v in enumerate(value):
+                print("%s[%s,%d]=%s" % (var, argument, i, shellquote(v)))
+        else:
+            value = shellquote(value) \
+                    if isinstance(value, basestring) \
+                    else {True: 'true', False: 'false', None: ''}[value]
+            print("%s[%s]=%s" % (var, argument, value))
+else:
+    import json
+    print(json.dumps(args))
