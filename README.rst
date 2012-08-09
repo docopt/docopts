@@ -12,8 +12,8 @@ Synopses::
 echoes a `Bash 4.x`_ code snippet to standard output.  Passing this snippet to
 `eval`_ will result in one of the four following effects:
 
-- If one of the *argument*\s is ``--help`` or ``-h`` and *doc* specifies such an
-  option, the process echoes *doc* to standard output and exits successfully.
+- If one of the *argument*\s is ``--help`` or ``-h`` and *doc* specifies such
+  an option, the process echoes *doc* to standard output and exits successfully.
 - If one of the *argument*\s is ``--version``, *doc* specifies such an option,
   and ``docopts`` was invoked with a *version* argument, the process echoes
   *version* to standard output and exits successfully.
@@ -25,8 +25,8 @@ echoes a `Bash 4.x`_ code snippet to standard output.  Passing this snippet to
   subcommand, argument and long option names defined in *doc* to their
   parsed values.  The values are parsed as follows:
   
-  - Subcommands and argumentless options will map to the program `true`_ if found
-    and `false`_ if not.
+  - Subcommands and argumentless options will map to the program `true`_ if
+    found and `false`_ if not.
   - Option-arguments and arguments accepting single values will map to
     their value if found and to the empty string if not.
   - Arguments accepting multiple values will be stored as fake nested arrays::
@@ -104,8 +104,7 @@ Using the associative array::
         echo "--long-option-with-argument was not given"
     fi
     
-    range=$(seq 1 ${args[<argument-with-multiple-values>,#]})
-    for i in $range ; do
+    for i in $(seq 1 ${args[<argument-with-multiple-values>,#]}) ; do
         echo "${args[<argument-with-multiple-values>,$i]}"
     done
 

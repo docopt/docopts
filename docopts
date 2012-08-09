@@ -115,7 +115,7 @@ if var:
         if isinstance(value, list):
             print("%s[%s,#]=%d" % (var, argument, len(value)))
             for i, v in enumerate(value):
-                print("%s[%s,%d]=%s" % (var, argument, i, shellquote(v)))
+                print("%s[%s,%d]=%s" % (var, argument, i + 1, shellquote(v)))
         else:
             value = shellquote(value) \
                     if isinstance(value, basestring) \
