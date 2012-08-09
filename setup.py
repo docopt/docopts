@@ -11,7 +11,7 @@ setup(name             = "docopts",
       version          = "0.4.2",
       author           = "Lari Rasku",
       author_email     = "lor.d@leafo.net",
-      url              = "https://code.google.com/p/docopts/",
+      url              = "https://github.com/docopt/docopts/",
       license          = "MIT",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",
