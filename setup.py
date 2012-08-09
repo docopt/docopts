@@ -16,7 +16,7 @@ setup(name             = "docopts",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",
       keywords         = "shell bash docopt command-line",
-      long_description = read("README"),
+      long_description = read("README.rst"),
       scripts          = ["docopts"],
       install_requires = ["docopt == 0.4.2"],
       classifiers      = ["Development Status :: 3 - Alpha",
