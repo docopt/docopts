@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""
-docopts 0.4.2
-Copyright (C) 2012  Lari Rasku
-License MIT <http://opensource.org/licenses/MIT>
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-----
+__doc__ = """
 Shell interface for docopt, the command-line interface description language.
 
 Usage:
@@ -19,6 +13,14 @@ Usage:
 Options:
  --help     Show help options.
  --version  Print program version.
+"""
+
+__version__ = """
+docopts 0.4.2
+Copyright (C) 2012  Lari Rasku
+License MIT <http://opensource.org/licenses/MIT>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 """
 
 from docopt import *
@@ -38,8 +40,7 @@ def isshellidentifier(s):
     return s and re.match(r'[A-Za-z_][0-9A-Za-z_]*', s)
 
 # parse docopts's own arguments
-version, doc = (page.strip() for page in __doc__.split('----'))
-args = docopt(doc=doc, version=version)
+args = docopt(doc=__doc__.strip(), version=__version__.strip())
 
 # assert that <var> is a shell identifier or empty
 if not args['<var>'] or isshellidentifier(args['<var>']):
