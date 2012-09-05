@@ -32,8 +32,8 @@ echoes a `Bash 4.x`_ code snippet to standard output.  Passing this snippet to
   - Arguments accepting multiple values will be stored as fake nested arrays::
     
         ${args[ARG,#]} # the number of arguments to ARG
-        ${args[ARG,0]} # the first argument to ARG
-        ${args[ARG,1]} # the argument to ARG, etc.
+        ${args[ARG,1]} # the first argument to ARG
+        ${args[ARG,2]} # the argument to ARG, etc.
 
 ``docopts`` expects *doc* to be valid `docopt`_ text and *var* to be a valid
 `Bash 4.x`_ identifier.
