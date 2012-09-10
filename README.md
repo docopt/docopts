@@ -1,6 +1,4 @@
-## NAME
-
-`docopts` - shell interface for docopt, the CLI description language
+# `docopts` - shell interface for docopt, the CLI description language
 
 ## SYNOPSIS
 
@@ -11,19 +9,19 @@
 
 ## DESCRIPTION
 
-`docopts` parses command line _argument_s according to the _doc_ string and
+`docopts` parses command line _argument_\s according to the _doc_ string and
 echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
 [eval(1)][] will result in one of the four following effects:
 
-- If one of the _argument_s is `--help` or `-h` and _doc_ specifies such
+- If one of the _argument_\s is `--help` or `-h` and _doc_ specifies such
   an option, the process echoes _doc_ to standard output and exits successfully.
-- If one of the _argument_s is `--version`, _doc_ specifies such an option,
+- If one of the _argument_\s is `--version`, _doc_ specifies such an option,
   and `docopts` was invoked with a _version_ argument, the process echoes
   _version_ to standard output and exits successfully.
-- If the _argument_s do not match a valid usage pattern in _doc_, the process
+- If the _argument_\s do not match a valid usage pattern in _doc_, the process
   echoes an appropriate error message to standard error and exits with status
   64 (`EX_USAGE` in [sysexits(3)][].)
-- If the _argument_s match a valid usage pattern in _doc_, an associative
+- If the _argument_\s match a valid usage pattern in _doc_, an associative
   array called _var_ is introduced to the process environment, mapping
   subcommand, argument and long option names defined in _doc_ to their
   parsed values.  The values are parsed as follows:
@@ -32,7 +30,7 @@ echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
     found and [false(1)][] if not.
   - Option-arguments and arguments accepting single values will map to
     their value if found and to the empty string if not.
-  - Arguments accepting multiple values will be stored as fake nested arrays::
+  - Arguments accepting multiple values will be stored as fake nested arrays:
     
         ${args[ARG,#]} # the number of arguments to ARG
         ${args[ARG,0]} # the first argument to ARG
@@ -124,6 +122,10 @@ release it shares the major version number with; however, as both `docopts` and
 [docopt(3)][] are in major version number 0 at the moment of writing this
 (2012-09-10), `docopts` can only be relied to work with the version of
 [docopt(3)][] with the exact same version number.
+
+## AUTHOR
+
+[Lari Rasku](mailto:raskug@lavabit.com)
 
 ## REPORTING BUGS
 
