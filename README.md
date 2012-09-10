@@ -9,19 +9,19 @@
 
 ## DESCRIPTION
 
-`docopts` parses command line _argument_\s according to the _doc_ string and
+`docopts` parses command line _argument_\ s according to the _doc_ string and
 echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
 [eval(1)][] will result in one of the four following effects:
 
-- If one of the _argument_\s is `--help` or `-h` and _doc_ specifies such
+- If one of the _argument_\ s is `--help` or `-h` and _doc_ specifies such
   an option, the process echoes _doc_ to standard output and exits successfully.
-- If one of the _argument_\s is `--version`, _doc_ specifies such an option,
+- If one of the _argument_\ s is `--version`, _doc_ specifies such an option,
   and `docopts` was invoked with a _version_ argument, the process echoes
   _version_ to standard output and exits successfully.
-- If the _argument_\s do not match a valid usage pattern in _doc_, the process
+- If the _argument_\ s do not match a valid usage pattern in _doc_, the process
   echoes an appropriate error message to standard error and exits with status
   64 (`EX_USAGE` in [sysexits(3)][].)
-- If the _argument_\s match a valid usage pattern in _doc_, an associative
+- If the _argument_\ s match a valid usage pattern in _doc_, an associative
   array called _var_ is introduced to the process environment, mapping
   subcommand, argument and long option names defined in _doc_ to their
   parsed values.  The values are parsed as follows:
