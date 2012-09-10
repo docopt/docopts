@@ -1,5 +1,23 @@
 # -*- coding: utf-8 -*-
 
+"""``docopts`` is a Python script that provides a shell interface for the
+`reference Python implementation <https://github.com/docopt/docopt>`_ of
+`docopt <http://docopt.org>`_, the command-line interface description
+language.
+
+To install ``docopts`` from source, extract the release archive and execute
+the following command in the release directory::
+
+    python setup.py install
+
+You may need superuser permissions; alternatively, you can install it locally
+by appending ``--user`` to the above command.
+
+For full documentation, see the ``docopts`` `homepage
+<http://github.com/docopt/docopts>`_.
+
+"""
+
 import os
 from setuptools import setup
 
@@ -16,7 +34,7 @@ setup(name             = "docopts",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",
       keywords         = "shell bash docopt command-line",
-      long_description = read("README.md"),
+      long_description = __doc__,
       scripts          = ["docopts"],
       install_requires = ["docopt == 0.5.0"],
       classifiers      = ["Development Status :: 3 - Alpha",
