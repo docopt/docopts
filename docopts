@@ -16,7 +16,7 @@ Options:
 """
 
 __version__ = """
-docopts 0.4.2
+docopts 0.5.0
 Copyright (C) 2012  Lari Rasku
 License MIT <http://opensource.org/licenses/MIT>
 This is free software: you are free to change and redistribute it.
@@ -116,7 +116,7 @@ if var:
         if isinstance(value, list):
             print("%s[%s,#]=%d" % (var, argument, len(value)))
             for i, v in enumerate(value):
-                print("%s[%s,%d]=%s" % (var, argument, i + 1, shellquote(v)))
+                print("%s[%s,%d]=%s" % (var, argument, i, shellquote(v)))
         else:
             value = shellquote(value) \
                     if isinstance(value, basestring) \

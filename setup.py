@@ -8,7 +8,7 @@ def read(name):
         return f.read()
 
 setup(name             = "docopts",
-      version          = "0.4.2",
+      version          = "0.5.0",
       author           = "Lari Rasku",
       author_email     = "lor.d@leafo.net",
       url              = "https://github.com/docopt/docopts/",
@@ -16,9 +16,9 @@ setup(name             = "docopts",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",
       keywords         = "shell bash docopt command-line",
-      long_description = read("README.rst"),
+      long_description = read("README.md"),
       scripts          = ["docopts"],
-      install_requires = ["docopt == 0.4.2"],
+      install_requires = ["docopt == 0.5.0"],
       classifiers      = ["Development Status :: 3 - Alpha",
                           "Environment :: Console",
                           "Intended Audience :: Developers",
