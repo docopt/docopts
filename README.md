@@ -36,7 +36,7 @@ echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
     
         ${args[ARG,#]} # the number of arguments to ARG
         ${args[ARG,0]} # the first argument to ARG
-        ${args[ARG,1]} # the argument to ARG, etc.
+        ${args[ARG,1]} # the second argument to ARG, etc.
 
 `docopts` expects _doc_ to be valid [docopt(7)][] text and _var_ to be a valid
 [bash4(1)][] identifier.
@@ -125,11 +125,6 @@ release it shares the major version number with; however, as both `docopts` and
 (2012-09-10), `docopts` can only be relied to work with the version of
 [docopt(3)][] with the exact same version number.
 
-## AUTHOR
-
-Vladimir Keleshev, <vladimir@keleshev.com>
-Lari Rasku, <raskug@lavabit.com>
-
 ## REPORTING BUGS
 
 Report bugs at <https://github.com/docopt/docopts/issues>.
@@ -137,7 +132,7 @@ Report bugs at <https://github.com/docopt/docopts/issues>.
 ## COPYRIGHT
 
 Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
-License MIT <http://opensource.org/licenses/MIT>.
+License [MIT](http://opensource.org/licenses/MIT).
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 
