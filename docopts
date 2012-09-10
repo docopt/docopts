@@ -5,20 +5,20 @@ __doc__ = """
 Shell interface for docopt, the command-line interface description language.
 
 Usage:
- docopts <var> <doc> <version> -- [<argument>...]
- docopts <var> <doc> -- [<argument>...]
- docopts <var> -- [<argument>...]
- docopts -- [<argument>...]
+  docopts <var> <doc> <version> -- [<argument>...]
+  docopts <var> <doc> -- [<argument>...]
+  docopts <var> -- [<argument>...]
+  docopts -- [<argument>...]
 
 Options:
- --help     Show help options.
- --version  Print program version.
+  --help     Show help options.
+  --version  Print program version.
 """
 
 __version__ = """
 docopts 0.5.0
-Copyright (C) 2012  Lari Rasku
-License MIT <http://opensource.org/licenses/MIT>
+Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
+License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 """

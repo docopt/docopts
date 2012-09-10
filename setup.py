@@ -10,8 +10,8 @@ def read(name):
 setup(name             = "docopts",
       version          = "0.5.0",
       author           = "Lari Rasku",
-      author_email     = "lor.d@leafo.net",
-      url              = "https://github.com/docopt/docopts/",
+      author_email     = "raskug@lavabit.com",
+      url              = "https://github.com/docopt/docopts",
       license          = "MIT",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",

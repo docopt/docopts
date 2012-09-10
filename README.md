@@ -1,30 +1,31 @@
-docopts(1) -- shell interface for docopt, the CLI description language
-======================================================================
+## NAME
+
+`docopts` - shell interface for docopt, the CLI description language
 
 ## SYNOPSIS
 
-`docopts` <var> <doc> <version> -- [<argument>...]
-`docopts` <var> <doc> -- [<argument>...]
-`docopts` <var> -- [<argument>...]
-`docopts` -- [<argument>...]
+`docopts` _var_ _doc_ _version_ -- [_argument_...]  
+`docopts` _var_ _doc_ -- [_argument_...]  
+`docopts` _var_ -- [_argument_...]  
+`docopts` -- [_argument_...]  
 
 ## DESCRIPTION
 
-`docopts` parses command line <argument>s according to the <doc> string and
+`docopts` parses command line _argument_s according to the _doc_ string and
 echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
 [eval(1)][] will result in one of the four following effects:
 
-- If one of the <argument>s is `--help` or `-h` and <doc> specifies such
-  an option, the process echoes <doc> to standard output and exits successfully.
-- If one of the <argument>s is `--version`, <doc> specifies such an option,
-  and `docopts` was invoked with a <version> argument, the process echoes
-  <version> to standard output and exits successfully.
-- If the <argument>s do not match a valid usage pattern in <doc>, the process
+- If one of the _argument_s is `--help` or `-h` and _doc_ specifies such
+  an option, the process echoes _doc_ to standard output and exits successfully.
+- If one of the _argument_s is `--version`, _doc_ specifies such an option,
+  and `docopts` was invoked with a _version_ argument, the process echoes
+  _version_ to standard output and exits successfully.
+- If the _argument_s do not match a valid usage pattern in _doc_, the process
   echoes an appropriate error message to standard error and exits with status
   64 (`EX_USAGE` in [sysexits(3)][].)
-- If the <argument>s match a valid usage pattern in <doc>, an associative
-  array called <var> is introduced to the process environment, mapping
-  subcommand, argument and long option names defined in <doc> to their
+- If the _argument_s match a valid usage pattern in _doc_, an associative
+  array called _var_ is introduced to the process environment, mapping
+  subcommand, argument and long option names defined in _doc_ to their
   parsed values.  The values are parsed as follows:
   
   - Subcommands and argumentless options will map to [true(1)][] if
@@ -37,16 +38,16 @@ echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
         ${args[ARG,0]} # the first argument to ARG
         ${args[ARG,1]} # the argument to ARG, etc.
 
-`docopts` expects <doc> to be valid [docopt(7)][] text and <var> to be a valid
+`docopts` expects _doc_ to be valid [docopt(7)][] text and _var_ to be a valid
 [bash4(1)][] identifier.
 
-If <doc> is not given, it is read from standard input.  <version> can also be
-given via standard input by separating it from <doc> with a sequence of four
-dashes.  When both <doc> and <version> are given, whether as command line
+If _doc_ is not given, it is read from standard input.  _version_ can also be
+given via standard input by separating it from _doc_ with a sequence of four
+dashes.  When both _doc_ and _version_ are given, whether as command line
 arguments or via standard input, their order does not matter; `docopts`
-considers the first string with a valid usage pattern to be <doc>.
+considers the first string with a valid usage pattern to be _doc_.
 
-If <var> is not given, `docopts` is invoked in test mode, echoing
+If _var_ is not given, `docopts` is invoked in test mode, echoing
 `"user-error"` on error and a [json(7)][] representation of the parsed
 arguments on success, both to standard output.  The output is compatible
 with [docopt(7)][]'s language agnostic test suite.
@@ -60,7 +61,7 @@ with [docopt(7)][]'s language agnostic test suite.
 
 ## EXAMPLES
 
-Read <doc> and <version> from standard input:
+Read _doc_ and _version_ from standard input:
 
     eval "$(docopts args -- $@ <<EOF
     rock 0.1.0
@@ -69,14 +70,14 @@ Read <doc> and <version> from standard input:
     This is free software: you are free to change and redistribute it.
     There is NO WARRANTY, to the extent permitted by law.
     ----
-    Usage: rock [options] <argument>...
+    Usage: rock [options] _argument_...
     
           --help     Show help options.
           --version  Print program version.
     EOF
     )"
 
-Parse <doc> and <version> from script comments and pass them as command line
+Parse _doc_ and _version_ from script comments and pass them as command line
 arguments:
 
     ## rock 0.1.0
@@ -85,7 +86,7 @@ arguments:
     ## This is free software: you are free to change and redistribute it.
     ## There is NO WARRANTY, to the extent permitted by law.
     
-    ### Usage: rock [options] <argument>...
+    ### Usage: rock [options] _argument_...
     ### 
     ###       --help     Show help options.
     ###       --version  Print program version.
@@ -114,28 +115,38 @@ Using the associative array:
         i=$[$i+1]
     done
 
-## INSTALLING
-
-To install from source, execute the following command in the release directory:
-
-    python setup.py install
-
 ## VERSIONING
 
-The `docopts` version number always matches that of the `docopt`_ Python
-reference implementation version which it was built against.  As `docopt`_
-follows semantic versioning, `docopts` should work with any `docopt`_ release
-it shares the major version number with; however, as both `docopts` and
-`docopt`_ are in major version number 0 at the moment of writing this
-(2012-08-08), `docopts` can only be relied to work with the version of
-`docopt`_ with the exact same version number.
+The `docopts` version number always matches that of the [docopt(3)][] Python
+reference implementation version which it was built against.  As [docopt(3)][]
+follows semantic versioning, `docopts` should work with any [docopt(3)][]
+release it shares the major version number with; however, as both `docopts` and
+[docopt(3)][] are in major version number 0 at the moment of writing this
+(2012-09-10), `docopts` can only be relied to work with the version of
+[docopt(3)][] with the exact same version number.
 
+## AUTHOR
 
+Vladimir Keleshev, <vladimir@keleshev.com>
+Lari Rasku, <raskug@lavabit.com>
+
+## REPORTING BUGS
+
+Report bugs at <https://github.com/docopt/docopts/issues>.
+
+## COPYRIGHT
+
+Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
+License MIT <http://opensource.org/licenses/MIT>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 
 [bash4(1)]:    http://tldp.org/LDP/abs/html/bashver4.html
+[docopt(3)]:   https://github.com/docopt/docopt
 [docopt(7)]:   http://docopt.org
 [json(7)]:     http://json.org
 [sysexits(3)]: http://man.cx/sysexits
 [eval(1)]:     http://man.cx/eval
 [true(1)]:     http://man.cx/true
 [false(1)]:    http://man.cx/false
+
