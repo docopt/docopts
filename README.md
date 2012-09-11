@@ -63,7 +63,7 @@ with [docopt(7)][]'s language agnostic test suite.
 
 Read _doc_ and _version_ from standard input:
 
-    eval "$(docopts args -- $@ <<EOF
+    eval "$(docopts args -- "$@" <<EOF
     rock 0.1.0
     Copyright (C) 200X  Thomas Light
     License RIT (Robot Institute of Technology)
@@ -93,11 +93,11 @@ arguments:
     
     help=$(grep "^### " "$0" | cut -c 5-)
     version=$(grep "^## "  "$0" | cut -c 4-)
-    eval "$(docopts args "$help" "$version" -- $@)"
+    eval "$(docopts args "$help" "$version" -- "$@")"
 
 Using the associative array:
 
-    eval "$(docopts args "$help" "$version" -- $@)"
+    eval "$(docopts args "$help" "$version" -- "$@")"
     
     if ${args[subcommand]} ; then
         echo "subcommand was given"
