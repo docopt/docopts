@@ -31,6 +31,7 @@ echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
   - Option-arguments and arguments accepting single values will map to
     their value if found and to the empty string if not.
   - Arguments accepting multiple values will be stored as fake nested arrays:
+    
     ```
     ${args[ARG,#]} # the number of arguments to ARG  
     ${args[ARG,0]} # the first argument to ARG  
