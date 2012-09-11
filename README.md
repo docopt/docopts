@@ -2,10 +2,10 @@
 
 ## SYNOPSIS
 
-    docopts <var> <doc> <version> -- [<argument>...]  
-    docopts <var> <doc> -- [<argument>...]  
-    docopts <var> -- [<argument>...]  
-    docopts -- [<argument>...]  
+    docopts <var> <doc> <version> -- [<argument>...]
+    docopts <var> <doc> -- [<argument>...]
+    docopts <var> -- [<argument>...]
+    docopts -- [<argument>...]
 
 ## DESCRIPTION
 
@@ -32,9 +32,9 @@ echoes a [bash4(1)][] code snippet to standard output.  Passing this snippet to
     their value if found and to the empty string if not.
   - Arguments accepting multiple values will be stored as fake nested arrays:
     ```
-    ${args[ARG,#]} # the number of arguments to ARG
-    ${args[ARG,0]} # the first argument to ARG
-    ${args[ARG,1]} # the second argument to ARG, etc.
+    ${args[ARG,#]} # the number of arguments to ARG  
+    ${args[ARG,0]} # the first argument to ARG  
+    ${args[ARG,1]} # the second argument to ARG, etc.  
     ```
 
 `docopts` expects _doc_ to be valid [docopt(7)][] text and _var_ to be a valid
