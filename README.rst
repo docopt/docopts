@@ -163,12 +163,17 @@ Using the associative array::
 
 INSTALLATION
 ================================================================================
-Use ``pip`` or ``easy_install``:
+To install ``docopts`` for every user, extract the release archive and execute
+the following command in it::
 
-    pip install docopts
+    python setup.py install
 
-Alternatively, just copy the ``docopts`` file to anywhere in your ``$PATH``;
-it is self-contained.
+To install ``docopts`` just for you, use this instead::
+
+    python setup.py install --user
+
+Alternatively, you can simply copy the ``docopts`` file to anywhere on your
+``PATH``; it is self-contained.
 
 VERSIONING
 ================================================================================
