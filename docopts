@@ -1,30 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-__doc__ = """
-Shell interface for docopt, the command-line interface description language.
+__doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts <var> <doc> <version> -- [<argument>...]
-  docopts <var> <doc> -- [<argument>...]
-  docopts <var> -- [<argument>...]
-  docopts -- [<argument>...]
+  docopts [options] <doc> <version> [-- <argv>...]
+
+Arguments:
+  <doc>                         The help message in docopt format.  If - is
+                                given, read the help message from standard
+                                input.
+  <version>                     A version message.  If an empty argument is
+                                given via '', no version message is used.
+                                If - is given, the version message is read
+                                from standard input.  The version message is
+                                read after the help message if both are given
+                                via standard input.
 
 Options:
-  --help     Show help options.
-  --version  Print program version.
+  -A <name>                     Export the arguments as a Bash 4.x associative
+                                array called <name>.
+  -s <sep>, --separator=<sep>   The string to use to separate <doc> from
+                                <version> when both are given via standard
+                                input [default: ----]
+  -H, --no-help                 Don't handle --help and --version specially.
+  -d, --debug                   Export the arguments as JSON.  The docopt
+                                language agnostic test suite can be run for
+                                docopts by passing "docopts -d - '' --" as
+                                its argument.
+  -h, --help                    Show help options.
+  -V, --version                 Print program version.
+
 """
 
-__version__ = """
-docopts 0.5.0
+__version__ = """docopts 0.5.0
 Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
+
 """
 
-from docopt import *
 import re
+import sys
+
+from cStringIO import StringIO
+from docopt import docopt, DocoptExit, DocoptLanguageError
 
 # Python 3 compatibility
 try:
@@ -36,92 +57,101 @@ except NameError:
 def shellquote(s):
     return "'" + s.replace("'", r"'\''") + "'"
 
-def isshellidentifier(s):
-    return s and re.match(r'[A-Za-z_][0-9A-Za-z_]*', s)
+def isbashidentifier(s):
+    return re.match(r'^([A-Za-z]|[A-Za-z_][0-9A-Za-z_]+)$', s)
 
 # parse docopts's own arguments
 args = docopt(doc=__doc__.strip(), version=__version__.strip())
 
-# assert that <var> is a shell identifier or empty
-if not args['<var>'] or isshellidentifier(args['<var>']):
-    var = args['<var>']
-else:
-    exit("%s: %s: not a valid identifier" % (sys.argv[0], args['<var>']))
+argv  = args['<argv>']
+name  = args['-A']
+help  = not args['--no-help']
+debug = args['--debug']
+separator = args['--separator']
 
-# If <doc> is not given, read <doc> and <version> from standard input,
-# separating them at the first occurrence of four dashes
-if not args['<doc>']:
-    pages = [page.strip() for page in sys.stdin.read().split('----')]
-    if len(pages) >= 2:
-        doc, version = pages[0], '----'.join(pages[1:])
-    else:
-        doc = pages[0]
-        version = None
-else:
-    doc = args['<doc>']
-    version = args['<version>']
-
-# swap <doc> and <version> in case they were given in the opposite order
-try:
-    printable_usage(doc)
-except DocoptLanguageError:
-    doc, version = version, doc
+doc = args['<doc>']
+version = args['<version>']
+if doc == '-' and version == '-':
+    doc, version = (page.strip() for page in
+                    sys.stdin.read().split(separator, 1))
+elif doc == '-':
+    doc = sys.stdin.read().strip()
+elif version == '-':
+    version = sys.stdin.read().strip()
+if version == '':
+    version = None
 
 # parse options or abort if there is an error in docopt
 try:
-    DocoptExit.usage = usage = printable_usage(doc)
-    pot_options = parse_doc_options(doc)
-    formal_pattern = parse_pattern(formal_usage(usage), options=pot_options)
-    argv = parse_argv(args['<argument>'], options=pot_options)
+    # temporarily redirect stdout to a StringIO so we can catch docopt()
+    # output on --help and --version
+    sys_stdout = sys.stdout
+    sys.stdout = StringIO()
+    error = None
+    args = docopt(doc, argv, help, version)
+except DocoptLanguageError as e:
+    # invalid docstring by user
+    sys.exit("%s: invalid doc argument: %s" % sys.argv[0], e)
 except DocoptExit as e:
-    if var:
-        print("echo %s >&2; exit 64" % shellquote(e.message))
-    else:
-        print('"user-error"')
-    exit()
-except Exception as e:
-    exit("%s: %s" % sys.argv[0], e)
+    # invoked with invalid arguments
+    error = ("echo %s >&2; exit 64" % (shellquote(e.message),) if
+             not debug else '"user-error"')
+except SystemExit as e:
+    # --help or --version found and --no-help was not given
+    error = "echo %s; exit 0" % shellquote(sys.stdout.getvalue()),
+finally:
+    # restore stdout to normal and quit if a docopt parse error happened
+    sys.stdout.close()
+    sys.stdout = sys_stdout
+    if error:
+        print(error)
+        sys.exit()
 
-# handle -h, --help, and --version flags
-if doc and any((o.name in ('-h', '--help')) and o.value for o in argv):
-    if var:
-        print("echo %s; exit 0" % shellquote(doc))
-        exit()
-if version and any(o.name == '--version' and o.value for o in argv):
-    if var:
-        print("echo %s; exit 0" % shellquote(version))
-        exit()
-
-# attempt to match arguments with an usage pattern; exit on mismatch
-matched, left, arguments = formal_pattern.fix().match(argv)
-if not (matched and left == []):
-    if var:
-        print("echo %s >&2; exit 64" % shellquote(usage))
-    else:
-        print('"user-error"')
-    exit()
-
-# construct dict of command line arguments
-options = [o for o in argv if type(o) is Option]
-pot_arguments = [a for a in formal_pattern.flat
-    if type(a) in (Argument, Command)]
-args = dict((a.name, a.value)
-    for a in (pot_options + options + pot_arguments + arguments))
-
-# generate commands to store the dict as a Bash 4.x associative array, or dump
-# it as JSON if <var> was not given
-if var:
-    print("declare -A %s" % var)
-    for argument, value in args.items():
+if not debug:
+    for key, value in args.items():
         if isinstance(value, list):
-            print("%s[%s,#]=%d" % (var, argument, len(value)))
-            for i, v in enumerate(value):
-                print("%s[%s,%d]=%s" % (var, argument, i, shellquote(v)))
+            args[key] = map(shellquote, value)
+        elif value in (True, False, None):
+            args[key] = {True: 'true', False: 'false', None: ''}[value]
         else:
-            value = shellquote(value) \
-                    if isinstance(value, basestring) \
-                    else {True: 'true', False: 'false', None: ''}[value]
-            print("%s[%s]=%s" % (var, argument, value))
+            args[key] = shellquote(value)
+    if name is not None:
+        if not isbashidentifier(name):
+            sys.exit("%s: not a valid Bash identifier: %s" %
+                     (sys.argv[0], name))
+        print("declare -A %s" % name)
+        for key, value in args.items():
+            if isinstance(value, list):
+                # emulate nested arrays
+                print("%s[%s,#]=%d" % (name, shellquote(key), len(value)))
+                for i, v in enumerate(value):
+                    print("%s[%s,%d]=%s" % (name, shellquote(key), i, v))
+            else:
+                print("%s[%s]=%s" % (name, shellquote(key), value))
+    else:
+        for key, value in args.items():
+            
+            if key == '-' or key == '--':
+                continue
+            elif re.match(r'^<.*>$', key):
+                var = key[1:-1]
+            elif re.match(r'^-[^-]$', key):
+                var = key[1]
+            elif re.match(r'^--.+$', key):
+                var = key[2:]
+            elif key.isupper():
+                var = key.lower()
+            var = var.replace('-', '_')
+            
+            if not isbashidentifier(var):
+                sys.exit("%s: could not be transformed to a valid Bash "
+                         "identifier: %s" % (sys.argv[0], key))
+            
+            if isinstance(value, list):
+                print("%s=(%s)" % (var, ' '.join(value)))
+            else:
+                print("%s=%s" % (var, value))
+            
 else:
     import json
     print(json.dumps(args))
