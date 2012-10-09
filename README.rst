@@ -64,18 +64,18 @@ Note however that this also requires listing the relevant option in
 *version* string.
 
 If *argv* does not match any usage pattern in *doc*, ``docopts`` will generate
-code for exiting the program with status 64 (EX_USAGE in
+code for exiting the program with status 64 (``EX_USAGE`` in
 `sysexits(3) <http://man.cx/sysexits(3)>`_) and printing a diagnostic error
 message.
 
 ARGUMENTS
 ================================================================================
-  <doc>                         The help message in docopt format.  If - is
+:doc:                           The help message in docopt format.  If ``-`` is
                                 given, read the help message from standard
                                 input.
-  <version>                     A version message.  If an empty argument is
-                                given via '', no version message is used.
-                                If - is given, the version message is read
+:version:                       A version message.  If an empty argument is
+                                given via ``''``, no version message is used.
+                                If ``-`` is given, the version message is read
                                 from standard input.  The version message is
                                 read after the help message if both are given
                                 via standard input.
@@ -83,14 +83,15 @@ ARGUMENTS
 OPTIONS
 ================================================================================
   -A <name>                     Export the arguments as a Bash 4.x associative
-                                array called <name>.
-  -s <sep>, --separator=<sep>   The string to use to separate <doc> from
-                                <version> when both are given via standard
-                                input [default: ----]
-  -H, --no-help                 Don't handle --help and --version specially.
+                                array called *name*.
+  -s <sep>, --separator=<sep>   The string to use to separate *doc* from
+                                *version* when both are given via standard
+                                input [default: ``----``]
+  -H, --no-help                 Don't handle ``--help`` and ``--version``
+                                specially.
   -d, --debug                   Export the arguments as JSON.  The docopt
                                 language agnostic test suite can be run for
-                                docopts by passing "docopts -d - '' --" as
+                                docopts by passing ``docopts -d - '' --`` as
                                 its argument.
   -h, --help                    Show help options.
   -V, --version                 Print program version.
