@@ -94,7 +94,7 @@ except DocoptLanguageError as e:
     sys.exit("%s: invalid doc argument: %s" % sys.argv[0], e)
 except DocoptExit as e:
     # invoked with invalid arguments
-    error = ("echo %s >&2; exit 64" % (shellquote(e.message),) if
+    error = ("echo %s >&2; exit 64" % (shellquote(e),) if
              not debug else '"user-error"')
 except SystemExit as e:
     # --help or --version found and --no-help was not given
