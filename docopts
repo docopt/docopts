@@ -47,12 +47,6 @@ import sys
 from cStringIO import StringIO
 from docopt import docopt, DocoptExit, DocoptLanguageError
 
-# Python 3 compatibility
-try:
-    basestring
-except NameError:
-    basestring = str
-
 # shell functions
 def shellquote(s):
     return "'" + s.replace("'", r"'\''") + "'"
@@ -94,7 +88,7 @@ except DocoptLanguageError as e:
     sys.exit("%s: invalid doc argument: %s" % sys.argv[0], e)
 except DocoptExit as e:
     # invoked with invalid arguments
-    error = ("echo %s >&2; exit 64" % (shellquote(e),) if
+    error = ("echo %s >&2; exit 64" % (shellquote(str(e)),) if
              not debug else '"user-error"')
 except SystemExit as e:
     # --help or --version found and --no-help was not given
