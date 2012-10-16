@@ -8,7 +8,7 @@ def file_get_contents(name):
         return f.read()
 
 setup(name             = "docopts",
-      version          = "0.5.0",
+      version          = "0.5.0+fix",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",

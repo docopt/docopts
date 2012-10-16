@@ -4,7 +4,7 @@
 __doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] <doc> <version> [-- <argv>...]
+  docopts [options] <doc> <version> [--] [<argv>...]
 
 Arguments:
   <doc>                         The help message in docopt format.  If - is
@@ -24,16 +24,12 @@ Options:
                                 <version> when both are given via standard
                                 input [default: ----]
   -H, --no-help                 Don't handle --help and --version specially.
-  -d, --debug                   Export the arguments as JSON.  The docopt
-                                language agnostic test suite can be run for
-                                docopts by passing "docopts -d - '' --" as
-                                its argument.
   -h, --help                    Show help options.
   -V, --version                 Print program version.
 
 """
 
-__version__ = """docopts 0.5.0
+__version__ = """docopts 0.5.0+fix
 Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
@@ -47,12 +43,38 @@ import sys
 from cStringIO import StringIO
 from docopt import docopt, DocoptExit, DocoptLanguageError
 
-# shell functions
+# helper functions
 def shellquote(s):
     return "'" + s.replace("'", r"'\''") + "'"
 
 def isbashidentifier(s):
     return re.match(r'^([A-Za-z]|[A-Za-z_][0-9A-Za-z_]+)$', s)
+
+def to_bash(obj):
+    return {
+        type(None): lambda x: '',
+        bool:       lambda x: 'true' if x else 'false',
+        int:        lambda x: str(x),
+        str:        lambda x: shellquote(x),
+        list:       lambda x: '(' + ' '.join(map(shellquote, x)) + ')',
+    }[type(obj)](obj)
+
+def name_mangle(elem):
+    if elem == '-' or elem == '--':
+        return None
+    elif re.match(r'^<.*>$', elem):
+        var = elem[1:-1]
+    elif re.match(r'^-[^-]$', elem):
+        var = elem[1]
+    elif re.match(r'^--.+$', elem):
+        var = elem[2:]
+    else:
+        var = elem
+    var = var.replace('-', '_')
+    if not isbashidentifier(var):
+        raise ValueError(elem)
+    else:
+        return var
 
 # parse docopts's own arguments
 args = docopt(doc=__doc__.strip(), version=__version__.strip())
@@ -60,7 +82,6 @@ args = docopt(doc=__doc__.strip(), version=__version__.strip())
 argv  = args['<argv>']
 name  = args['-A']
 help  = not args['--no-help']
-debug = args['--debug']
 separator = args['--separator']
 
 doc = args['<doc>']
@@ -81,71 +102,50 @@ try:
     # output on --help and --version
     sys_stdout = sys.stdout
     sys.stdout = StringIO()
-    error = None
+    exit_message = None
     args = docopt(doc, argv, help, version)
 except DocoptLanguageError as e:
     # invalid docstring by user
     sys.exit("%s: invalid doc argument: %s" % sys.argv[0], e)
 except DocoptExit as e:
     # invoked with invalid arguments
-    error = ("echo %s >&2; exit 64" % (shellquote(str(e)),) if
-             not debug else '"user-error"')
+    exit_message = "echo %s >&2\nexit 64" % (shellquote(str(e)),)
 except SystemExit as e:
     # --help or --version found and --no-help was not given
-    error = "echo %s; exit 0" % shellquote(sys.stdout.getvalue()),
+    exit_message = "echo -n %s\nexit 0" % (shellquote(sys.stdout.getvalue()),)
 finally:
     # restore stdout to normal and quit if a docopt parse error happened
     sys.stdout.close()
     sys.stdout = sys_stdout
-    if error:
-        print(error)
+    if exit_message:
+        print(exit_message)
         sys.exit()
 
-if not debug:
-    for key, value in args.items():
-        if isinstance(value, list):
-            args[key] = map(shellquote, value)
-        elif value in (True, False, None):
-            args[key] = {True: 'true', False: 'false', None: ''}[value]
-        else:
-            args[key] = shellquote(value)
-    if name is not None:
-        if not isbashidentifier(name):
-            sys.exit("%s: not a valid Bash identifier: %s" %
-                     (sys.argv[0], name))
-        print("declare -A %s" % name)
-        for key, value in args.items():
-            if isinstance(value, list):
-                # emulate nested arrays
-                print("%s[%s,#]=%d" % (name, shellquote(key), len(value)))
-                for i, v in enumerate(value):
-                    print("%s[%s,%d]=%s" % (name, shellquote(key), i, v))
-            else:
-                print("%s[%s]=%s" % (name, shellquote(key), value))
-    else:
-        for key, value in args.items():
-            
-            if key == '-' or key == '--':
-                continue
-            elif re.match(r'^<.*>$', key):
-                var = key[1:-1]
-            elif re.match(r'^-[^-]$', key):
-                var = key[1]
-            elif re.match(r'^--.+$', key):
-                var = key[2:]
-            elif key.isupper():
-                var = key.lower()
-            var = var.replace('-', '_')
-            
-            if not isbashidentifier(var):
-                sys.exit("%s: could not be transformed to a valid Bash "
-                         "identifier: %s" % (sys.argv[0], key))
-            
-            if isinstance(value, list):
-                print("%s=(%s)" % (var, ' '.join(value)))
-            else:
-                print("%s=%s" % (var, value))
-            
+if name is not None:
+    if not isbashidentifier(name):
+        sys.exit("%s: not a valid Bash identifier: %s" % (sys.argv[0], name))
+    arrays = dict((elem, value) for elem, value in args.items() if
+                  isinstance(value, list))
+    for elem, value in arrays.items():
+        del args[elem]
+        args[elem+',#'] = len(value)
+        args.update(('%s,%d' % (elem, i), v) for i,v in enumerate(value))
+    print('declare -A %s' % (name,))
+    for elem, value in args.items():
+        print('%s[%s]=%s' % (name, shellquote(elem), to_bash(value)))
 else:
-    import json
-    print(json.dumps(args))
+    try:
+        variables = dict(zip(map(name_mangle, args.keys()),
+                             map(to_bash, args.values())))
+    except ValueError as e:
+        sys.exit("%s: name could not be mangled into a valid Bash "
+                 "identifier: %s" % (sys.argv[0], e))
+    else:
+        variables.pop(None, None)
+        args.pop('-', None)
+        args.pop('--', None)
+    if len(variables) < len(args):
+        sys.exit("%s: two or more elements have identically mangled names" %
+                 (sys.argv[0],))
+    for var, value in variables.items():
+        print("%s=%s" % (var, value))

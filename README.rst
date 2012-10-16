@@ -5,14 +5,14 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
-:Date:           2012-10-09
+:Date:           2012-10-16
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
-:Version:        0.5.0
+:Version:        0.5.0+fix
 :Manual section: 1
 
 SYNOPSIS
 ================================================================================
-``docopts`` [*options*] *doc* *version* [-- *argv*...]
+``docopts`` [*options*] *doc* *version* [--] [*argv*...]
 
 DESCRIPTION
 ================================================================================
@@ -27,10 +27,10 @@ generates code for storing the parsed arguments as Bash variables.  As most
 command line argument names are not valid Bash identifiers, some name mangling
 will take place:
 
-* ``<angle-brackets>``: ``angle_brackets``
-* ``UPPER_CASE``: ``upper_case``
-* ``--long-option``: ``long_option``
-* ``-S``: ``s``
+* ``<Angle_Brackets>``: ``Angle_Brackets``
+* ``UPPER-CASE``: ``UPPER_CASE``
+* ``--Long-Option``: ``Long_Option``
+* ``-S``: ``S``
 
 If one of the argument names cannot be mangled into a valid Bash identifier,
 or two argument names map to the same variable name, ``docopt`` will exit with
@@ -89,10 +89,6 @@ OPTIONS
                                 input [default: ``----``]
   -H, --no-help                 Don't handle ``--help`` and ``--version``
                                 specially.
-  -d, --debug                   Export the arguments as JSON.  The docopt
-                                language agnostic test suite can be run for
-                                docopts by passing ``docopts -d - '' --`` as
-                                its argument.
   -h, --help                    Show help options.
   -V, --version                 Print program version.
 
@@ -138,7 +134,7 @@ arguments::
     eval "$(docopts "$help" "$version" -- "$@")"
     
     for arg in "${argv[@]}"; do
-        # do something
+        echo "$arg"
     done
 
 Using the associative array::
