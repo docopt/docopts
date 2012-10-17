@@ -178,6 +178,5 @@ The ``docopts`` version number always matches that of the
 version against which it was built.  As ``docopt`` follows semantic versioning,
 ``docopts`` should work with any ``docopt`` release it shares the major version
 number with; however, as both ``docopts`` and ``docopt`` are in major version
-number 0 at the moment of writing this (2012-10-09), ``docopts`` can only be
-relied to work with an installation of ``docopt`` with the exact same version
-number.
+number 0 at the moment of writing this, ``docopts`` can only be relied to work
+with an installation of ``docopt`` with the exact same version number.

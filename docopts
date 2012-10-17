@@ -106,7 +106,7 @@ try:
     args = docopt(doc, argv, help, version)
 except DocoptLanguageError as e:
     # invalid docstring by user
-    sys.exit("%s: invalid doc argument: %s" % sys.argv[0], e)
+    sys.exit("%s: invalid doc argument: %s" % (sys.argv[0], e))
 except DocoptExit as e:
     # invoked with invalid arguments
     exit_message = "echo %s >&2\nexit 64" % (shellquote(str(e)),)
