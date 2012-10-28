@@ -149,3 +149,4 @@ else:
                  (sys.argv[0],))
     for var, value in variables.items():
         print("%s=%s" % (var, value))
+# vim: set ts=4 sw=4 sts=4 et:
