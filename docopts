@@ -40,7 +40,11 @@ There is NO WARRANTY, to the extent permitted by law.
 import re
 import sys
 
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
 from docopt import docopt, DocoptExit, DocoptLanguageError
 
 # helper functions
