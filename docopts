@@ -40,7 +40,11 @@ There is NO WARRANTY, to the extent permitted by law.
 import re
 import sys
 
-from cStringIO import StringIO
+try:
+    from io import StringIO
+except ImportError:
+    from cStringIO import StringIO
+
 from docopt import docopt, DocoptExit, DocoptLanguageError
 
 # helper functions
@@ -149,3 +153,4 @@ else:
                  (sys.argv[0],))
     for var, value in variables.items():
         print("%s=%s" % (var, value))
+# vim: set ts=4 sw=4 sts=4 et:
