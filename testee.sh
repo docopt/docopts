@@ -14,8 +14,12 @@
 # docopts that name-mangles elements into Bash variables, as this
 # transformation cannot be deterministically reversed into a format
 # language_agnostic_tester.py expects.
+# 
+# To test docopts with different Python versions, set the PYTHON variable:
+# 
+#     PYTHON=/usr/bin/python3.2 language_agnostic_tester.py testee.sh
 
-script=$(docopts -A args - '' -- "$@" < /dev/stdin)
+script=$(${PYTHON:-python} ./docopts -A args - '' -- "$@" < /dev/stdin)
 
 if [[ $(tail -n 1 <<< "$script") =~ ^exit\ [0-9]+$ ]] ; then
     echo '"user-error"'; exit
