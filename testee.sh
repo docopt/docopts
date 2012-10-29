@@ -15,9 +15,12 @@
 # transformation cannot be deterministically reversed into a format
 # language_agnostic_tester.py expects.
 # 
-# To test docopts with different Python versions, set the PYTHON variable:
+# To test docopts with different Python versions, set the `PYTHON` variable:
 # 
 #     PYTHON=/usr/bin/python3.2 language_agnostic_tester.py testee.sh
+# 
+# Note that `language_agnostic_tester.py` itself is only compatible with
+# Python 2.7.
 
 script=$(${PYTHON:-python} ./docopts -A args - '' -- "$@" < /dev/stdin)
 
