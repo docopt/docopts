@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# vim: set ts=4 sw=4 sts=4 et:
 
 __doc__ = """Shell interface for docopt, the CLI description language.
 
@@ -153,4 +154,3 @@ else:
                  (sys.argv[0],))
     for var, value in variables.items():
         print("%s=%s" % (var, value))
-# vim: set ts=4 sw=4 sts=4 et:
