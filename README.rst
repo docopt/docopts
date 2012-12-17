@@ -93,7 +93,7 @@ OPTIONS
 
 EXAMPLES
 ================================================================================
-Read *doc* and *version* from standard input::
+Read the help and version messages from standard input::
 
     eval "$(docopts -V - -h - -- "$@" <<EOF
     Usage: rock [options] <argv>...
@@ -114,8 +114,8 @@ Read *doc* and *version* from standard input::
         echo "Hello, world!"
     fi
 
-Parse *doc* and *version* from script comments and pass them as command line
-arguments::
+Parse the help and version messages from script comments and pass them as
+command line arguments::
 
     ## rock 0.1.0
     ## Copyright (C) 200X Thomas Light
