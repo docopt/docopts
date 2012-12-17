@@ -10,8 +10,6 @@
 :Version:        0.X.X
 :Manual section: 1
 
-.. contents::
-
 SYNOPSIS
 ================================================================================
 ``docopts`` [*options*] ``-h`` *msg* -- [*argv*...]
