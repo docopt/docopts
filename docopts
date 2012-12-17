@@ -5,32 +5,34 @@
 __doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] <doc> <version> [--] [<argv>...]
-
-Arguments:
-  <doc>                         The help message in docopt format.  If - is
-                                given, read the help message from standard
-                                input.
-  <version>                     A version message.  If an empty argument is
-                                given via '', no version message is used.
-                                If - is given, the version message is read
-                                from standard input.  The version message is
-                                read after the help message if both are given
-                                via standard input.
+  docopts [options] --help=<msg> -- [<argv>...]
 
 Options:
+  -h <msg>, --help=<msg>        The help message in docopt format.
+                                If - is given, read the help message from
+                                standard input.
+                                If no argument is given, print docopts's own
+                                help message and quit.
+  -V <msg>, --version=<msg>     A version message.
+                                If - is given, read the version message from
+                                standard input.  If the help message is also
+                                read from standard input, it is read first.
+                                If no argument is given, print docopts's own
+                                version message and quit.
+  -O, --options-first           Disallow interspersing options and positional
+                                arguments: all arguments starting from the
+                                first one that does not begin with a dash will
+                                be treated as positional arguments.
+  -H, --no-help                 Don't handle --help and --version specially.
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
-  -s <sep>, --separator=<sep>   The string to use to separate <doc> from
-                                <version> when both are given via standard
-                                input [default: ----]
-  -H, --no-help                 Don't handle --help and --version specially.
-  -h, --help                    Show help options.
-  -V, --version                 Print program version.
+  -s <str>, --separator=<str>   The string to use to separate the help message
+                                from the version message when both are given
+                                via standard input. [default: ----]
 
 """
 
-__version__ = """docopts 0.5.0+fix
+__version__ = """docopts 0.X.X
 Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
@@ -82,15 +84,24 @@ def name_mangle(elem):
         return var
 
 # parse docopts's own arguments
-args = docopt(doc=__doc__.strip(), version=__version__.strip())
+try:
+    args = docopt(__doc__, help=False)
+except DocoptExit as e:
+    if '-h' == e.message[0:2] or '--help' == e.message[0:6]:
+        print(__doc__.strip())
+        sys.exit()
+    if '-V' == e.message[0:2] or '--version' == e.message[0:9]:
+        print(__version__.strip())
+        sys.exit()
 
 argv  = args['<argv>']
-name  = args['-A']
-help  = not args['--no-help']
+doc = args['--help']
+version = args['--version']
+options_first = args['--options-first']
+help = not args['--no-help']
+name = args['-A']
 separator = args['--separator']
 
-doc = args['<doc>']
-version = args['<version>']
 if doc == '-' and version == '-':
     doc, version = (page.strip() for page in
                     sys.stdin.read().split(separator, 1))
@@ -98,8 +109,6 @@ elif doc == '-':
     doc = sys.stdin.read().strip()
 elif version == '-':
     version = sys.stdin.read().strip()
-if version == '':
-    version = None
 
 # parse options or abort if there is an error in docopt
 try:
@@ -129,6 +138,7 @@ finally:
 if name is not None:
     if not isbashidentifier(name):
         sys.exit("%s: not a valid Bash identifier: %s" % (sys.argv[0], name))
+    # fake nested Bash arrays for repeatable arguments with values
     arrays = dict((elem, value) for elem, value in args.items() if
                   isinstance(value, list))
     for elem, value in arrays.items():

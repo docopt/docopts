@@ -8,7 +8,7 @@ def file_get_contents(name):
         return f.read()
 
 setup(name             = "docopts",
-      version          = "0.5.0+fix",
+      version          = "0.X.X",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",
@@ -18,7 +18,7 @@ setup(name             = "docopts",
       keywords         = "shell bash docopt command-line",
       long_description = file_get_contents('README.rst'),
       scripts          = ["docopts"],
-      install_requires = ["docopt == 0.5.0"],
+      install_requires = ["docopt == 0.X.X"],
       classifiers      = ["Development Status :: 3 - Alpha",
                           "Environment :: Console",
                           "Intended Audience :: Developers",

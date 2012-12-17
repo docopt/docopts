@@ -5,10 +5,11 @@
 # into a Bash 4 associative array, which is then dumped in JSON format.
 # 
 # Pass this file as an argument to `language_agnostic_tester.py` to test
-# docopts.  At the moment of writing this (2012-10-16) docopts fails the
-# Naval Fate test, as there is no way to determine from just the array
-# keys if an option is repeatable or accepts an integer argument; thus,
-# both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
+# a `docopts` file located in the same directory. At the moment of writing
+# this (2012-12-17) docopts fails the Naval Fate test, as there is no way to
+# determine from just the array keys if an option is repeatable or accepts an
+# integer argument; thus, both `--speed=2` and `--speed --speed` map to
+# `"--speed": 2`.
 # 
 # There is currently no way to automatically test the operation mode of
 # docopts that name-mangles elements into Bash variables, as this
@@ -22,7 +23,7 @@
 # Note that `language_agnostic_tester.py` itself is only compatible with
 # Python 2.7.
 
-script=$(${PYTHON:-python} ./docopts -A args - '' -- "$@" < /dev/stdin)
+script=$(${PYTHON:-python} ./docopts -A args -h - -- "$@" < /dev/stdin)
 
 if [[ $(tail -n 1 <<< "$script") =~ ^exit\ [0-9]+$ ]] ; then
     echo '"user-error"'; exit
