@@ -5,7 +5,7 @@
 __doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] --help=<msg> -- [<argv>...]
+  docopts [options] --help=<msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -33,7 +33,7 @@ Options:
 """
 
 __version__ = """docopts 0.X.X
-Copyright (C) 2012 Vladimir Keleshev, Lari Rasku.
+Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
@@ -85,7 +85,7 @@ def name_mangle(elem):
 
 # parse docopts's own arguments
 try:
-    args = docopt(__doc__, help=False)
+    args = docopt(__doc__, help=False, options_first=True)
 except DocoptExit as e:
     if '-h' == e.message[0:2] or '--help' == e.message[0:6]:
         print(__doc__.strip())

@@ -5,14 +5,14 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
-:Date:           2012-12-17
+:Date:           2013-01-09
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
 :Version:        0.X.X
 :Manual section: 1
 
 SYNOPSIS
 ================================================================================
-``docopts`` [*options*] ``-h`` *msg* -- [*argv*...]
+``docopts`` [*options*] ``-h`` *msg* : [*argv*...]
 
 DESCRIPTION
 ================================================================================
@@ -95,7 +95,7 @@ EXAMPLES
 ================================================================================
 Read the help and version messages from standard input::
 
-    eval "$(docopts -V - -h - -- "$@" <<EOF
+    eval "$(docopts -V - -h - : "$@" <<EOF
     Usage: rock [options] <argv>...
     
           --verbose  Generate verbose messages.
@@ -130,7 +130,7 @@ command line arguments::
     
     help=$(grep "^### " "$0" | cut -c 5-)
     version=$(grep "^## "  "$0" | cut -c 4-)
-    eval "$(docopts -h "$help" -V "$version" -- "$@")"
+    eval "$(docopts -h "$help" -V "$version" : "$@")"
     
     for arg in "${argv[@]}"; do
         echo "$arg"
@@ -138,7 +138,7 @@ command line arguments::
 
 Using the associative array::
 
-    eval "$(docopts -A args -h "$help" -- "$@")"
+    eval "$(docopts -A args -h "$help" : "$@")"
     
     if ${args[subcommand]} ; then
         echo "subcommand was given"
