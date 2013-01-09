@@ -168,7 +168,7 @@ To install ``docopts`` just for you, use this instead::
     python setup.py install --user
 
 Alternatively, you can simply copy the ``docopts`` file to anywhere on your
-``PATH``; it is self-contained.
+``$PATH``; it is self-contained.
 
 VERSIONING
 ================================================================================

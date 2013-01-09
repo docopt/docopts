@@ -94,7 +94,7 @@ except DocoptExit as e:
         print(__version__.strip())
         sys.exit()
 
-argv  = args['<argv>']
+argv = args['<argv>']
 doc = args['--help']
 version = args['--version']
 options_first = args['--options-first']
