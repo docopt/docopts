@@ -5,7 +5,7 @@
 # into a Bash 4 associative array, which is then dumped in JSON format.
 # 
 # Pass this file as an argument to `language_agnostic_tester.py` to test
-# a `docopts` file located in the same directory. As of 2013-01-09, docopts
+# a `docopts` file located in the same directory. As of 2013-01-26, docopts
 # fails the Naval Fate test, as there is no way to determine from just the
 # array keys if an option is repeatable or accepts an integer argument:
 # both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
