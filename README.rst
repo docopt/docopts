@@ -5,9 +5,9 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
-:Date:           2013-01-09
+:Date:           2013-01-26
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
-:Version:        0.X.X
+:Version:        0.6.0
 :Manual section: 1
 
 SYNOPSIS
