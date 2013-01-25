@@ -5,7 +5,7 @@
 __doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] --help=<msg> : [<argv>...]
+  docopts [options] --h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
