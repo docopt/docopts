@@ -5,7 +5,7 @@
 __doc__ = """Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] --h <msg> : [<argv>...]
+  docopts [options] -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -87,12 +87,15 @@ def name_mangle(elem):
 try:
     args = docopt(__doc__, help=False, options_first=True)
 except DocoptExit as e:
-    if '-h' == e.message[0:2] or '--help' == e.message[0:6]:
+    message = e.args[0]
+    if '-h' == message[0:2] or '--help' == message[0:6]:
         print(__doc__.strip())
         sys.exit()
-    if '-V' == e.message[0:2] or '--version' == e.message[0:9]:
+    if '-V' == message[0:2] or '--version' == message[0:9]:
         print(__version__.strip())
         sys.exit()
+    else:
+        sys.exit(message)
 
 argv = args['<argv>']
 doc = args['--help']
