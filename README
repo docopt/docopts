@@ -8,7 +8,7 @@ SYNOPSIS
 
 DESCRIPTION
         docopts parses the command line argument vector <argv> according to
-        the docopt(7) string <doc> and stores the results in a temporary
+        the docopt string <doc> and stores the results in a temporary
         directory.  The path to this directory is then written to standard
         output.  This directory must be deleted manually once it is no
         longer needed.
@@ -26,8 +26,7 @@ DESCRIPTION
                 the value if found, an empty file if not
             
             repeatable arguments with values
-                a subdirectory containing each value in a separate file,
-                numbered from 1 onwards
+                one value per line
         
         Unless the option --no-help is given, docopts will handle the --help
         and --version options and their possible aliases specially: when
@@ -37,8 +36,7 @@ DESCRIPTION
         directory or not.
         
         If <argv> does not match any usage pattern in <doc>, docopts exits
-        with status 64 (EX_USAGE in sysexits(3)) and writes a diagnostic
-        error message to standard error.
+        with status 1 and writes a diagnostic error message to standard error.
 
 OPTIONS
         -V <version>
@@ -98,9 +96,20 @@ EXAMPLES
             version=$(grep "^## "  "$0" | cut -c 4-)
             args=$(docopts -V "$version" "$help" "$@")
             
-            for arg in $args/\<argv\>/*; do
-                cat $arg
-            done
+            while read -r arg; do
+                echo $arg received
+            done < $args/argv
+
+BUGS
+        Due to the way arguments that take multiple values are stored, there
+        is currently no way to losslessly parse multiple values that contain
+        newlines.  Ideally, the --separator option could be used to specify
+        a custom delimiter string, but this conflicts with its current use
+        as the delimiter between the docstring and the version message when
+        both are read from standard input, for which a simple newline as the
+        default value won't do.  Perhaps the latter use could be deprecated?
+        I'd rather not store multiple-valued arguments as a subdirectory as
+        it complicates the code.
 
 VERSIONING
         The docopts version number always matches that of the docopt Python
@@ -111,4 +120,4 @@ VERSIONING
         docopts can only be relied to work with an installation of docopt
         with the exact same version number.
 
-Docopt                             2013-02-06                         DOCOPTS(1)
+Docopt                             2013-02-07                         DOCOPTS(1)

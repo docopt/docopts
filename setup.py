@@ -3,7 +3,7 @@
 from distutils.core import setup
 
 setup(name             = "docopts",
-      version          = "0.6.1",
+      version          = "0.7.0-dev",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",
