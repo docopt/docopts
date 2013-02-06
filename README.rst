@@ -7,7 +7,7 @@
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
 :Date:           2013-02-07
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
-:Version:        0.6.1
+:Version:        0.6.1+fix
 :Manual section: 1
 
 SYNOPSIS

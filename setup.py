@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name             = "docopts",
-      version          = "0.6.1",
+      version          = "0.6.1+fix",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",

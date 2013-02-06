@@ -32,7 +32,7 @@ Options:
 
 """
 
-__version__ = """docopts 0.6.1
+__version__ = """docopts 0.6.1+fix
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
