@@ -120,7 +120,7 @@ try:
     sys_stdout = sys.stdout
     sys.stdout = StringIO()
     exit_message = None
-    args = docopt(doc, argv, help, version)
+    args = docopt(doc, argv, help, version, options_first)
 except DocoptLanguageError as e:
     # invalid docstring by user
     sys.exit("%s: invalid doc argument: %s" % (sys.argv[0], e))
