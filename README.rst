@@ -5,7 +5,7 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
-:Date:           2013-02-05
+:Date:           2013-02-07
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
 :Version:        0.6.1
 :Manual section: 1
@@ -155,20 +155,6 @@ Using the associative array::
         echo "${args[<argument-with-multiple-values>,$i]}"
         i=$[$i+1]
     done
-
-INSTALLATION
-================================================================================
-To install ``docopts`` for every user, extract the release archive and execute
-the following command in it::
-
-    python setup.py install
-
-To install ``docopts`` just for you, use this instead::
-
-    python setup.py install --user
-
-Alternatively, you can simply copy the ``docopts`` file to anywhere on your
-``$PATH``; it is self-contained.
 
 VERSIONING
 ================================================================================
