@@ -1,0 +1,1 @@
+include docopts LICENSE-MIT MANIFEST.in README testcases.docopt *.py

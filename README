@@ -12,7 +12,7 @@
 
 SYNOPSIS
 ================================================================================
-``docopts`` [*options*] ``-h`` *msg* : [*argv*...]
+``docopts`` [*options*] *doc* [``--``] [*argv*...]
 
 DESCRIPTION
 ================================================================================
@@ -155,20 +155,6 @@ Using the associative array::
         echo "${args[<argument-with-multiple-values>,$i]}"
         i=$[$i+1]
     done
-
-INSTALLATION
-================================================================================
-To install ``docopts`` for every user, extract the release archive and execute
-the following command in it::
-
-    python setup.py install
-
-To install ``docopts`` just for you, use this instead::
-
-    python setup.py install --user
-
-Alternatively, you can simply copy the ``docopts`` file to anywhere on your
-``$PATH``; it is self-contained.
 
 VERSIONING
 ================================================================================

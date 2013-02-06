@@ -1,24 +1,17 @@
 # -*- coding: utf-8 -*-
 
-import os
-from setuptools import setup
-
-def file_get_contents(name):
-    with open(os.path.join(os.path.dirname(__file__), name)) as f:
-        return f.read()
+from distutils.core import setup
 
 setup(name             = "docopts",
       version          = "0.6.1",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",
-      license          = "MIT",
       description      = "Shell interface for docopt, the command-line "
                          "interface description language.",
-      keywords         = "shell bash docopt command-line",
-      long_description = file_get_contents('README.rst'),
+      long_description = open('README').read(),
       scripts          = ["docopts"],
-      install_requires = ["docopt == 0.6.1"],
+      requires         = ["docopt (==0.6.1)"],
       classifiers      = ["Development Status :: 3 - Alpha",
                           "Environment :: Console",
                           "Intended Audience :: Developers",
@@ -28,5 +21,7 @@ setup(name             = "docopts",
                           "Programming Language :: Python :: 3.1",
                           "Programming Language :: Python :: 3.2",
                           "Programming Language :: Python :: 3.3",
-                          "Topic :: Software Development :: User Interfaces"],
-      zip_safe         = True)
+                          "Operating System :: OS Independent",
+                          "Topic :: Utilities"],
+      platforms        = ["OS Independent"],
+      license          = "MIT License")
