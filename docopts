@@ -117,7 +117,7 @@ elif version == '-':
 try:
     # temporarily redirect stdout to a StringIO so we can catch docopt()
     # output on --help and --version
-    sys_stdout = sys.stdout
+    stdout = sys.stdout
     sys.stdout = StringIO()
     exit_message = None
     args = docopt(doc, argv, help, version, options_first)
@@ -133,7 +133,7 @@ except SystemExit as e:
 finally:
     # restore stdout to normal and quit if a docopt parse error happened
     sys.stdout.close()
-    sys.stdout = sys_stdout
+    sys.stdout = stdout
     if exit_message:
         print(exit_message)
         sys.exit()
