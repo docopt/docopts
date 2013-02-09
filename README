@@ -16,17 +16,17 @@ DESCRIPTION
         The directory will contain a file for each option, argument, or
         command defined in <doc>, with their contents as follows:
         
-            non-repeatable, valueless arguments
-                1 if found, an empty file if not
-            
-            repeatable valueless arguments
-                the number of their occurrences in <argv>
-            
-            non-repeatable arguments with values
-                the value if found, an empty file if not
-            
-            repeatable arguments with values
-                one value per line
+        Non-repeatable, valueless arguments:
+            1 if found, an empty file if not
+        
+        Repeatable valueless arguments:
+            the number of their occurrences in <argv>
+        
+        Non-repeatable arguments with values:
+            the value if found, an empty file if not
+        
+        Repeatable arguments with values:
+            one value per line
         
         Unless the option --no-help is given, docopts will handle the --help
         and --version options and their possible aliases specially: when
