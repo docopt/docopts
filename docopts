@@ -69,13 +69,17 @@ except DocoptLanguageError as e:
 # store the arguments in a directory and print its path
 tempdir = tempfile.mkdtemp(prefix="docopts-")
 for arg, value in args.items():
-    with open(os.path.join(tempdir, arg), 'w') as f:
-        f.write({
-            type(None): lambda val: "",
-            bool:       lambda val: "1" if val else "",
-            int:        lambda val: str(val),
-            str:        lambda val: val,
-            list:       lambda val: "\n".join(val),
-        }[type(value)](value))
+    path = os.path.join(tempdir, arg)
+    if isinstance(value, list) and value:
+        os.mkdir(path, 0b111000000)
+        for i,v in enumerate(value):
+            with open(os.path.join(path, str(i+1)), 'w') as f:
+                f.write(v)
+    elif isinstance(value, str):
+        with open(path, 'w') as f: f.write(value)
+    elif isinstance(value, bool):
+        if value: open(path, 'w').close()
+    elif isinstance(value, int):
+        with open(path, 'w') as f: f.write(str(value))
 
 print(tempdir)

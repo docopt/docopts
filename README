@@ -17,16 +17,17 @@ DESCRIPTION
         command defined in <doc>, with their contents as follows:
         
         Non-repeatable, valueless arguments:
-            1 if found, an empty file if not
+            an empty file if found, no file if not
         
         Repeatable valueless arguments:
-            the number of their occurrences in <argv>
+            the number of its occurrences in <argv>
         
         Non-repeatable arguments with values:
-            the value if found, an empty file if not
+            the value if found, no file if not
         
         Repeatable arguments with values:
-            one value per line
+            a subdirectory containing one file per value, labeled from 1
+            onwards, if at least one value was found; nothing otherwise
         
         Unless the option --no-help is given, docopts will handle the --help
         and --version options and their possible aliases specially: when
@@ -99,17 +100,6 @@ EXAMPLES
             while read -r arg; do
                 echo $arg received
             done < $args/argv
-
-BUGS
-        Due to the way arguments that take multiple values are stored, there
-        is currently no way to losslessly parse multiple values that contain
-        newlines.  Ideally, the --separator option could be used to specify
-        a custom delimiter string, but this conflicts with its current use
-        as the delimiter between the docstring and the version message when
-        both are read from standard input, for which a simple newline as the
-        default value won't do.  Perhaps the latter use could be deprecated?
-        I'd rather not store multiple-valued arguments as a subdirectory as
-        it complicates the code.
 
 VERSIONING
         The docopts version number always matches that of the docopt Python
