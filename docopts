@@ -44,9 +44,9 @@ import re
 import sys
 
 try:
-    from io import StringIO
-except ImportError:
     from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 from docopt import docopt, DocoptExit, DocoptLanguageError
 
