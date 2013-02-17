@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from distutils.core import setup
+import manpage
 
 setup(name             = "docopts",
       version          = "0.7.0-dev",
@@ -24,4 +25,6 @@ setup(name             = "docopts",
                           "Operating System :: OS Independent",
                           "Topic :: Utilities"],
       platforms        = ["OS Independent"],
-      license          = "MIT License")
+      license          = "MIT License",
+      cmdclass         = {'build_manpage':   manpage.build,
+                          'install_manpage': manpage.install})
