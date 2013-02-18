@@ -71,7 +71,7 @@ tempdir = tempfile.mkdtemp(prefix="docopts-")
 for arg, value in args.items():
     path = os.path.join(tempdir, arg)
     if isinstance(value, list):
-        os.mkdir(path, 0b111000000)
+        os.mkdir(path, 448) # user only read, write, execute
         for i,v in enumerate(value):
             with open(os.path.join(path, str(i+1)), 'w') as f:
                 f.write(v)
