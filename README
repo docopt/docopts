@@ -27,7 +27,7 @@ DESCRIPTION
         
         Repeatable arguments with values:
             a subdirectory containing one file per value, labeled from 1
-            onwards, if at least one value was found; nothing otherwise
+            onwards
         
         Unless the option --no-help is given, docopts will handle the --help
         and --version options and their possible aliases specially: when
