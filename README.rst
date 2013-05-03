@@ -67,6 +67,10 @@ code for exiting the program with status 64 (``EX_USAGE`` in
 `sysexits(3) <http://man.cx/sysexits(3)>`_) and printing a diagnostic error
 message.
 
+Note that due to the above, ``docopts`` can't be used to parse shell function
+arguments: `exit(1) <http://man.cx/exit(1)>`_ quits the entire interpreter,
+not just the current function.
+
 OPTIONS
 ================================================================================
   -h <msg>, --help=<msg>        The help message in docopt format.
