@@ -1,3 +1,8 @@
+
+ WARNING: The `upcoming 0.7.0 release of docopts
+ <https://github.com/docopt/docopts/tree/develop>`_ will feature a completely
+ different user interface.  Prepare for script breakage.
+
 ================================================================================
  docopts
 ================================================================================
