@@ -5,7 +5,7 @@ from distutils.core import Command
 
 class build(Command):
     
-    description = "build manpage"
+    description = "build man pages"
     
     user_options = []
     
@@ -21,7 +21,7 @@ class build(Command):
 
 class install(Command):
     
-    description = "install manpage"
+    description = "install man pages"
     
     user_options = []
     
@@ -49,7 +49,7 @@ def convert(source):
     for lookahead in iterator:
         lookahead_indent, lookahead_line = stripindent(lookahead)
         if lookahead_indent > indent > 0:
-            
+            pass
 
 def setup():
     pass

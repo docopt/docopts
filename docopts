@@ -2,69 +2,21 @@
 # -*- coding: utf-8 -*-
 # vim: set ts=4 sw=4 sts=4 et:
 
-__doc__ = """Shell interface for docopt, the CLI description language.
-
-Usage:
-  docopts [options] <doc> [--] [<argv>]...
-
-Options:
-  -V <msg>                A version message.
-                          If - is given, read the version message from
-                          standard input.  If the help message is also
-                          read from standard input, the version message
-                          is read first.
-  -O, --options-first     Disallow interspersing options with positional
-                          arguments.  All arguments starting from the
-                          first one that does not begin with a dash will
-                          be treated as positional arguments.
-  -H, --no-help           Don't handle --help and --version specially.
-  -s, --separator=<str>   The string to use to separate the help message
-                          from the version message when both are given
-                          via standard input. [default: ----]
-      --help              Show this help and exit.
-      --version           Output version number and exit.
-
-"""
-
-__version__ = """docopts 0.7.0-dev
-Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
-License MIT <http://opensource.org/licenses/MIT>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-
-"""
-
 import os
 import sys
 import tempfile
 
-from docopt import docopt, DocoptLanguageError
-
-# parse docopts's own arguments
-args = docopt(doc=__doc__.strip(),
-              version=__version__.strip(),
-              options_first=True)
-
-argv = args['<argv>']
-doc = args['<doc>']
-version = args['-V']
-options_first = args['--options-first']
-help = not args['--no-help']
-separator = args['--separator']
-
-if doc == '-' and version == '-':
-    version, doc = (page.strip() for page in
-                    sys.stdin.read().split(separator, 1))
-elif doc == '-':
-    doc = sys.stdin.read().strip()
-elif version == '-':
-    version = sys.stdin.read().strip()
+from docopt import docopt
 
 # parse arguments or abort if there is an error in docopt
 try:
-    args = docopt(doc, argv, help, version, options_first)
-except DocoptLanguageError as e:
-    sys.exit("%s: invalid docstring: %s" % (sys.argv[0], e))
+    args = docopt(doc           = sys.stdin.read(),
+                  argv          = sys.argv[1:],
+                  help          = False,
+                  version       = None,
+                  options_first = 'POSIXLY_CORRECT' in os.environ)
+except Exception as e:
+    sys.exit("%s: %s" % (sys.argv[0], e))
 
 # store the arguments in a directory and print its path
 tempdir = tempfile.mkdtemp(prefix="docopts-")

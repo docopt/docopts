@@ -8,11 +8,11 @@ setup(name             = "docopts",
       author           = "Lari Rasku",
       author_email     = "raskug@lavabit.com",
       url              = "https://github.com/docopt/docopts",
-      description      = "Shell interface for docopt, the command-line "
+      description      = "Interpreter for docopt, the command-line "
                          "interface description language.",
       long_description = open('README').read(),
       scripts          = ["docopts"],
-      requires         = ["docopt (==0.6.1)"],
+      requires         = ["docopt (==0.7.0)"],
       classifiers      = ["Development Status :: 3 - Alpha",
                           "Environment :: Console",
                           "Intended Audience :: Developers",
@@ -26,5 +26,5 @@ setup(name             = "docopts",
                           "Topic :: Utilities"],
       platforms        = ["OS Independent"],
       license          = "MIT License",
-      cmdclass         = {'build_manpage':   manpage.build,
-                          'install_manpage': manpage.install})
+      cmdclass         = {'build_manpages':   manpage.build,
+                          'install_manpages': manpage.install})

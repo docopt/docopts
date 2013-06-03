@@ -1,113 +1,75 @@
 DOCOPTS(1)                        User Commands                       DOCOPTS(1)
 
 NAME
-        docopts - shell interface for docopt, the CLI description language
+        docopts - interpreter for docopt, the CLI description language
 
 SYNOPSIS
-        docopts [options] <doc> [--] [<argv>]...
+        docopts [<arg>]...
 
 DESCRIPTION
-        docopts parses the command line argument vector <argv> according to
-        the docopt string <doc> and stores the results in a temporary
-        directory.  The path to this directory is then written to standard
-        output.  This directory must be deleted manually once it is no
-        longer needed.
+        Docopts reads from standard input a command line interface description
+        written in the docopt language and uses it to parse the given arguments.
+        The results of this parsing are stored as files in a temporary directory
+        (created with mkdtemp(3)), named after the arguments whose values they
+        capture.  On successful execution, the path to this directory is printed
+        to standard output; if there are problems with either the interface
+        description or the arguments, docopts exits with status 1 and prints an
+        informative message to standard error.  Note that this directory must
+        be manually deleted by the user when no longer necessary.
         
-        The directory will contain a file for each option, argument, or
-        command defined in <doc>, with their contents as follows:
+        Different types of command line arguments map to file contents as
+        follows:
         
-        Non-repeatable, valueless arguments:
-            an empty file if found, no file if not
+        *   Flags and commands: An empty file if present, no file if not.
+        *   Counted flags and commands: The number of their instances in the
+            argument vector.
+        *   Arguments and options with arguments: The value of the argument if
+            present, no file if not.
+        *   Repeatable arguments and options with arguments: A subdirectory
+            containing a file for each instance of the argument, labeled from
+            1 onwards.
         
-        Repeatable valueless arguments:
-            the number of its occurrences in <argv>
+        The files contain no trailing newlines.
         
-        Non-repeatable arguments with values:
-            the value if found, no file if not
-        
-        Repeatable arguments with values:
-            a subdirectory containing one file per value, labeled from 1
-            onwards
-        
-        Unless the option --no-help is given, docopts will handle the --help
-        and --version options and their possible aliases specially: when
-        either is encountered, docopts exits immediately and writes the
-        relevant message to standard output.  Thus, when invoking docopts
-        with --no-help, one must first check if the output is a path to a
-        directory or not.
-        
-        If <argv> does not match any usage pattern in <doc>, docopts exits
-        with status 1 and writes a diagnostic error message to standard error.
+        If the environment variable POSIXLY_CORRECT is set, all parameters
+        after the first non-option parameter are likewise interpreted as
+        non-option parameters when parsing the arguments.
 
-OPTIONS
-        -V <version>
-                A version message.  If - is given, read the version message
-                from standard input.  If the help message is also read from
-                standard input, the version message is read first.
-        -O, --options-first
-                Disallow interspersing options with positional arguments.
-                All arguments starting from the first one that does not begin
-                with a dash will be treated as positional arguments.
-        -H, --no-help
-                Don't handle --help and --version specially.
-        -s, --separator=<str>
-                The string to use to separate the help message from the
-                version message when both are given via standard input.
-                [default: ----]
-        --help
-                Show this help and exit.
-        --version
-                Output version number and exit.
-
-EXAMPLES
-        Read the help and version messages from standard input:
-            args=$(docopts -V - - "$@" <<EOF
-            Usage: rock [options] <argv>...
-            
-                  --verbose  Generate verbose messages.
-                  --help     Show help options.
-                  --version  Print program version.
-            ----
-            rock 0.1.0
-            Copyright (C) 200X Thomas Light
-            License RIT (Robot Institute of Technology)
-            This is free software: you are free to change and redistribute it.
-            There is NO WARRANTY, to the extent permitted by law.
-            EOF
-            )
-            
-            if [ -s $args/--verbose ] ; then
-                echo "Hello, world!"
-            fi
+EXAMPLE
+        #!/bin/sh -e
+        ### Usage: foo [options] repeatable-command... <repeatable-argument>...
+        ### 
+        ### Options:
+        ###   -o ARG  Option with argument.
+        ###   --help  Help flag.
         
-        Parse the help and version messages from script comments and pass them
-        as command line arguments:
-            ## rock 0.1.0
-            ## Copyright (C) 200X Thomas Light
-            ## License RIT (Robot Institute of Technology)
-            ## This is free software: you are free to change and redistribute it.
-            ## There is NO WARRANTY, to the extent permitted by law.
-            
-            ### Usage: rock [options] <argv>...
-            ### 
-            ###       --help     Show help options.
-            ###       --version  Print program version.
-            
-            help=$(grep "^### " "$0" | cut -c 5-)
-            version=$(grep "^## "  "$0" | cut -c 4-)
-            args=$(docopts -V "$version" "$help" "$@")
-            
-            while read -r arg; do
-                echo $arg received
-            done < $args/argv
+        args=$(grep "^### " "$0" | cut -c 5- | POSIXLY_CORRECT= docopts "$@")
+        
+        if [ -e $args/-o ]; then
+            echo "Option given with argument $(<$args/-o)."
+        fi
+        
+        echo "Repeatable command input $(<$args/repeatable-command) times."
+        echo "Repeatable arguments:"
+        
+        for i in $(ls $args/\<repeatable-argument\>); do
+            cat $args/\<repeatable-argument\>/$i
+        done
+        
+        rm -rf $args
 
 VERSIONING
         The docopts version number always matches that of the docopt Python
-        reference implementation  version against which it was built.  As
+        reference implementation version against which it was built.  As
         docopt follows semantic versioning, docopts should work with any
         docopt release it shares the major version number with; however, as
         both docopts and docopt are in major version number 0 at the moment,
         docopts can only be relied to work with an installation of docopt
         with the exact same version number.
 
-Docopt                             2013-02-07                         DOCOPTS(1)
+SEE ALSO
+        http://docopt.org
+        http://semver.org
+        https://github.com/docopt/docopt
+
+Docopt                             2013-05-27                         DOCOPTS(1)
