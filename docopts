@@ -6,19 +6,38 @@ import os
 import sys
 import tempfile
 
-from docopt import docopt
+from docopt import docopt, DocoptExit
 
-# parse arguments or abort if there is an error in docopt
+# docopt prints the help and version messages to standard output by default,
+# so we need to redirect it to standard error temporarily to get the documented
+# behavior
+stdout = sys.stdout
+sys.stdout = sys.stderr
+
 try:
-    args = docopt(doc           = sys.stdin.read(),
+    pages = sys.stdin.read().split('\f', 1)
+    args = docopt(doc           = pages[0],
                   argv          = sys.argv[1:],
-                  help          = False,
-                  version       = None,
+                  help          = True,
+                  version       = pages[1] if len(pages) > 1 else None,
                   options_first = 'POSIXLY_CORRECT' in os.environ)
+except DocoptExit as e:
+    # as DocoptExit is a subclass of SystemExit, but thrown only for incorrect
+    # invocations, we need to catch-and-throw it here to get the documented
+    # behavior
+    sys.exit(e)
+except SystemExit as e:
+    # docopt exits normally with sys.exit() when it encounters --help or
+    # --version, so we need to catch it and exit with status 2 to get the
+    # documented behavior
+    sys.exit(2)
 except Exception as e:
+    # on any other error condition, we just try exiting with something prettier
+    # than a stack trace
     sys.exit("%s: %s" % (sys.argv[0], e))
 
-# store the arguments in a directory and print its path
+sys.stdout = stdout
+
 tempdir = tempfile.mkdtemp(prefix="docopts-")
 for arg, value in args.items():
     path = os.path.join(tempdir, arg)

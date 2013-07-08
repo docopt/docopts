@@ -13,8 +13,8 @@ DESCRIPTION
         (created with mkdtemp(3)), named after the arguments whose values they
         capture.  On successful execution, the path to this directory is printed
         to standard output; if there are problems with either the interface
-        description or the arguments, docopts exits with status 1 and prints an
-        informative message to standard error.  Note that this directory must
+        description or the arguments, docopts exits with status 1 and prints a
+        diagnostic message to standard error.  Note that this directory must
         be manually deleted by the user when no longer necessary.
         
         Different types of command line arguments map to file contents as
@@ -31,9 +31,25 @@ DESCRIPTION
         
         The files contain no trailing newlines.
         
-        If the environment variable POSIXLY_CORRECT is set, all parameters
-        after the first non-option parameter are likewise interpreted as
-        non-option parameters when parsing the arguments.
+        If specified in the interface description, the following options trigger
+        special behavior if encountered during parsing:
+        
+        *   --help or -h: Docopts prints the interface description to standard
+            error and exits with status 2.
+        *   --version: If the interface description supplied to docopts contains
+            a form feed character (U+000C), the text after the form feed is
+            considered the version message.  Docopts prints it to standard error
+            and exits with status 2.
+        
+        If your shell interpreter supports terminating a script upon a
+        subcommand returning a non-zero exit status, this behavior enables
+        clean termination of scripts with --help and --version options.
+
+ENVIRONMENT
+        POSIXLY_CORRECT
+            If set, all parameters after the first non-option parameter are
+            likewise interpreted as non-option parameters when parsing the
+            arguments.
 
 EXAMPLE
         #!/bin/sh -e
@@ -43,20 +59,26 @@ EXAMPLE
         ###   -o ARG  Option with argument.
         ###   --help  Help flag.
         
+        trap cleanup EXIT
+        
+        cleanup() {
+            rm -rf $args 2>/dev/null
+        }
+        
         args=$(grep "^### " "$0" | cut -c 5- | POSIXLY_CORRECT= docopts "$@")
         
         if [ -e $args/-o ]; then
-            echo "Option given with argument $(<$args/-o)."
+            echo "Option given with argument $(cat $args/-o)."
         fi
         
-        echo "Repeatable command input $(<$args/repeatable-command) times."
+        echo "Repeatable command input $(cat $args/repeatable-command) times."
         echo "Repeatable arguments:"
         
         for i in $(ls $args/\<repeatable-argument\>); do
-            cat $args/\<repeatable-argument\>/$i
+            # recall that the files have no trailing newlines, so a plain
+            # `cat` would not do
+            echo "$(cat $args/\<repeatable-argument\>/$i)"
         done
-        
-        rm -rf $args
 
 VERSIONING
         The docopts version number always matches that of the docopt Python
@@ -72,4 +94,4 @@ SEE ALSO
         http://semver.org
         https://github.com/docopt/docopt
 
-Docopt                             2013-05-27                         DOCOPTS(1)
+Docopt                             2013-06-29                         DOCOPTS(1)
