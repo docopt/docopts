@@ -1,1 +1,1 @@
-include docopts LICENSE-MIT MANIFEST.in README testcases.docopt *.py
+include docopts docopts.1 LICENSE-MIT MANIFEST.in README testcases.docopt *.py

@@ -2,6 +2,7 @@
 
 from distutils.core import setup
 import manpage
+import tests
 
 setup(name             = "docopts",
       version          = "0.7.0-dev",
@@ -26,5 +27,5 @@ setup(name             = "docopts",
                           "Topic :: Utilities"],
       platforms        = ["POSIX"],
       license          = "MIT License",
-      cmdclass         = {'build_manpages':   manpage.build,
-                          'install_manpages': manpage.install})
+      cmdclass         = {'install_manpages': manpage.install,
+                          'test':             tests.run})

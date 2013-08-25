@@ -1,0 +1,132 @@
+.TH DOCOPTS 1 2013-08-25 Docopt "User Commands"
+
+.SH NAME
+docopts \- interpreter for docopt, the CLI description language
+
+.SH SYNOPSIS
+.B docopts
+.RI [ arg ]...
+
+.SH DESCRIPTION
+.B Docopts
+reads from standard input a command line interface description written
+in the docopt language and uses it to parse the given arguments.
+The results of this parsing are stored as files in a temporary directory
+(created with
+.BR mkdtemp (3)),
+named after the arguments whose values they capture.
+On successful execution, the path to this directory is printed to standard
+output; if there are problems with either the interface description or the
+arguments,
+.B docopts
+exits with status 1 and prints a diagnostic message to standard error.
+Note that this directory must be manually deleted by the user when no
+longer necessary.
+
+.PP
+Different types of command line arguments map to file contents as
+follows:
+
+.IP \(bu
+Flags and commands: An empty file if present, no file if not.
+
+.IP \(bu
+Counted flags and commands: The number of their instances in the argument
+vector.
+
+.IP \(bu
+Arguments and options with arguments: The value of the argument if present,
+no file if not.
+
+.IP \(bu
+Repeatable arguments and options with arguments: A subdirectory containing
+a file for each instance of the argument, labeled from 1 onwards.
+
+.PP
+The files contain no trailing newlines.
+
+.PP
+If specified in the interface description, the following options trigger
+special behavior if encountered during parsing:
+
+.IP \(bu
+.BR --help " or " -h ": " Docopts
+prints the interface description to standard error and exits with status
+2.
+
+.IP \(bu
+.BR --version :
+If the interface description supplied to docopts contains a form feed
+character
+.RB ( U+000C ),
+the text after the form feed is considered the version message.
+.B Docopts
+prints it to standard error and exits with status 2.
+
+.PP
+If your shell interpreter supports terminating a script upon a subcommand
+returning a non-zero exit status, this behavior enables clean termination
+of scripts with
+.B --help
+and
+.B --version
+options.
+
+.SH ENVIRONMENT
+
+.TP
+.B POSIXLY_CORRECT
+If set, all parameters after the first non-option parameter are likewise
+interpreted as non-option parameters when parsing the arguments.
+
+.SH NOTES
+The
+.B docopts
+version number always matches that of the docopt Python reference
+implementation version against which it was built.
+As docopt follows semantic versioning,
+.B docopts
+should work with any docopt release it shares the major
+version number with; however, as both
+.B docopts
+and docopt are in major version number 0 at the moment, docopts can only
+be relied to work with an installation of docopt with the exact same
+version number.
+
+.SH EXAMPLE
+.nf
+#!/bin/sh -e
+### Usage: foo [options] repeatable-command... <repeatable-argument>...
+### 
+### Options:
+###   -o ARG  Option with argument.
+###   --help  Help flag.
+
+trap cleanup EXIT
+
+cleanup() {
+    rm -rf $args 2>/dev/null
+}
+
+args=$(grep "^### " "$0" | cut -c 5- | POSIXLY_CORRECT= docopts "$@")
+
+if [ -e $args/-o ]; then
+    echo "Option given with argument $(cat $args/-o)."
+fi
+
+echo "Repeatable command input $(cat $args/repeatable-command) times."
+echo "Repeatable arguments:"
+
+for i in $(ls $args/\\<repeatable-argument\\>); do
+    # recall that the files have no trailing newlines, so a plain
+    # `cat` would not do
+    echo "$(cat $args/\\<repeatable-argument\\>/$i)"
+done
+.fi
+
+.SH "SEE ALSO"
+.nf
+http://docopt.org
+http://semver.org
+https://github.com/docopt/docopt
+.fi

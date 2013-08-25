@@ -2,9 +2,9 @@
 
 from distutils.core import Command
 
-class install(Command):
+class run(Command):
     
-    description = "install man pages"
+    description = "run unit tests"
     
     user_options = []
     
@@ -15,5 +15,4 @@ class install(Command):
         pass
     
     def run(self):
-        if not self.dry_run:
-            pass
+        pass

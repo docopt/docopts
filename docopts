@@ -19,7 +19,7 @@ try:
     args = docopt(doc           = pages[0],
                   argv          = sys.argv[1:],
                   help          = True,
-                  version       = pages[1] if len(pages) > 1 else None,
+                  version       = pages[1].strip() if len(pages) > 1 else None,
                   options_first = 'POSIXLY_CORRECT' in os.environ)
 except DocoptExit as e:
     # as DocoptExit is a subclass of SystemExit, but thrown only for incorrect
@@ -27,7 +27,7 @@ except DocoptExit as e:
     # behavior
     sys.exit(e)
 except SystemExit as e:
-    # docopt exits normally with sys.exit() when it encounters --help or
+    # docopt exits with sys.exit() when it encounters --help or
     # --version, so we need to catch it and exit with status 2 to get the
     # documented behavior
     sys.exit(2)
