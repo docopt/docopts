@@ -94,7 +94,7 @@ be relied to work with an installation of docopt with the exact same
 version number.
 
 .SH EXAMPLE
-.nf
+.EX
 #!/bin/sh -e
 ### Usage: foo [options] repeatable-command... <repeatable-argument>...
 ### 
@@ -122,11 +122,11 @@ for i in $(ls $args/\\<repeatable-argument\\>); do
     # `cat` would not do
     echo "$(cat $args/\\<repeatable-argument\\>/$i)"
 done
-.fi
+.EE
 
 .SH "SEE ALSO"
-.nf
-http://docopt.org
-http://semver.org
-https://github.com/docopt/docopt
-.fi
+.B http://docopt.org
+.br
+.B http://semver.org
+.br
+.B https://github.com/docopt/docopt

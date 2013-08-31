@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from distutils.core import setup
-import manpage
 import tests
 
 setup(name             = "docopts",
@@ -13,6 +12,7 @@ setup(name             = "docopts",
                          "interface description language.",
       long_description = open('README').read(),
       scripts          = ["docopts"],
+      data_files       = [('share/man/man1', ['docopts.1'])],
       requires         = ["docopt (==0.7.0)"],
       classifiers      = ["Development Status :: 3 - Alpha",
                           "Environment :: Console",
@@ -27,5 +27,4 @@ setup(name             = "docopts",
                           "Topic :: Utilities"],
       platforms        = ["POSIX"],
       license          = "MIT License",
-      cmdclass         = {'install_manpages': manpage.install,
-                          'test':             tests.run})
+      cmdclass         = {'test': tests.run})
