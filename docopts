@@ -47,10 +47,13 @@ for arg, value in args.items():
             with open(os.path.join(path, str(i+1)), 'w') as f:
                 f.write(v)
     elif isinstance(value, str):
-        with open(path, 'w') as f: f.write(value)
+        with open(path, 'w') as f:
+            f.write(value)
     elif isinstance(value, bool):
-        if value: open(path, 'w').close()
+        if value:
+            open(path, 'w').close()
     elif isinstance(value, int):
-        with open(path, 'w') as f: f.write(str(value))
+        with open(path, 'w') as f:
+            f.write(str(value))
 
 print(tempdir)
