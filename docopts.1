@@ -1,4 +1,4 @@
-.TH DOCOPTS 1 2013-08-25 Docopt "User Commands"
+.TH DOCOPTS 1 2013-09-02 docopts-0.7.0-dev "User Commands"
 
 .SH NAME
 docopts \- interpreter for docopt, the CLI description language
@@ -32,7 +32,7 @@ Flags and commands: An empty file if present, no file if not.
 
 .IP \(bu
 Counted flags and commands: The number of their instances in the argument
-vector.
+vector as a decimal string.
 
 .IP \(bu
 Arguments and options with arguments: The value of the argument if present,
@@ -79,19 +79,11 @@ options.
 If set, all parameters after the first non-option parameter are likewise
 interpreted as non-option parameters when parsing the arguments.
 
-.SH NOTES
-The
-.B docopts
-version number always matches that of the docopt Python reference
-implementation version against which it was built.
-As docopt follows semantic versioning,
-.B docopts
-should work with any docopt release it shares the major
-version number with; however, as both
-.B docopts
-and docopt are in major version number 0 at the moment, docopts can only
-be relied to work with an installation of docopt with the exact same
-version number.
+.TP
+.B NO_HELP
+Do not treat
+.B --help
+specially.
 
 .SH EXAMPLE
 .EX
@@ -126,7 +118,3 @@ done
 
 .SH "SEE ALSO"
 .B http://docopt.org
-.br
-.B http://semver.org
-.br
-.B https://github.com/docopt/docopt

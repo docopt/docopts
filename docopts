@@ -18,7 +18,7 @@ try:
     pages = sys.stdin.read().split('\f', 1)
     args = docopt(doc           = pages[0],
                   argv          = sys.argv[1:],
-                  help          = True,
+                  help          = 'NO_HELP' not in os.environ,
                   version       = pages[1].strip() if len(pages) > 1 else None,
                   options_first = 'POSIXLY_CORRECT' in os.environ)
 except DocoptExit as e:
