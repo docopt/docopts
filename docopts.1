@@ -81,7 +81,7 @@ interpreted as non-option parameters when parsing the arguments.
 
 .TP
 .B NO_HELP
-Do not treat
+If set, do not treat
 .B --help
 specially.
 
@@ -89,7 +89,7 @@ specially.
 .EX
 #!/bin/sh -e
 ### Usage: foo [options] repeatable-command... <repeatable-argument>...
-### 
+###
 ### Options:
 ###   -o ARG  Option with argument.
 ###   --help  Help flag.
@@ -100,7 +100,7 @@ cleanup() {
     rm -rf $args 2>/dev/null
 }
 
-args=$(grep "^### " "$0" | cut -c 5- | POSIXLY_CORRECT= docopts "$@")
+args=$(grep "^###" "$0" | cut -c 5- | POSIXLY_CORRECT= docopts "$@")
 
 if [ -e $args/-o ]; then
     echo "Option given with argument $(cat $args/-o)."
