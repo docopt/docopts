@@ -1,12 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import with_statement
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
+import json
 import shutil
 import unittest
 import os.path
