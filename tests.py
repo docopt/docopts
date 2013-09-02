@@ -42,7 +42,7 @@ class run(Command):
         if self.dry_run:
             return
         suite = self.suite()
-        runner = unittest.runner.TextTestRunner(verbosity=self.verbose)
+        runner = unittest.TextTestRunner(verbosity=self.verbose)
         runner.run(suite)
 
 class DocoptsTest(unittest.TestCase):
