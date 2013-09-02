@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import json
 import shutil
 import unittest
@@ -39,7 +40,8 @@ class run(Command):
             return
         suite = self.suite()
         runner = unittest.TextTestRunner(verbosity=self.verbose)
-        runner.run(suite)
+        result = runner.run(suite)
+        sys.exit(not result.wasSuccessful())
 
 class DocoptsTest(unittest.TestCase):
     
