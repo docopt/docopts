@@ -1,0 +1,2 @@
+#!/bin/bash
+alias bats="$PWD/bats/bin/bats"

@@ -8,9 +8,9 @@
 libpath=../
 source $libpath/docopts.sh
 
-help=$(get_help_string $0)
+help=$(docopt_get_help_string $0)
 version='0.1.1rc'
 
-parsed=$(docopt -A arguments "$help" $version)
+parsed=$(docopt -A args "$help" $version)
 echo "$parsed"
 eval "$parsed"

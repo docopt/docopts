@@ -1,7 +1,6 @@
 
- WARNING: The `upcoming 0.7.0 release of docopts
- <https://github.com/docopt/docopts/tree/develop>`_ will feature a completely
- different user interface.  Prepare for script breakage.
+ WARNING: This branch is a new dev branch, See: 
+ `API_proposal.md <https://github.com/Sylvain303/docopts/blob/shell-api-v2/API_proposal.md>`_ 
 
 ================================================================================
  docopts
