@@ -1,4 +1,4 @@
-# New API prosal for docopts - docopt on shell (bash)
+# New API proposal for docopts - docopt on shell (bash)
 
 Date: 2015-03-13
 
@@ -31,11 +31,12 @@ source $libpath/docopts.sh
 help=$(get_help_string $0)
 version='0.1.1rc'
 
+# $@ needs to be at the last param
 parsed=$(docopt -A args "$help" $version "$@")
 echo "$parsed"                                                                                            
 eval "$parsed"
 
-# Evaluating the parsed output, will create $arguments in the current scope.
+# Evaluating the parsed output, will create $args in the current scope.
 # It is an associative array the name is passed from the command line with -A
 # (same switch as bash: declare -A assoc)
 ~~~
@@ -84,4 +85,4 @@ arguments['<y>']='150'
 
 ## Limitations
 
-* repetable options with filename with space inside, will not be easily split on $IFS
+* repeatable options with filename with space inside, will not be easily split on $IFS
