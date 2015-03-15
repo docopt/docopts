@@ -37,7 +37,6 @@ EOF
     #  docopts [options] -h <msg> : [<argv>...]
     #$ echo $?
     #1
-
     run python3 $docopts
     #echo "$output" > log
     [[ ${#lines[@]} -eq 2 ]]
