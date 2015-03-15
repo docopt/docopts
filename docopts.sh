@@ -38,3 +38,34 @@ docopt_find_docopts() {
     echo ../docopts
     # will do: docopt_sh_dir="$.dirname $.readlink -f "${BASH_SOURCE[0]}"))"
 }
+
+# convert a repeatable option parsed by docopts.py into a bash ARRAY
+# Usage: myarray=( $(docopt_get_values args --repeatable-option"
+docopt_get_values() {
+    local opt=$2
+    local ref="\${$1[$opt,#]}"
+    local nb_val=$(eval echo "$ref")
+    local i=0
+    local vars=""
+    while [[ $i -lt $nb_val ]] ; do
+        ref="\${$1[$opt,$i]}"
+        eval "vars+=\" $ref\""
+        i=$(($i + 1))
+    done
+    echo $vars
+}
+
+# echo evaluable code to get alls the values into a bash array
+# Usage: eval "$(docopt_get_eval_array args FILE myarray)"
+docopt_get_eval_array() {
+    local ref="\${$1[$2,#]}"
+    local nb_val=$(eval echo "$ref")
+    local i=0
+    local vars=""
+    echo "declare -a $3"
+    while [[ $i -lt $nb_val ]] ; do
+        ref="\${$1[$2,$i]}"
+        eval "echo \"$3+=( '$ref' )\""
+        i=$(($i + 1))
+    done
+}
