@@ -139,21 +139,17 @@ fi
 #> except ImportError:
 #>     from io import StringIO
 #> 
-#> ### embbeded: from docopt import docopt, DocoptExit, DocoptLanguageError
-#> #> """Pythonic command-line interface parser that will make you smile.
-#> #> 
-#> #>  * http://docopt.org
-#> #>  * Repository and issue-tracker: https://github.com/docopt/docopt
-#> #>  * Licensed under terms of MIT license (see LICENSE-MIT)
-#> #>  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
-#> #> 
-#> #> """
-#> #> import sys
-#> #> import re
-#> #> 
-#> #> 
-#> #> __all__ = ['docopt']
-#> #> __version__ = '0.6.1'
+#> # embedded: from docopt import docopt, DocoptExit, DocoptLanguageError
+#> """Pythonic command-line interface parser that will make you smile.
+#> 
+#>  * http://docopt.org
+#>  * Repository and issue-tracker: https://github.com/docopt/docopt
+#>  * Licensed under terms of MIT license (see LICENSE-MIT)
+#>  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
+#> 
+#> """
+#> 
+#> 
 #> 
 #> 
 #> class DocoptLanguageError(Exception):
@@ -721,7 +717,6 @@ fi
 #>     if matched and left == []:  # better error message if left?
 #>         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
 #>     raise DocoptExit()
-#> 
 #> # ----------------------- end docopt.py ---------------------------
 #> 
 #> # helper functions
@@ -756,8 +751,6 @@ fi
 #>         raise ValueError(elem)
 #>     else:
 #>         return var
-#> 
-#> # ----------------------- MAIN -------------
 #> 
 #> # parse docopts's own arguments
 #> try:
