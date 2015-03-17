@@ -23,13 +23,10 @@ docopt_get_help_string() {
 }
 
 # function wrapper
+# Usage: same as docopts.py
 docopt() {
     #   docopts [options] -h <msg> : [<argv>...]
-    # find python docopts
-    local libexec="$docopt_sh_dir"
-    echo "echo \"# libexec=$libexec\""
-    # " fix vim hilight
-    # call python parser, require docopt.py
+    # call python parser on embedded code
     python3 <(sed -n -e '/^### EMBEDDED/,$ s/^#> // p' "$docopt_sh_me") "$@"
 }
 
@@ -70,6 +67,32 @@ docopt_get_eval_array() {
         i=$(($i + 1))
     done
 }
+
+# Auto parser for same docopts usage over script, or lazyness.
+# use this convention:
+#  - help string in: $help
+#  - Usage parse by docopt_get_help_string at beginning of the script
+#  - arguments evaluated at global level in: $args
+#  - no version information
+#  
+docopt_auto_parse() {
+    local script_fname=$1
+    shift
+    help="$(docopt_get_help_string "$script_fname")"
+    # $args assoc array must be declared outside on this function
+    # or it's scope will be local
+    docopt -A args -h "$help" : "$@" | grep -v -- 'declare -A args'
+}
+
+## main code
+# --auto : don't forget to pass $@
+# Usage: source docopts.sh --auto "$@"
+if [[ "$1" == "--auto" ]] ; then
+    shift
+    declare -A args
+    eval "$(docopt_auto_parse "${BASH_SOURCE[1]}" "$@")"
+fi
+
 
 # don't alter this code, this is the original python docopts + docopt.py
 ### EMBEDDED
