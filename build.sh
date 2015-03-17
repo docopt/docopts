@@ -2,13 +2,17 @@
 #
 # Build embedded docopt.py into docopts.sh
 
+# exit on error
+set -e
+
 echo "download: docopt.py form github…"
-wget -q -O docopt.py "https://raw.githubusercontent.com/docopt/docopt/master/docopt.py"
+wget --no-check-certificate -O docopt.py "https://raw.githubusercontent.com/docopt/docopt/master/docopt.py"
+
+[[ -s docopt.py ]]
 
 sourcef=docopts.sh
 embedded_mark='### EMBEDDED'
 
-set -e
 echo "merging docopt.py + docopts.py"
 # remove duplicate import and code
 sed -i -e '/^import sys/ d' \
