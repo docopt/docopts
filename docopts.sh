@@ -30,13 +30,6 @@ docopt() {
     python3 <(sed -n -e '/^### EMBEDDED/,$ s/^#> // p' "$docopt_sh_me") "$@"
 }
 
-docopt_find_docopts() {
-    # docopts is the python wrapper using docopt.py
-    # it is now embedded in docopts
-    echo ../docopts
-    # will do: docopt_sh_dir="$.dirname $.readlink -f "${BASH_SOURCE[0]}"))"
-}
-
 # convert a repeatable option parsed by docopts.py into a bash ARRAY
 # Usage: myarray=( $(docopt_get_values args --repeatable-option"
 docopt_get_values() {
