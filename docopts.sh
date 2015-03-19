@@ -27,7 +27,7 @@ docopt_get_help_string() {
 docopt() {
     #   docopts [options] -h <msg> : [<argv>...]
     # call python parser on embedded code
-    python3 <(sed -n -e '/^### EMBEDDED/,$ s/^#> // p' "$docopt_sh_me") "$@"
+    python <(sed -n -e '/^### EMBEDDED/,$ s/^#> // p' "$docopt_sh_me") "$@"
 }
 
 # convert a repeatable option parsed by docopts.py into a bash ARRAY
