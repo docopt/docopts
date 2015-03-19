@@ -31,7 +31,7 @@ docopt() {
 }
 
 # convert a repeatable option parsed by docopts.py into a bash ARRAY
-# Usage: myarray=( $(docopt_get_values args --repeatable-option"
+# Usage: myarray=( $(docopt_get_values args --repeatable-option") )
 docopt_get_values() {
     local opt=$2
     local ref="\${$1[$opt,#]}"
