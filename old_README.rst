@@ -1,7 +1,3 @@
-
- WARNING: This branch is a new dev branch, See: 
- `API_proposal.md <https://github.com/Sylvain303/docopts/blob/shell-api-v2/API_proposal.md>`_ 
-
 ================================================================================
  docopts
 ================================================================================
@@ -9,6 +5,7 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
+                Sylvain303@github.com
 :Date:           2013-02-07
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
 :Version:        0.6.1+fix

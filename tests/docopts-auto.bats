@@ -45,7 +45,7 @@ EOF
     [[ -f $tmp ]]
     chmod a+x $tmp
     run $tmp prout
-    echo "$output" >> log
+    # echo "$output" >> log
     [[ "$output" == prout ]]
     rm $tmp
 }
