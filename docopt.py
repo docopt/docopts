@@ -6,12 +6,8 @@
  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
 
 """
-import sys
-import re
 
 
-__all__ = ['docopt']
-__version__ = '0.6.1'
 
 
 class DocoptLanguageError(Exception):

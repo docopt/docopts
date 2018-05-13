@@ -42,4 +42,6 @@ sed -i -e "/^$embedded_mark/,\$ d" $sourcef
 echo "add marker and reembbed code"
 echo "$embedded_mark" >> $sourcef
 sed -e "s/^/#> /" docopts.py >> $sourcef
+# remove ending blanks there's a TAB + space in the [] below
+sed -i -e 's/[ 	]\+$//g' $sourcef
 
