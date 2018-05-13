@@ -1,9 +1,9 @@
-#!/bin/bash 
+#!/bin/bash
 # vim: set et sw=4 ts=4 sts=4:
 #
 # docopt for bash
 #
-# Usage: See API_proposal.md
+# Usage:
 #   source path/to/docopt.sh
 #   docopt -A args -h "$help" -v $version : "$@"
 #
@@ -13,13 +13,35 @@
 docopt_sh_me=$(readlink -f "${BASH_SOURCE[0]}")
 docopt_sh_dir="$(dirname "$docopt_sh_me")"
 
-# fetch Usage: from the given filname
+# fetch Usage: from the given filename
 # usually $0 in the main level script
 docopt_get_help_string() {
     local myfname=$1
-    # filter the block (all blocks) starting at a "# Usage:" and ending 
+    # filter the block (/!\ all blocks) starting at a "# Usage:" and ending
     # at an empty line, one level of comment markup is removed
+    #
+    ## sed -n -e '/^# Usage:/,/\(^# \?----\|^$\)/ { /----/ d; s/^# \?//p }' rock_no-stdin_example.sh
+
+    # -n : no print output
+    # -e : pass sed code inline
+    # /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
+    #  s/^# \?// : substitute comment marker and an optional space
+    #  p : print
     sed -n -e '/^# Usage:/,/^$/ s/^# \?//p' < $myfname
+}
+
+# fetch version information from the given filename or string
+# usually $0 in the main level script, or the help string extacted
+# by docopt_get_help_string()
+docopt_get_version_string() {
+    if [[ -f "$1" ]] ; then
+        # filter the block (all blocks) starting at a "# Usage:" and ending
+        # at an empty line, one level of comment markup is removed
+        sed -n -e '/^# ----/,/^$/ s/^# \?//p' < "$1"
+    else
+        # use docopts.py --separator behavior
+        echo "$1"
+    fi
 }
 
 # function wrapper
@@ -67,7 +89,7 @@ docopt_get_eval_array() {
 #  - Usage parse by docopt_get_help_string at beginning of the script
 #  - arguments evaluated at global level in: $args
 #  - no version information
-#  
+#
 docopt_auto_parse() {
     local script_fname=$1
     shift
@@ -92,12 +114,12 @@ fi
 #> #!/usr/bin/env python
 #> # -*- coding: utf-8 -*-
 #> # vim: set ts=4 sw=4 sts=4 et:
-#> 
+#>
 #> __doc__ = """Shell interface for docopt, the CLI description language.
-#> 
+#>
 #> Usage:
 #>   docopts [options] -h <msg> : [<argv>...]
-#> 
+#>
 #> Options:
 #>   -h <msg>, --help=<msg>        The help message in docopt format.
 #>                                 If - is given, read the help message from
@@ -120,66 +142,66 @@ fi
 #>   -s <str>, --separator=<str>   The string to use to separate the help message
 #>                                 from the version message when both are given
 #>                                 via standard input. [default: ----]
-#> 
+#>
 #> """
-#> 
+#>
 #> __version__ = """docopts 0.6.1+fix
 #> Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 #> License MIT <http://opensource.org/licenses/MIT>.
 #> This is free software: you are free to change and redistribute it.
 #> There is NO WARRANTY, to the extent permitted by law.
-#> 
+#>
 #> """
-#> 
+#>
 #> import re
 #> import sys
-#> 
+#>
 #> try:
 #>     from cStringIO import StringIO
 #> except ImportError:
 #>     from io import StringIO
-#> 
+#>
 #> # embedded: from docopt import docopt, DocoptExit, DocoptLanguageError
 #> """Pythonic command-line interface parser that will make you smile.
-#> 
+#>
 #>  * http://docopt.org
 #>  * Repository and issue-tracker: https://github.com/docopt/docopt
 #>  * Licensed under terms of MIT license (see LICENSE-MIT)
 #>  * Copyright (c) 2013 Vladimir Keleshev, vladimir@keleshev.com
-#> 
+#>
 #> """
-#> 
-#> 
-#> 
-#> 
+#>
+#>
+#>
+#>
 #> class DocoptLanguageError(Exception):
-#> 
+#>
 #>     """Error in construction of usage-message by developer."""
-#> 
-#> 
+#>
+#>
 #> class DocoptExit(SystemExit):
-#> 
+#>
 #>     """Exit in case user invoked program with incorrect arguments."""
-#> 
+#>
 #>     usage = ''
-#> 
+#>
 #>     def __init__(self, message=''):
 #>         SystemExit.__init__(self, (message + '\n' + self.usage).strip())
-#> 
-#> 
+#>
+#>
 #> class Pattern(object):
-#> 
+#>
 #>     def __eq__(self, other):
 #>         return repr(self) == repr(other)
-#> 
+#>
 #>     def __hash__(self):
 #>         return hash(repr(self))
-#> 
+#>
 #>     def fix(self):
 #>         self.fix_identities()
 #>         self.fix_repeating_arguments()
 #>         return self
-#> 
+#>
 #>     def fix_identities(self, uniq=None):
 #>         """Make pattern-tree tips point to same object if they are equal."""
 #>         if not hasattr(self, 'children'):
@@ -191,7 +213,7 @@ fi
 #>                 self.children[i] = uniq[uniq.index(child)]
 #>             else:
 #>                 child.fix_identities(uniq)
-#> 
+#>
 #>     def fix_repeating_arguments(self):
 #>         """Fix elements that should accumulate/increment values."""
 #>         either = [list(child.children) for child in transform(self).children]
@@ -205,14 +227,14 @@ fi
 #>                 if type(e) is Command or type(e) is Option and e.argcount == 0:
 #>                     e.value = 0
 #>         return self
-#> 
-#> 
+#>
+#>
 #> def transform(pattern):
 #>     """Expand pattern into an (almost) equivalent one, but with single Either.
-#> 
+#>
 #>     Example: ((-a | -b) (-c | -d)) => (-a -c | -a -d | -b -c | -b -d)
 #>     Quirks: [-a] => (-a), (-a...) => (-a -a)
-#> 
+#>
 #>     """
 #>     result = []
 #>     groups = [[pattern]]
@@ -232,21 +254,21 @@ fi
 #>         else:
 #>             result.append(children)
 #>     return Either(*[Required(*e) for e in result])
-#> 
-#> 
+#>
+#>
 #> class LeafPattern(Pattern):
-#> 
+#>
 #>     """Leaf/terminal node of a pattern tree."""
-#> 
+#>
 #>     def __init__(self, name, value=None):
 #>         self.name, self.value = name, value
-#> 
+#>
 #>     def __repr__(self):
 #>         return '%s(%r, %r)' % (self.__class__.__name__, self.name, self.value)
-#> 
+#>
 #>     def flat(self, *types):
 #>         return [self] if not types or type(self) in types else []
-#> 
+#>
 #>     def match(self, left, collected=None):
 #>         collected = [] if collected is None else collected
 #>         pos, match = self.single_match(left)
@@ -266,45 +288,45 @@ fi
 #>             same_name[0].value += increment
 #>             return True, left_, collected
 #>         return True, left_, collected + [match]
-#> 
-#> 
+#>
+#>
 #> class BranchPattern(Pattern):
-#> 
+#>
 #>     """Branch/inner node of a pattern tree."""
-#> 
+#>
 #>     def __init__(self, *children):
 #>         self.children = list(children)
-#> 
+#>
 #>     def __repr__(self):
 #>         return '%s(%s)' % (self.__class__.__name__,
 #>                            ', '.join(repr(a) for a in self.children))
-#> 
+#>
 #>     def flat(self, *types):
 #>         if type(self) in types:
 #>             return [self]
 #>         return sum([child.flat(*types) for child in self.children], [])
-#> 
-#> 
+#>
+#>
 #> class Argument(LeafPattern):
-#> 
+#>
 #>     def single_match(self, left):
 #>         for n, pattern in enumerate(left):
 #>             if type(pattern) is Argument:
 #>                 return n, Argument(self.name, pattern.value)
 #>         return None, None
-#> 
+#>
 #>     @classmethod
 #>     def parse(class_, source):
 #>         name = re.findall('(<\S*?>)', source)[0]
 #>         value = re.findall('\[default: (.*)\]', source, flags=re.I)
 #>         return class_(name, value[0] if value else None)
-#> 
-#> 
+#>
+#>
 #> class Command(Argument):
-#> 
+#>
 #>     def __init__(self, name, value=False):
 #>         self.name, self.value = name, value
-#> 
+#>
 #>     def single_match(self, left):
 #>         for n, pattern in enumerate(left):
 #>             if type(pattern) is Argument:
@@ -313,15 +335,15 @@ fi
 #>                 else:
 #>                     break
 #>         return None, None
-#> 
-#> 
+#>
+#>
 #> class Option(LeafPattern):
-#> 
+#>
 #>     def __init__(self, short=None, long=None, argcount=0, value=False):
 #>         assert argcount in (0, 1)
 #>         self.short, self.long, self.argcount = short, long, argcount
 #>         self.value = None if value is False and argcount else value
-#> 
+#>
 #>     @classmethod
 #>     def parse(class_, option_description):
 #>         short, long, argcount, value = None, None, 0, False
@@ -338,24 +360,24 @@ fi
 #>             matched = re.findall('\[default: (.*)\]', description, flags=re.I)
 #>             value = matched[0] if matched else None
 #>         return class_(short, long, argcount, value)
-#> 
+#>
 #>     def single_match(self, left):
 #>         for n, pattern in enumerate(left):
 #>             if self.name == pattern.name:
 #>                 return n, pattern
 #>         return None, None
-#> 
+#>
 #>     @property
 #>     def name(self):
 #>         return self.long or self.short
-#> 
+#>
 #>     def __repr__(self):
 #>         return 'Option(%r, %r, %r, %r)' % (self.short, self.long,
 #>                                            self.argcount, self.value)
-#> 
-#> 
+#>
+#>
 #> class Required(BranchPattern):
-#> 
+#>
 #>     def match(self, left, collected=None):
 #>         collected = [] if collected is None else collected
 #>         l = left
@@ -365,24 +387,24 @@ fi
 #>             if not matched:
 #>                 return False, left, collected
 #>         return True, l, c
-#> 
-#> 
+#>
+#>
 #> class Optional(BranchPattern):
-#> 
+#>
 #>     def match(self, left, collected=None):
 #>         collected = [] if collected is None else collected
 #>         for pattern in self.children:
 #>             m, left, collected = pattern.match(left, collected)
 #>         return True, left, collected
-#> 
-#> 
+#>
+#>
 #> class OptionsShortcut(Optional):
-#> 
+#>
 #>     """Marker/placeholder for [options] shortcut."""
-#> 
-#> 
+#>
+#>
 #> class OneOrMore(BranchPattern):
-#> 
+#>
 #>     def match(self, left, collected=None):
 #>         assert len(self.children) == 1
 #>         collected = [] if collected is None else collected
@@ -401,10 +423,10 @@ fi
 #>         if times >= 1:
 #>             return True, l, c
 #>         return False, left, collected
-#> 
-#> 
+#>
+#>
 #> class Either(BranchPattern):
-#> 
+#>
 #>     def match(self, left, collected=None):
 #>         collected = [] if collected is None else collected
 #>         outcomes = []
@@ -415,27 +437,27 @@ fi
 #>         if outcomes:
 #>             return min(outcomes, key=lambda outcome: len(outcome[1]))
 #>         return False, left, collected
-#> 
-#> 
+#>
+#>
 #> class Tokens(list):
-#> 
+#>
 #>     def __init__(self, source, error=DocoptExit):
 #>         self += source.split() if hasattr(source, 'split') else source
 #>         self.error = error
-#> 
+#>
 #>     @staticmethod
 #>     def from_pattern(source):
 #>         source = re.sub(r'([\[\]\(\)\|]|\.\.\.)', r' \1 ', source)
 #>         source = [s for s in re.split('\s+|(\S*<.*?>)', source) if s]
 #>         return Tokens(source, error=DocoptLanguageError)
-#> 
+#>
 #>     def move(self):
 #>         return self.pop(0) if len(self) else None
-#> 
+#>
 #>     def current(self):
 #>         return self[0] if len(self) else None
-#> 
-#> 
+#>
+#>
 #> def parse_long(tokens, options):
 #>     """long ::= '--' chars [ ( ' ' | '=' ) chars ] ;"""
 #>     long, eq, value = tokens.move().partition('=')
@@ -467,8 +489,8 @@ fi
 #>         if tokens.error is DocoptExit:
 #>             o.value = value if value is not None else True
 #>     return [o]
-#> 
-#> 
+#>
+#>
 #> def parse_shorts(tokens, options):
 #>     """shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;"""
 #>     token = tokens.move()
@@ -502,16 +524,16 @@ fi
 #>                 o.value = value if value is not None else True
 #>         parsed.append(o)
 #>     return parsed
-#> 
-#> 
+#>
+#>
 #> def parse_pattern(source, options):
 #>     tokens = Tokens.from_pattern(source)
 #>     result = parse_expr(tokens, options)
 #>     if tokens.current() is not None:
 #>         raise tokens.error('unexpected ending: %r' % ' '.join(tokens))
 #>     return Required(*result)
-#> 
-#> 
+#>
+#>
 #> def parse_expr(tokens, options):
 #>     """expr ::= seq ( '|' seq )* ;"""
 #>     seq = parse_seq(tokens, options)
@@ -523,8 +545,8 @@ fi
 #>         seq = parse_seq(tokens, options)
 #>         result += [Required(*seq)] if len(seq) > 1 else seq
 #>     return [Either(*result)] if len(result) > 1 else result
-#> 
-#> 
+#>
+#>
 #> def parse_seq(tokens, options):
 #>     """seq ::= ( atom [ '...' ] )* ;"""
 #>     result = []
@@ -535,8 +557,8 @@ fi
 #>             tokens.move()
 #>         result += atom
 #>     return result
-#> 
-#> 
+#>
+#>
 #> def parse_atom(tokens, options):
 #>     """atom ::= '(' expr ')' | '[' expr ']' | 'options'
 #>              | long | shorts | argument | command ;
@@ -561,16 +583,16 @@ fi
 #>         return [Argument(tokens.move())]
 #>     else:
 #>         return [Command(tokens.move())]
-#> 
-#> 
+#>
+#>
 #> def parse_argv(tokens, options, options_first=False):
 #>     """Parse command-line argument vector.
-#> 
+#>
 #>     If options_first:
 #>         argv ::= [ long | shorts ]* [ argument ]* [ '--' [ argument ]* ] ;
 #>     else:
 #>         argv ::= [ long | shorts | argument ]* [ '--' [ argument ]* ] ;
-#> 
+#>
 #>     """
 #>     parsed = []
 #>     while tokens.current() is not None:
@@ -585,8 +607,8 @@ fi
 #>         else:
 #>             parsed.append(Argument(None, tokens.move()))
 #>     return parsed
-#> 
-#> 
+#>
+#>
 #> def parse_defaults(doc):
 #>     defaults = []
 #>     for s in parse_section('options:', doc):
@@ -597,20 +619,20 @@ fi
 #>         options = [Option.parse(s) for s in split if s.startswith('-')]
 #>         defaults += options
 #>     return defaults
-#> 
-#> 
+#>
+#>
 #> def parse_section(name, source):
 #>     pattern = re.compile('^([^\n]*' + name + '[^\n]*\n?(?:[ \t].*?(?:\n|$))*)',
 #>                          re.IGNORECASE | re.MULTILINE)
 #>     return [s.strip() for s in pattern.findall(source)]
-#> 
-#> 
+#>
+#>
 #> def formal_usage(section):
 #>     _, _, section = section.partition(':')  # drop "usage:"
 #>     pu = section.split()
 #>     return '( ' + ' '.join(') | (' if s == pu[0] else s for s in pu[1:]) + ' )'
-#> 
-#> 
+#>
+#>
 #> def extras(help, version, options, doc):
 #>     if help and any((o.name in ('-h', '--help')) and o.value for o in options):
 #>         print(doc.strip("\n"))
@@ -618,21 +640,21 @@ fi
 #>     if version and any(o.name == '--version' and o.value for o in options):
 #>         print(version)
 #>         sys.exit()
-#> 
-#> 
+#>
+#>
 #> class Dict(dict):
 #>     def __repr__(self):
 #>         return '{%s}' % ',\n '.join('%r: %r' % i for i in sorted(self.items()))
-#> 
-#> 
+#>
+#>
 #> def docopt(doc, argv=None, help=True, version=None, options_first=False):
 #>     """Parse `argv` based on command-line interface described in `doc`.
-#> 
+#>
 #>     `docopt` creates your command-line interface based on its
 #>     description that you pass as `doc`. Such description can contain
 #>     --options, <positional-argument>, commands, which could be
 #>     [optional], (required), (mutually | exclusive) or repeated...
-#> 
+#>
 #>     Parameters
 #>     ----------
 #>     doc : str
@@ -649,14 +671,14 @@ fi
 #>     options_first : bool (default: False)
 #>         Set to True to require options precede positional arguments,
 #>         i.e. to forbid options and positional arguments intermix.
-#> 
+#>
 #>     Returns
 #>     -------
 #>     args : dict
 #>         A dictionary, where keys are names of command-line elements
 #>         such as e.g. "--verbose" and "<path>", and values are the
 #>         parsed values of those elements.
-#> 
+#>
 #>     Example
 #>     -------
 #>     >>> from docopt import docopt
@@ -680,23 +702,23 @@ fi
 #>      '<port>': '80',
 #>      'serial': False,
 #>      'tcp': True}
-#> 
+#>
 #>     See also
 #>     --------
 #>     * For video introduction see http://docopt.org
 #>     * Full documentation is available in README.rst as well as online
 #>       at https://github.com/docopt/docopt#readme
-#> 
+#>
 #>     """
 #>     argv = sys.argv[1:] if argv is None else argv
-#> 
+#>
 #>     usage_sections = parse_section('usage:', doc)
 #>     if len(usage_sections) == 0:
 #>         raise DocoptLanguageError('"usage:" (case-insensitive) not found.')
 #>     if len(usage_sections) > 1:
 #>         raise DocoptLanguageError('More than one "usage:" (case-insensitive).')
 #>     DocoptExit.usage = usage_sections[0]
-#> 
+#>
 #>     options = parse_defaults(doc)
 #>     pattern = parse_pattern(formal_usage(DocoptExit.usage), options)
 #>     # [default] syntax for argument is disabled
@@ -718,14 +740,14 @@ fi
 #>         return Dict((a.name, a.value) for a in (pattern.flat() + collected))
 #>     raise DocoptExit()
 #> # ----------------------- end docopt.py ---------------------------
-#> 
+#>
 #> # helper functions
 #> def shellquote(s):
 #>     return "'" + s.replace("'", r"'\''") + "'"
-#> 
+#>
 #> def isbashidentifier(s):
 #>     return re.match(r'^([A-Za-z]|[A-Za-z_][0-9A-Za-z_]+)$', s)
-#> 
+#>
 #> def to_bash(obj):
 #>     return {
 #>         type(None): lambda x: '',
@@ -734,7 +756,7 @@ fi
 #>         str:        lambda x: shellquote(x),
 #>         list:       lambda x: '(' + ' '.join(map(shellquote, x)) + ')',
 #>     }[type(obj)](obj)
-#> 
+#>
 #> def name_mangle(elem):
 #>     if elem == '-' or elem == '--':
 #>         return None
@@ -751,7 +773,7 @@ fi
 #>         raise ValueError(elem)
 #>     else:
 #>         return var
-#> 
+#>
 #> # parse docopts's own arguments
 #> try:
 #>     args = docopt(__doc__, help=False, options_first=True)
@@ -765,7 +787,7 @@ fi
 #>         sys.exit()
 #>     else:
 #>         sys.exit(message)
-#> 
+#>
 #> argv = args['<argv>']
 #> doc = args['--help']
 #> version = args['--version']
@@ -773,7 +795,7 @@ fi
 #> help = not args['--no-help']
 #> name = args['-A']
 #> separator = args['--separator']
-#> 
+#>
 #> if doc == '-' and version == '-':
 #>     doc, version = (page.strip() for page in
 #>                     sys.stdin.read().split(separator, 1))
@@ -781,7 +803,7 @@ fi
 #>     doc = sys.stdin.read().strip()
 #> elif version == '-':
 #>     version = sys.stdin.read().strip()
-#> 
+#>
 #> # parse options or abort if there is an error in docopt
 #> try:
 #>     # temporarily redirect stdout to a StringIO so we can catch docopt()
@@ -806,7 +828,7 @@ fi
 #>     if exit_message:
 #>         print(exit_message)
 #>         sys.exit()
-#> 
+#>
 #> if name is not None:
 #>     if not isbashidentifier(name):
 #>         sys.exit("%s: not a valid Bash identifier: %s" % (sys.argv[0], name))
