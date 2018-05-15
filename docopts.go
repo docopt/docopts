@@ -52,7 +52,7 @@ There is NO WARRANTY, to the extent permitted by law.
 // debug helper
 func print_args(args docopt.Opts) {
     for key, value := range args {
-        fmt.Printf("%20s : %s\n", key, value)
+        fmt.Printf("%20s : %v\n", key, value)
     }
     fmt.Println("----------------------------------------")
 }
@@ -77,17 +77,18 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
                 // empty
                 fmt.Printf("%s['%s']=''\n", bash_assoc, shellquote(key))
             case 1:
-                fmt.Printf("%s['%s']='%s'\n", bash_assoc, shellquote(key), to_bash(val_arr[0]))
+                // quoting assignment is driven by to_bash()
+                fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(val_arr[0]))
             default:
                 for index, v := range val_arr {
-                    fmt.Printf("%s['%s,%d']='%s'\n", bash_assoc, shellquote(key), index, to_bash(v))
+                    fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, shellquote(key), index, to_bash(v))
                 }
                 // size of the array
                 fmt.Printf("%s['%s,#']=%d\n", bash_assoc, shellquote(key), len(val_arr))
             }
         } else {
             // value is not an array
-            fmt.Printf("%s['%s']='%s'\n", bash_assoc, shellquote(key), value)
+            fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(value))
         }
     }
 }
@@ -120,11 +121,11 @@ func to_bash(v interface{}) string {
     var s string
     switch v.(type) {
         case bool:
-            s = fmt.Sprintf("%b", v.(bool))
+            s = fmt.Sprintf("%v", v.(bool))
         case int:
             s = fmt.Sprintf("%d", v.(int))
         case string:
-            s = shellquote(v.(string))
+            s = fmt.Sprintf("'%s'", shellquote(v.(string)))
         case []string:
             // escape all strings
             arr := v.([]string)
@@ -144,7 +145,7 @@ func print_bash_global(args docopt.Opts) {
     for key, value := range args {
         new_name, err := name_mangle(key)
         if err == nil {
-            fmt.Printf("%s='%s'\n", new_name, to_bash(value))
+            fmt.Printf("%s=%s\n", new_name, to_bash(value))
         }
     }
 }
@@ -175,6 +176,7 @@ func name_mangle(elem string) (string, error) {
     return v, nil
 }
 
+// helper for lazy typing
 func Match(regex string, source string) bool {
     matched, _ := regexp.MatchString(regex, source)
     return matched
