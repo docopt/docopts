@@ -1,5 +1,5 @@
 #!/bin/bash
-# vim: set ts=4 sw=4 sts=4 ft=sh:
+# vim: set et ts=4 sw=4 sts=4 ft=sh:
 #
 # unit test with bats
 # test sourcing and auto parse header
@@ -15,32 +15,35 @@ source ../docopts.sh --auto "$@"
 
 echo "${args[INFILE]}"
 EOF
-	echo $tmp
+    echo $tmp
 }
 
+# to be sure to find docopts binray in the $PATH
+PATH=..:$PATH
 
-@test "docopt_auto_parse internal" {
+@test "docopt_auto_parse testing internal" {
     # internal
     source ../docopts.sh
     [[ ! -z "$docopt_sh_me" ]]
     mktmp
-	[[ ! -z "$tmp" ]]
-	unset args
-	unset help
-	declare -A args
-	run docopt_auto_parse $tmp
-	[[ ! -z "$output" ]]
-	regexp="^echo 'Usage:"
-	[[ "${lines[0]}" =~ $regexp ]] 
-	run docopt_auto_parse $tmp --opt afilename
-	regexp='^args\[[^]]+\]'
-	[[ "${lines[0]}" =~ $regexp ]] 
-	run docopt_auto_parse $tmp afilename
-	[[ "${lines[0]}" =~ $regexp ]] 
-	rm $tmp
+    [[ ! -z "$tmp" ]]
+    unset args
+    unset help
+    declare -A args
+    # auto call help without argument
+    run docopt_auto_parse $tmp
+    [[ ! -z "$output" ]]
+    regexp="^echo 'Usage:"
+    [[ "${lines[0]}" =~ $regexp ]]
+    run docopt_auto_parse $tmp --opt afilename
+    regexp='^args\[[^]]+\]'
+    [[ "${lines[0]}" =~ $regexp ]]
+    run docopt_auto_parse $tmp afilename
+    [[ "${lines[0]}" =~ $regexp ]]
+    rm $tmp
 }
 
-@test "docopt_auto_parse external" {
+@test "docopt_auto_parse functionnal testing" {
     mktmp
     [[ -f $tmp ]]
     chmod a+x $tmp

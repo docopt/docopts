@@ -5,6 +5,9 @@
 # exit on error
 set -e
 
+echo "no build"
+exit 0
+
 echo "download: docopt.py form github…"
 wget --no-check-certificate -O docopt.py "https://raw.githubusercontent.com/docopt/docopt/master/docopt.py"
 

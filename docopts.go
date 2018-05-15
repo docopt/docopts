@@ -5,11 +5,12 @@
 package main
 
 import (
-	"fmt"
-	"github.com/docopt/docopt-go"
+    "fmt"
+    "github.com/docopt/docopt-go"
     "regexp"
     "strings"
-	"reflect"
+    "reflect"
+    "os"
 )
 
 var Version string = "docopts 0.6.3"
@@ -40,6 +41,7 @@ Options:
   -s <str>, --separator=<str>   The string to use to separate the help message
                                 from the version message when both are given
                                 via standard input. [default: ----]
+  --debug                       Output extra parsing information for debuging.
 
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
@@ -51,8 +53,8 @@ There is NO WARRANTY, to the extent permitted by law.
 func print_args(args docopt.Opts) {
     for key, value := range args {
         fmt.Printf("%20s : %s\n", key, value)
-	}
-	fmt.Println("----------------------------------------")
+    }
+    fmt.Println("----------------------------------------")
 }
 
 // output assoc array output
@@ -68,7 +70,7 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
     for key, value := range args {
         // some golang tricks here using reflection to loop over the map[]
         rt := reflect.TypeOf(value)
-		if isArray(rt) {
+        if isArray(rt) {
             val_arr := value.([]string)
             switch len(val_arr) {
             case 0:
@@ -87,7 +89,7 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
             // value is not an array
             fmt.Printf("%s['%s']='%s'\n", bash_assoc, shellquote(key), value)
         }
-	}
+    }
 }
 
 // test if a value is an array
@@ -95,14 +97,14 @@ func isArray(rt reflect.Type) bool {
     if rt == nil {
         return false
     }
-	switch rt.Kind() {
-	case reflect.Slice:
-		return true
-	case reflect.Array:
-		return true
-	default:
-		return false
-	}
+    switch rt.Kind() {
+    case reflect.Slice:
+        return true
+    case reflect.Array:
+        return true
+    default:
+        return false
+    }
 }
 
 func shellquote(s string) string {
@@ -144,7 +146,7 @@ func print_bash_global(args docopt.Opts) {
         if err == nil {
             fmt.Printf("%s='%s'\n", new_name, to_bash(value))
         }
-	}
+    }
 }
 
 func name_mangle(elem string) (string, error) {
@@ -174,30 +176,44 @@ func name_mangle(elem string) (string, error) {
 }
 
 func Match(regex string, source string) bool {
-	matched, _ := regexp.MatchString(regex, source)
-	return matched
+    matched, _ := regexp.MatchString(regex, source)
+    return matched
+}
+
+// our HelpHandler which outputs bash code to be evaled as error and stop or
+// display program's help or version
+// TODO: handle return or kill instead of exit so it can be launched inside a function
+var HelpHandler_for_bash_eval = func(err error, usage string) {
+    if err != nil {
+        fmt.Printf("echo '%s' >&2\n;exit 64\n", shellquote(usage))
+        os.Exit(1)
+    } else {
+        // --help or --version found and --no-help was not given
+        fmt.Printf("echo '%s'\n;exit 0\n",  shellquote(usage))
+        os.Exit(0)
+    }
 }
 
 func main() {
-	arguments, err := docopt.ParseArgs(Usage, nil, Version)
+    arguments, err := docopt.ParseArgs(Usage, nil, Version)
+
+    debug := arguments["--debug"].(bool)
     if err == nil {
-        print_args(arguments)
+        if debug {
+            print_args(arguments)
+        }
     } else {
         fmt.Println(err)
         return
     }
 
     // parse docopts's own arguments
-
     argv := arguments["<argv>"].([]string)
     doc := arguments["--help-mesg"].(string)
     bash_version, _ := arguments.String("--version")
-
-    // available in go, with "OptionsFirst: true,"
-    //
-    // options_first := arguments["--options-first"].(bool)
-    //no_help := ! arguments["--no-help"].(bool)
-    // separator := arguments["--separator"].(string)
+    options_first := arguments["--options-first"].(bool)
+    no_help := ! arguments["--no-help"].(bool)
+    //separator := arguments["--separator"].(string)
 
     // read from stdin
     //if doc == "-" and version == "-":
@@ -208,9 +224,18 @@ func main() {
     //elif version == "-":
     //    version = sys.stdin.read().strip()
 
-    bash_args, err := docopt.ParseArgs(doc, argv, bash_version)
+    // now parse bash program's arguments
+    // we handle our help output for bash eval
+    parser := &docopt.Parser{
+      HelpHandler: HelpHandler_for_bash_eval,
+      OptionsFirst: options_first,
+      SkipHelpFlags: no_help,
+    }
+    bash_args, err := parser.ParseArgs(doc, argv, bash_version)
     if err == nil {
-        print_args(bash_args)
+        if debug {
+            print_args(arguments)
+        }
     }
 
     name, err := arguments.String("-A")
@@ -219,12 +244,9 @@ func main() {
             fmt.Printf("-A: not a valid Bash identifier: %s", name)
             return
         }
-
         print_bash_args(name, bash_args)
     } else {
+        // TODO: add global prefix
         print_bash_global(bash_args)
     }
 }
-
-
-
