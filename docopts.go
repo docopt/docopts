@@ -120,22 +120,24 @@ func isbashidentifier(s string) bool {
 func to_bash(v interface{}) string {
     var s string
     switch v.(type) {
-        case bool:
-            s = fmt.Sprintf("%v", v.(bool))
-        case int:
-            s = fmt.Sprintf("%d", v.(int))
-        case string:
-            s = fmt.Sprintf("'%s'", shellquote(v.(string)))
-        case []string:
-            // escape all strings
-            arr := v.([]string)
-            arr_out := make([]string, len(arr))
-            for i, e := range arr {
-                arr_out[i] = shellquote(e)
-            }
-            s = fmt.Sprintf("('%s')", strings.Join(arr_out[:],"', '"))
-        default:
-            panic("unsported type")
+    case bool:
+        s = fmt.Sprintf("%v", v.(bool))
+    case int:
+        s = fmt.Sprintf("%d", v.(int))
+    case string:
+        s = fmt.Sprintf("'%s'", shellquote(v.(string)))
+    case []string:
+        // escape all strings
+        arr := v.([]string)
+        arr_out := make([]string, len(arr))
+        for i, e := range arr {
+            arr_out[i] = shellquote(e)
+        }
+        s = fmt.Sprintf("('%s')", strings.Join(arr_out[:],"', '"))
+    case nil:
+        s = ""
+    default:
+        panic(fmt.Sprintf("to_bash():unsuported type: %v", reflect.TypeOf(v) ))
     }
 
     return s
@@ -170,7 +172,7 @@ func name_mangle(elem string) (string, error) {
     v = strings.Replace(v, "-", "_", -1)
 
     if ! isbashidentifier(v) {
-        return "", fmt.Errorf("not bash identifier: %s", elem)
+        return "", fmt.Errorf("cannot transform into a bash identifier: %s", elem)
     }
 
     return v, nil
@@ -227,7 +229,6 @@ func main() {
     //    version = sys.stdin.read().strip()
 
     // now parse bash program's arguments
-    // we handle our help output for bash eval
     parser := &docopt.Parser{
       HelpHandler: HelpHandler_for_bash_eval,
       OptionsFirst: options_first,
@@ -236,19 +237,18 @@ func main() {
     bash_args, err := parser.ParseArgs(doc, argv, bash_version)
     if err == nil {
         if debug {
-            print_args(arguments)
+            print_args(bash_args)
         }
-    }
-
-    name, err := arguments.String("-A")
-    if err == nil {
-        if ! isbashidentifier(name) {
-            fmt.Printf("-A: not a valid Bash identifier: %s", name)
-            return
+        name, err := arguments.String("-A")
+        if err == nil {
+            if ! isbashidentifier(name) {
+                fmt.Printf("-A: not a valid Bash identifier: %s", name)
+                return
+            }
+            print_bash_args(name, bash_args)
+        } else {
+            // TODO: add global prefix
+            print_bash_global(bash_args)
         }
-        print_bash_args(name, bash_args)
-    } else {
-        // TODO: add global prefix
-        print_bash_global(bash_args)
     }
 }
