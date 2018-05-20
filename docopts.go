@@ -11,6 +11,7 @@ import (
     "strings"
     "reflect"
     "os"
+    "io/ioutil"
 )
 
 var Version string = "docopts 0.6.3"
@@ -218,16 +219,32 @@ func main() {
     bash_version, _ := arguments.String("--version")
     options_first := arguments["--options-first"].(bool)
     no_help :=  arguments["--no-help"].(bool)
-    //separator := arguments["--separator"].(string)
+    separator := arguments["--separator"].(string)
 
     // read from stdin
-    //if doc == "-" and version == "-":
-    //    doc, version = (page.strip() for page in
-    //                    sys.stdin.read().split(separator, 1))
-    //elif doc == "-":
-    //    doc = sys.stdin.read().strip()
-    //elif version == "-":
-    //    version = sys.stdin.read().strip()
+    if doc == "-" && bash_version == "-" {
+        bytes, _ := ioutil.ReadAll(os.Stdin)
+        arr := strings.Split(string(bytes), separator)
+        if len(arr) == 2 {
+            doc, bash_version = arr[0], arr[1]
+        } else {
+            msg := "error: help + version stdin, not found"
+            if debug {
+                msg += fmt.Sprintf("\nseparator is: '%s'\n", separator)
+                msg += fmt.Sprintf("spliting has given %d blocs, exactly 2 are expected\n", len(arr))
+            }
+            panic(msg)
+        }
+    } else if doc == "-" {
+        bytes, _ := ioutil.ReadAll(os.Stdin)
+        doc = string(bytes)
+    } else if bash_version == "-" {
+        bytes, _ := ioutil.ReadAll(os.Stdin)
+        bash_version = string(bytes)
+    }
+
+    doc = strings.TrimSpace(doc)
+    bash_version = strings.TrimSpace(bash_version)
 
     // now parse bash program's arguments
     parser := &docopt.Parser{
