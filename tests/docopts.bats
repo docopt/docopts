@@ -1,7 +1,8 @@
 #!/bin/bash
 # vim: set ts=4 sw=4 sts=4 ft=sh
 #
-# unit test with bats
+# unit test for bash helpers in docopts.sh
+# run with bats
 #
 
 source ../docopts.sh

@@ -102,6 +102,8 @@ docopt_auto_parse() {
     # $args[] assoc array must be declared outside on this function
     # or it's scope will be local, that's why we filtering it out.
     docopts -A args --help-mesg="$help" -- "$@" | grep -v -- 'declare -A args'
+    # returns the status of the docopts command, not grep status
+    return ${PIPESTATUS[0]}
 }
 
 ## main code

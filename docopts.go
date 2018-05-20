@@ -189,11 +189,11 @@ func Match(regex string, source string) bool {
 // TODO: handle return or kill instead of exit so it can be launched inside a function
 var HelpHandler_for_bash_eval = func(err error, usage string) {
     if err != nil {
-        fmt.Printf("echo '%s' >&2\n;exit 64\n", shellquote(usage))
+        fmt.Printf("echo 'error: %s\n%s' >&2\nexit 64\n", shellquote(err.Error()), shellquote(usage))
         os.Exit(1)
     } else {
         // --help or --version found and --no-help was not given
-        fmt.Printf("echo '%s'\n;exit 0\n",  shellquote(usage))
+        fmt.Printf("echo '%s'\nexit 0\n",  shellquote(usage))
         os.Exit(0)
     }
 }
@@ -204,6 +204,7 @@ func main() {
     debug := arguments["--debug"].(bool)
     if err == nil {
         if debug {
+            fmt.Println("########################################")
             print_args(arguments)
         }
     } else {
@@ -216,7 +217,7 @@ func main() {
     doc := arguments["--help-mesg"].(string)
     bash_version, _ := arguments.String("--version")
     options_first := arguments["--options-first"].(bool)
-    no_help := ! arguments["--no-help"].(bool)
+    no_help :=  arguments["--no-help"].(bool)
     //separator := arguments["--separator"].(string)
 
     // read from stdin
