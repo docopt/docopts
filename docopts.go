@@ -12,16 +12,18 @@ import (
     "reflect"
     "os"
     "io/ioutil"
+    "sort"
 )
 
 var Version string = "docopts 0.6.3"
 var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] --help-mesg=<msg> -- [<argv>...]
+  docopts [options] -h <msg> : [<argv>...]
 
 Options:
-  --help-mesg=<msg>             The help message in docopt format.
+  -h <msg>, --help=<msg>        The help message in docopt format.
+                                Without argument outputs this help.
                                 If - is given, read the help message from
                                 standard input.
                                 If no argument is given, print docopts's own
@@ -51,11 +53,19 @@ There is NO WARRANTY, to the extent permitted by law.
 `
 
 // debug helper
-func print_args(args docopt.Opts) {
-    for key, value := range args {
-        fmt.Printf("%20s : %v\n", key, value)
+func print_args(args docopt.Opts, message string) {
+    // sort keys
+    mk := make([]string, len(args))
+    i := 0
+    for k, _ := range args {
+        mk[i] = k
+        i++
     }
-    fmt.Println("----------------------------------------")
+    sort.Strings(mk)
+    fmt.Printf("################## %s ##################\n", message)
+    for _, key := range mk {
+        fmt.Printf("%20s : %v\n", key, args[key])
+    }
 }
 
 // output assoc array output
@@ -199,23 +209,59 @@ var HelpHandler_for_bash_eval = func(err error, usage string) {
     }
 }
 
+var HelpHandler_golang = func(err error, usage string) {
+    if err != nil {
+        err_str := err.Error()
+        if len(err_str) >= 9 {
+            // we hack for our polymorphic argument -h or -V
+            // it was the same hack in python version
+            if err_str[0:2] == "-h" || err_str[0:6] == "--help" {
+                // print full usage message (global var)
+                fmt.Println(strings.TrimSpace(Usage))
+                os.Exit(0)
+            }
+            if err_str[0:2] == "-V" || err_str[0:9] == "--version" {
+                fmt.Println(strings.TrimSpace(Version))
+                os.Exit(0)
+            }
+        }
+
+        if len(err_str) == 0 {
+            // no arg at all, display small usage, also exits
+            HelpHandler_for_bash_eval(fmt.Errorf("no argument"), usage)
+        }
+
+        // real error
+        fmt.Fprintf(os.Stderr, "my error: %v, %v\n", err, usage)
+        os.Exit(1)
+    } else {
+        // no error, never reached?
+        fmt.Println(usage)
+        os.Exit(0)
+    }
+}
+
 func main() {
-    arguments, err := docopt.ParseArgs(Usage, nil, Version)
+    golang_parser := &docopt.Parser{
+      OptionsFirst: true,
+      SkipHelpFlags: true,
+      HelpHandler: HelpHandler_golang,
+    }
+    arguments, err := golang_parser.ParseArgs(Usage, nil, Version)
+
+    if err != nil {
+        msg := fmt.Sprintf("mypanic: %v\n", err)
+        panic(msg)
+    }
 
     debug := arguments["--debug"].(bool)
-    if err == nil {
-        if debug {
-            fmt.Println("########################################")
-            print_args(arguments)
-        }
-    } else {
-        fmt.Println(err)
-        return
+    if debug {
+        print_args(arguments, "golang")
     }
 
     // parse docopts's own arguments
     argv := arguments["<argv>"].([]string)
-    doc := arguments["--help-mesg"].(string)
+    doc := arguments["--help"].(string)
     bash_version, _ := arguments.String("--version")
     options_first := arguments["--options-first"].(bool)
     no_help :=  arguments["--no-help"].(bool)
@@ -245,6 +291,10 @@ func main() {
 
     doc = strings.TrimSpace(doc)
     bash_version = strings.TrimSpace(bash_version)
+    if debug {
+        fmt.Printf("%20s : %v\n", "doc", doc)
+        fmt.Printf("%20s : %v\n", "bash_version", bash_version)
+    }
 
     // now parse bash program's arguments
     parser := &docopt.Parser{
@@ -255,7 +305,8 @@ func main() {
     bash_args, err := parser.ParseArgs(doc, argv, bash_version)
     if err == nil {
         if debug {
-            print_args(bash_args)
+            print_args(bash_args, "bash")
+            fmt.Println("----------------------------------------")
         }
         name, err := arguments.String("-A")
         if err == nil {
@@ -268,5 +319,7 @@ func main() {
             // TODO: add global prefix
             print_bash_global(bash_args)
         }
+    } else {
+        panic(err)
     }
 }

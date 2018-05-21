@@ -14,12 +14,14 @@
 #    ./cat-n_wrapper.sh --count=3 cat-n_wrapper.sh  quick_example.sh 
 #
 
+# no PATH changes required if docopts binary is in the PATH already
+PATH=..:$PATH
 source ../docopts.sh
 help=$(docopt_get_help_string $0)
 version='0.1'
 
-parsed=$(docopt -A args -h "$help" -V $version : "$@")
-echo "$parsed"
+parsed=$(docopts -A args -h "$help" -V $version : "$@")
+#echo "$parsed"
 eval "$parsed"
 
 cat_limit() {

@@ -22,7 +22,7 @@
 # Note that `language_agnostic_tester.py` itself is only compatible with
 # Python 2.7.
 
-script=$(./docopts -A args --help-mesg - -- "$@" < /dev/stdin)
+script=$(./docopts -A args -h - : "$@" < /dev/stdin)
 
 if [[ $(tail -n 1 <<< "$script") =~ ^exit\ [0-9]+$ ]] ; then
     echo '"user-error"'; exit

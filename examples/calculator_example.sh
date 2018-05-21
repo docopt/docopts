@@ -2,14 +2,14 @@
 # Not a serious example.
 #
 # Usage:
-#   calculator_example.py <value> ( ( + | - | * | / ) <value> )...
-#   calculator_example.py <function> <value> [( , <value> )]...
-#   calculator_example.py (-h | --help)
+#   calculator_example.sh <value> ( ( + | - | * | / ) <value> )...
+#   calculator_example.sh <function> <value> [( , <value> )]...
+#   calculator_example.sh (-h | --help)
 #
 # Examples:
-#   calculator_example.py 1 + 2 + 3 + 4 + 5
-#   calculator_example.py 1 + 2 '*' 3 / 4 - 5    # note quotes around '*'
-#   calculator_example.py sum 10 , 20 , 30 , 40
+#   calculator_example.sh 1 + 2 + 3 + 4 + 5
+#   calculator_example.sh 1 + 2 '*' 3 / 4 - 5    # note quotes around '*'
+#   calculator_example.sh sum 10 , 20 , 30 , 40
 #
 # Options:
 #   -h, --help
@@ -24,6 +24,6 @@ PATH=..:$PATH
 
 help=$(docopt_get_help_string $0)
 version='0.1'
-parsed=$(docopts -A args --help-mesg "$help" -V $version -- "$@")
+parsed=$(docopts -A args -h "$help" -V $version : "$@")
 echo "$parsed"
 eval "$parsed"

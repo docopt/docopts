@@ -19,3 +19,10 @@ DOCOPTS_JSON_VAR=SOME_DOCOPTS_JSON
 docopts get --code
 ```
 
+## --no-declare
+
+remove the output of `declare -A hash_name`
+
+## build and publish binary
+
+reuse build.sh to build golang binary and pubilsh it as a new release too.

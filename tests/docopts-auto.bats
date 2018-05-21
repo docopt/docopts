@@ -39,7 +39,7 @@ PATH=..:$PATH
     [[ $status == 1 ]]
     regexp="^echo 'error:"
     [[ "${lines[0]}" =~ $regexp ]]
-    [[ "${lines[2]}" == "exit 64" ]]
+    [[ "${lines[-1]}" == "exit 64" ]]
 
     # but runing with -h ==> exit 0
     run docopt_auto_parse $tmp -h
@@ -47,7 +47,7 @@ PATH=..:$PATH
     echo "status=$status"
     [[ ! -z "$output" ]]
     [[ $status == 0 ]]
-    [[ "${lines[1]}" == "exit 0" ]]
+    [[ "${lines[-1]}" == "exit 0" ]]
 
     # with some options
     run docopt_auto_parse $tmp --opt afilename

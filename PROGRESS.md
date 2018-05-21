@@ -1,8 +1,6 @@
 # current work in PROGESS
 
--h <msg> backward compatible
-
+pass all tests (remove multi value simplification)
 
 # next
 
-':' separtor fix

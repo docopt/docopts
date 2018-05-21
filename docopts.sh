@@ -5,7 +5,7 @@
 #
 # Usage:
 #   source path/to/docopts.sh
-#   docopts -A args --help-mesg "$help" -v $version -- "$@"
+#   docopts -A args -h "$help" -V $version : "$@"
 #
 # the prefix docopt_* is used to export globals and functions
 
@@ -39,7 +39,7 @@ docopt_get_version_string() {
         # at an empty line, one level of comment markup is removed
         sed -n -e '/^# ----/,/^$/ s/^# \?//p' < "$1"
     else
-        # use docopts.py --separator behavior
+        # use docopts --separator behavior
         echo "$1"
     fi
 }
@@ -101,7 +101,7 @@ docopt_auto_parse() {
     help="$(docopt_get_help_string "$script_fname")"
     # $args[] assoc array must be declared outside on this function
     # or it's scope will be local, that's why we filtering it out.
-    docopts -A args --help-mesg="$help" -- "$@" | grep -v -- 'declare -A args'
+    docopts -A args -h "$help" : "$@" | grep -v -- 'declare -A args'
     # returns the status of the docopts command, not grep status
     return ${PIPESTATUS[0]}
 }

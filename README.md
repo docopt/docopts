@@ -41,44 +41,80 @@ All python related stuff will be removed.
 
 If you want to clone this repository and hack docopts.
 
-Use `git clone --recursive`, to get submodules.
+Use `git clone --recursive`, to get submodules only required for testing
 
-fetch the extra golang version of docopt
+fetch the extra golang version of docopt (required for building `docopts`)
 
 ```
 go get github.com/docopt/docopt-go
 ```
 
-If you forgot, you can also run:
+If you forgot `--recursive`, you can also run afterward:
 
 ~~~bash
 git submodule init
 git submodule update
 ~~~
 
-Folder structure:
+Current folder structure:
 
 ~~~
 .
-├── API_proposal.md - doc See wiki - to be removed
-├── build.sh - build the embedded docopts.py into docopts.sh
-├── docopt.py - original copy of docopt.py
-├── docopts - current python wrapper - almost unmodified
-├── docopts.py - copy of docopts, See build.sh
-├── docopts.sh - bash lib - already embed both docopt.py + docopts.py
+├── API_proposal.md
+├── build.sh
+├── docopts.go
+├── docopts.sh
 ├── examples
 │   ├── calculator_example.sh
 │   ├── cat-n_wrapper_example.sh
-│   ├── docopts_auto_examples.sh
-│   └── quick_example.sh
+│   ├── docopts_auto_example.sh
+│   ├── quick_example.sh
+│   └── rock_stdin_example.sh
 ├── language_agnostic_tester.py
-├── setup.py
+├── LICENSE-MIT
+├── old_README.rst
+├── PROGRESS.md
+├── README.md
 ├── testcases.docopt
 ├── testee.sh
-└── tests
-    ├── bats/ - git submodules
-    ├── bats.alias - source it to have bats working
-    ├── docopts-auto.bats - unit test for --auto
-    ├── docopts.bats - unit test docopts.sh
-    └── exit_handler.sh - helper
+├── tests
+│   ├── bats [...]
+│   ├── bats.alias
+│   ├── docopts-auto.bats
+│   ├── docopts.bats
+│   ├── exit_handler.sh
+│   └── TODO.md
+└── TODO.md
 ~~~
+
+## Tests
+
+Some tests are coded along this code base.
+
+- bats bash unit tests and functionnal testing
+- language_agnostic_tester (old python wrapper, docopts compatibily tests)
+- See Also: docopt.go own tests in golang
+
+### Runing tests
+
+#### bats
+```
+cd ./tests
+. bats.alias
+bats .
+```
+
+#### language_agnostic_tester
+
+```
+cd PATH/TO/docopts
+python language_agnostic_tester.py ./testee.sh
+```
+
+### golang docopt.go
+
+```
+cd PATH/to/go/src/github.com/docopt/docopt-go/
+go test -v .
+```
+
