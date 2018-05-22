@@ -44,7 +44,11 @@ Options:
   -s <str>, --separator=<str>   The string to use to separate the help message
                                 from the version message when both are given
                                 via standard input. [default: ----]
+  --no-mangle                   Output parsed option not suitable for bash eval.
+                                As without -A but full option names are kept.
+                                Rvalue is still shellquoted.
   --debug                       Output extra parsing information for debuging.
+                                Output cannot be used in bash eval.
 
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
@@ -87,9 +91,9 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
             case 0:
                 // empty
                 fmt.Printf("%s['%s']=''\n", bash_assoc, shellquote(key))
-            case 1:
-                // quoting assignment is driven by to_bash()
-                fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(val_arr[0]))
+            //case 1:
+            //    // quoting assignment is driven by to_bash()
+            //    fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(val_arr[0]))
             default:
                 for index, v := range val_arr {
                     fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, shellquote(key), index, to_bash(v))
@@ -154,12 +158,21 @@ func to_bash(v interface{}) string {
     return s
 }
 
-func print_bash_global(args docopt.Opts) {
+func print_bash_global(args docopt.Opts, mangle_key bool) {
+    var new_name string
+    var err error
+
     for key, value := range args {
-        new_name, err := name_mangle(key)
-        if err == nil {
-            fmt.Printf("%s=%s\n", new_name, to_bash(value))
+        if mangle_key {
+            new_name, err = name_mangle(key)
+            if err != nil {
+                // skip
+                return
+            }
+        } else {
+            new_name = key
         }
+        fmt.Printf("%s=%s\n", new_name, to_bash(value))
     }
 }
 
@@ -171,7 +184,7 @@ func name_mangle(elem string) (string, error) {
     }
 
     if Match(`^<.*>$`, elem) {
-        v = elem[1:len(v)-1]
+        v = elem[1:len(elem)-1]
     } else if Match(`^-[^-]$`, elem) {
         v = fmt.Sprintf("%c", elem[1])
     } else if Match(`^--.+$`, elem) {
@@ -266,6 +279,7 @@ func main() {
     options_first := arguments["--options-first"].(bool)
     no_help :=  arguments["--no-help"].(bool)
     separator := arguments["--separator"].(string)
+    mangle_key := ! arguments["--no-mangle"].(bool)
 
     // read from stdin
     if doc == "-" && bash_version == "-" {
@@ -317,7 +331,7 @@ func main() {
             print_bash_args(name, bash_args)
         } else {
             // TODO: add global prefix
-            print_bash_global(bash_args)
+            print_bash_global(bash_args, mangle_key)
         }
     } else {
         panic(err)

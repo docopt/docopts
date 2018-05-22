@@ -1,5 +1,15 @@
 # docopts (docopt for bash) TODO list
 
+## global prefix
+
+-G PREFIX
+
+this option must be incompatible with -A (see also: --no-mangle)
+
+outputs
+
+`PREFIX_MANGLED_NAME=value`
+
 ## embeded JSON
 
 ```

@@ -1,24 +1,25 @@
 #!/bin/bash
-# 
+#
 # Testee script for docopts.  This script reads an arbitrary docstring from
 # standard input and uses it to parse whatever arguments are passed to it
 # into a Bash 4 associative array, which is then dumped in JSON format.
-# 
+#
 # Pass this file as an argument to `language_agnostic_tester.py` to test
 # a `docopts` file located in the same directory. As of 2013-02-07, docopts
 # fails the Naval Fate test, as there is no way to determine from just the
 # array keys if an option is repeatable or accepts an integer argument:
 # both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
-# 
+#
 # There is currently no way to automatically test the operation mode of
 # docopts that name-mangles elements into Bash variables, as this
 # transformation cannot be deterministically reversed into a format
 # language_agnostic_tester.py expects.
-# 
-# To test docopts with different Python versions, set the `PYTHON` variable:
-# 
-#     PYTHON=/usr/bin/python3.2 language_agnostic_tester.py testee.sh
-# 
+#
+# Usage:
+#  python language_agnostic_tester.py ./testee.sh [ID_OF_THE_TEST]
+#  # usage on stdin, args on command line
+#  echo "usage: prog (go <direction> --speed=<km/h>)..." | ./testee.sh go left --speed=5  go right --speed=9
+#
 # Note that `language_agnostic_tester.py` itself is only compatible with
 # Python 2.7.
 
@@ -31,7 +32,26 @@ fi
 shopt -s extglob
 eval "$script"
 
+get_value() {
+  local k=$(printf "args['%s']" "$1")
+  # split on '=', outputs $2 for the matching $1
+  awk -F= "\$1 == \"$k\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$script"
+}
+
+loop_keys() {
+  # we loop over the output and reparse it as text separtated by '=' (assign sign)
+  #local keys=( $(awk -F= '{print $1}' <<<"$script") )
+  local key
+
+  for key in "${!args[@]}" ; do
+  #for key in "${keys[@]}" ; do
+    echo "$key : $(get_value "$key")"
+  done
+}
+
+# start JSON
 echo -n '{'
+regexp="^'[0-9]+'$"
 for key in "${!args[@]}" ; do
     # if the key is not part of a fake nested array,
     # print it as-is
@@ -40,12 +60,17 @@ for key in "${!args[@]}" ; do
         value=${args[$key]}
         case "$value" in
             '')         echo -n "\"$key\": null";;
-            +([0-9]))   if [[ "${key^^}" == "$key" ]] || [[ "$key" == \<?*\> ]]
-                        then
-                            echo -n "\"$key\": \"$value\""
-                        else
-                            echo -n "\"$key\": $value"
-                        fi;;
+            +([0-9]))
+              # For numeric value, the JSON is distinct if it is a counter
+              # (no quote) or a string (quoted value). But bash can't distiguish
+              # any. So we look at the outputed value as text
+              if [[ $(get_value "$key") =~ $regexp ]]
+              then
+                  echo -n "\"$key\": \"$value\""
+              else
+                  echo -n "\"$key\": $value"
+              fi
+            ;;
             true|false) echo -n "\"$key\": $value";;
             *)          echo -n "\"$key\": \"$value\"";;
         esac
