@@ -89,13 +89,13 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
             // all array is outputed even 0 size
             val_arr := value.([]string)
             for index, v := range val_arr {
-                fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, shellquote(key), index, to_bash(v))
+                fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, Shellquote(key), index, to_bash(v))
             }
             // size of the array
-            fmt.Printf("%s['%s,#']=%d\n", bash_assoc, shellquote(key), len(val_arr))
+            fmt.Printf("%s['%s,#']=%d\n", bash_assoc, Shellquote(key), len(val_arr))
         } else {
             // value is not an array
-            fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(value))
+            fmt.Printf("%s['%s']=%s\n", bash_assoc, Shellquote(key), to_bash(value))
         }
     }
 }
@@ -115,11 +115,11 @@ func isArray(rt reflect.Type) bool {
     }
 }
 
-func shellquote(s string) string {
+func Shellquote(s string) string {
     return strings.Replace(s, "'", `'\''`, -1)
 }
 
-func isbashidentifier(s string) bool {
+func IsBashIdentifier(s string) bool {
     identifier := regexp.MustCompile(`^([A-Za-z]|[A-Za-z_][0-9A-Za-z_]+)$`)
     return identifier.MatchString(s)
 }
@@ -132,13 +132,13 @@ func to_bash(v interface{}) string {
     case int:
         s = fmt.Sprintf("%d", v.(int))
     case string:
-        s = fmt.Sprintf("'%s'", shellquote(v.(string)))
+        s = fmt.Sprintf("'%s'", Shellquote(v.(string)))
     case []string:
         // escape all strings
         arr := v.([]string)
         arr_out := make([]string, len(arr))
         for i, e := range arr {
-            arr_out[i] = shellquote(e)
+            arr_out[i] = Shellquote(e)
         }
         s = fmt.Sprintf("('%s')", strings.Join(arr_out[:],"', '"))
     case nil:
@@ -188,7 +188,7 @@ func name_mangle(elem string) (string, error) {
 
     v = strings.Replace(v, "-", "_", -1)
 
-    if ! isbashidentifier(v) {
+    if ! IsBashIdentifier(v) {
         return "", fmt.Errorf("cannot transform into a bash identifier: %s", elem)
     }
 
@@ -206,11 +206,11 @@ func Match(regex string, source string) bool {
 // TODO: handle return or kill instead of exit so it can be launched inside a function
 var HelpHandler_for_bash_eval = func(err error, usage string) {
     if err != nil {
-        fmt.Printf("echo 'error: %s\n%s' >&2\nexit 64\n", shellquote(err.Error()), shellquote(usage))
+        fmt.Printf("echo 'error: %s\n%s' >&2\nexit 64\n", Shellquote(err.Error()), Shellquote(usage))
         os.Exit(1)
     } else {
         // --help or --version found and --no-help was not given
-        fmt.Printf("echo '%s'\nexit 0\n",  shellquote(usage))
+        fmt.Printf("echo '%s'\nexit 0\n",  Shellquote(usage))
         os.Exit(0)
     }
 }
@@ -317,7 +317,7 @@ func main() {
         }
         name, err := arguments.String("-A")
         if err == nil {
-            if ! isbashidentifier(name) {
+            if ! IsBashIdentifier(name) {
                 fmt.Printf("-A: not a valid Bash identifier: %s", name)
                 return
             }
