@@ -86,21 +86,13 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
         // some golang tricks here using reflection to loop over the map[]
         rt := reflect.TypeOf(value)
         if isArray(rt) {
+            // all array is outputed even 0 size
             val_arr := value.([]string)
-            switch len(val_arr) {
-            case 0:
-                // empty
-                fmt.Printf("%s['%s']=''\n", bash_assoc, shellquote(key))
-            //case 1:
-            //    // quoting assignment is driven by to_bash()
-            //    fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(val_arr[0]))
-            default:
-                for index, v := range val_arr {
-                    fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, shellquote(key), index, to_bash(v))
-                }
-                // size of the array
-                fmt.Printf("%s['%s,#']=%d\n", bash_assoc, shellquote(key), len(val_arr))
+            for index, v := range val_arr {
+                fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, shellquote(key), index, to_bash(v))
             }
+            // size of the array
+            fmt.Printf("%s['%s,#']=%d\n", bash_assoc, shellquote(key), len(val_arr))
         } else {
             // value is not an array
             fmt.Printf("%s['%s']=%s\n", bash_assoc, shellquote(key), to_bash(value))
@@ -162,6 +154,7 @@ func print_bash_global(args docopt.Opts, mangle_key bool) {
     var new_name string
     var err error
 
+    // value is an interface{}
     for key, value := range args {
         if mangle_key {
             new_name, err = name_mangle(key)
@@ -240,7 +233,7 @@ var HelpHandler_golang = func(err error, usage string) {
         }
 
         if len(err_str) == 0 {
-            // no arg at all, display small usage, also exits
+            // no arg at all, display small usage, also exits 1
             HelpHandler_for_bash_eval(fmt.Errorf("no argument"), usage)
         }
 

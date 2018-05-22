@@ -10,6 +10,10 @@ outputs
 
 `PREFIX_MANGLED_NAME=value`
 
+## return or kill for function instead of exit
+
+Add a parameter to handle return or kill instead of exit so it can be launched inside a function.
+
 ## embeded JSON
 
 ```

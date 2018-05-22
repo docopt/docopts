@@ -1,14 +1,18 @@
 #!/bin/bash
 #
-# Testee script for docopts.  This script reads an arbitrary docstring from
-# standard input and uses it to parse whatever arguments are passed to it
+# Testee script for docopts.  This script reads an arbitrary docopts usage
+# from standard input and uses it to parse whatever arguments are passed to it
 # into a Bash 4 associative array, which is then dumped in JSON format.
 #
 # Pass this file as an argument to `language_agnostic_tester.py` to test
-# a `docopts` file located in the same directory. As of 2013-02-07, docopts
-# fails the Naval Fate test, as there is no way to determine from just the
-# array keys if an option is repeatable or accepts an integer argument:
-# both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
+# a `docopts` binary located in the same directory.
+#
+# As of 2018-05-22, docopts may fails the Naval Fate test, as there it is
+# difficult to determine from just the array value if an option is repeatable
+# counter or accepts an integer argument:
+#   both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
+# A trick is to read the outputed value of docopts and not evaled result.
+# See: get_row_value()
 #
 # There is currently no way to automatically test the operation mode of
 # docopts that name-mangles elements into Bash variables, as this
@@ -20,7 +24,10 @@
 #  # usage on stdin, args on command line
 #  echo "usage: prog (go <direction> --speed=<km/h>)..." | ./testee.sh go left --speed=5  go right --speed=9
 #
-# Note that `language_agnostic_tester.py` itself is only compatible with
+# To get ID_OF_THE_TEST:
+#  grep -E '^\{|"user' testcases.docopt | cat -n | less
+#
+# Note that `language_agnostic_tester.py` is only compatible with
 # Python 2.7.
 
 script=$(./docopts -A args -h - : "$@" < /dev/stdin)
@@ -32,21 +39,10 @@ fi
 shopt -s extglob
 eval "$script"
 
-get_value() {
+get_row_value() {
   local k=$(printf "args['%s']" "$1")
   # split on '=', outputs $2 for the matching $1
   awk -F= "\$1 == \"$k\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$script"
-}
-
-loop_keys() {
-  # we loop over the output and reparse it as text separtated by '=' (assign sign)
-  #local keys=( $(awk -F= '{print $1}' <<<"$script") )
-  local key
-
-  for key in "${!args[@]}" ; do
-  #for key in "${keys[@]}" ; do
-    echo "$key : $(get_value "$key")"
-  done
 }
 
 # start JSON
@@ -64,7 +60,7 @@ for key in "${!args[@]}" ; do
               # For numeric value, the JSON is distinct if it is a counter
               # (no quote) or a string (quoted value). But bash can't distiguish
               # any. So we look at the outputed value as text
-              if [[ $(get_value "$key") =~ $regexp ]]
+              if [[ $(get_row_value "$key") =~ $regexp ]]
               then
                   echo -n "\"$key\": \"$value\""
               else
