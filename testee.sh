@@ -12,7 +12,7 @@
 # counter or accepts an integer argument:
 #   both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
 # A trick is to read the outputed value of docopts and not evaled result.
-# See: get_row_value()
+# See: get_raw_value()
 #
 # There is currently no way to automatically test the operation mode of
 # docopts that name-mangles elements into Bash variables, as this
@@ -39,7 +39,7 @@ fi
 shopt -s extglob
 eval "$script"
 
-get_row_value() {
+get_raw_value() {
   local k=$(printf "args['%s']" "$1")
   # split on '=', outputs $2 for the matching $1
   awk -F= "\$1 == \"$k\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$script"
@@ -60,7 +60,7 @@ for key in "${!args[@]}" ; do
               # For numeric value, the JSON is distinct if it is a counter
               # (no quote) or a string (quoted value). But bash can't distiguish
               # any. So we look at the outputed value as text
-              if [[ $(get_row_value "$key") =~ $regexp ]]
+              if [[ $(get_raw_value "$key") =~ $regexp ]]
               then
                   echo -n "\"$key\": \"$value\""
               else

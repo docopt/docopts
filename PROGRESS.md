@@ -8,3 +8,5 @@ add go unit test for our code
 
 # next
 
+from `testee.sh` merge `get_raw_value` into `docopts.sh`
+
