@@ -85,7 +85,7 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
     for key, value := range args {
         // some golang tricks here using reflection to loop over the map[]
         rt := reflect.TypeOf(value)
-        if isArray(rt) {
+        if IsArray(rt) {
             // all array is outputed even 0 size
             val_arr := value.([]string)
             for index, v := range val_arr {
@@ -101,7 +101,7 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
 }
 
 // test if a value is an array
-func isArray(rt reflect.Type) bool {
+func IsArray(rt reflect.Type) bool {
     if rt == nil {
         return false
     }
