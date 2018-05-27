@@ -11,6 +11,7 @@ import (
     "strings"
     "reflect"
     "os"
+    "io"
     "io/ioutil"
     "sort"
 )
@@ -56,6 +57,10 @@ This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 `
 
+// testing trick, out can be mocked to catch stdout and validate
+// https://stackoverflow.com/questions/34462355/how-to-deal-with-the-fmt-golang-library-package-for-cli-testing
+var out io.Writer = os.Stdout
+
 // debug helper
 func print_args(args docopt.Opts, message string) {
     // sort keys
@@ -73,14 +78,14 @@ func print_args(args docopt.Opts, message string) {
 }
 
 // output assoc array output
-func print_bash_args(bash_assoc string, args docopt.Opts) {
+func Print_bash_args(bash_assoc string, args docopt.Opts) {
     // fake nested Bash arrays for repeatable arguments with values
     // structure is:
     // bash_assoc[key,#]=length
     // bash_assoc[key,i]=value
     // i is an integer from 0 to length-1
 
-    fmt.Printf("declare -A %s\n" ,bash_assoc)
+    fmt.Fprintf(out, "declare -A %s\n" ,bash_assoc)
 
     for key, value := range args {
         // some golang tricks here using reflection to loop over the map[]
@@ -89,13 +94,13 @@ func print_bash_args(bash_assoc string, args docopt.Opts) {
             // all array is outputed even 0 size
             val_arr := value.([]string)
             for index, v := range val_arr {
-                fmt.Printf("%s['%s,%d']=%s\n", bash_assoc, Shellquote(key), index, to_bash(v))
+                fmt.Fprintf(out, "%s['%s,%d']=%s\n", bash_assoc, Shellquote(key), index, To_bash(v))
             }
             // size of the array
-            fmt.Printf("%s['%s,#']=%d\n", bash_assoc, Shellquote(key), len(val_arr))
+            fmt.Fprintf(out, "%s['%s,#']=%d\n", bash_assoc, Shellquote(key), len(val_arr))
         } else {
             // value is not an array
-            fmt.Printf("%s['%s']=%s\n", bash_assoc, Shellquote(key), to_bash(value))
+            fmt.Fprintf(out, "%s['%s']=%s\n", bash_assoc, Shellquote(key), To_bash(value))
         }
     }
 }
@@ -124,7 +129,9 @@ func IsBashIdentifier(s string) bool {
     return identifier.MatchString(s)
 }
 
-func to_bash(v interface{}) string {
+// convert a parsed type to a text string suitable for bash eval
+// as a right-hand side of an assignment
+func To_bash(v interface{}) string {
     var s string
     switch v.(type) {
     case bool:
@@ -144,32 +151,33 @@ func to_bash(v interface{}) string {
     case nil:
         s = ""
     default:
-        panic(fmt.Sprintf("to_bash():unsuported type: %v", reflect.TypeOf(v) ))
+        panic(fmt.Sprintf("To_bash():unsuported type: %v for '%v'", reflect.TypeOf(v), v ))
     }
 
     return s
 }
 
-func print_bash_global(args docopt.Opts, mangle_key bool) {
+func Print_bash_global(args docopt.Opts, mangle_key bool) {
     var new_name string
     var err error
 
     // value is an interface{}
     for key, value := range args {
         if mangle_key {
-            new_name, err = name_mangle(key)
+            new_name, err = Name_mangle(key)
             if err != nil {
                 // skip
-                return
+                fmt.Fprintf(out, "# Name_mangle:error:%v\n", err)
+                continue
             }
         } else {
             new_name = key
         }
-        fmt.Printf("%s=%s\n", new_name, to_bash(value))
+        fmt.Fprintf(out, "%s=%s\n", new_name, To_bash(value))
     }
 }
 
-func name_mangle(elem string) (string, error) {
+func Name_mangle(elem string) (string, error) {
     var v string
 
     if elem == "-" || elem == "--" {
@@ -321,10 +329,10 @@ func main() {
                 fmt.Printf("-A: not a valid Bash identifier: %s", name)
                 return
             }
-            print_bash_args(name, bash_args)
+            Print_bash_args(name, bash_args)
         } else {
             // TODO: add global prefix
-            print_bash_global(bash_args, mangle_key)
+            Print_bash_global(bash_args, mangle_key)
         }
     } else {
         panic(err)

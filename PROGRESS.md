@@ -1,16 +1,47 @@
 # current work in PROGESS
 
-## go unit test for docopts.go
-add go unit test for our code
+## `mangle_name` error handling
 
-* `name_mangle()` bug len(v)
-* `print_bash_args()` must match `print_bash_global()` (array output)
+-9 ??
+
+is it the same as "TODO.md":(TODO.md) `-G` for global prefix.
+
+```
+sylvain@lap40:~/code/go/src/github.com/Sylvain303/docopts$ ./docopts  -h "usage: prog [-9] FILE..." --debug : pipo molo toto
+################## golang ##################
+             --debug : true
+              --help : usage: prog [-9] FILE...
+           --no-help : false
+         --no-mangle : false
+     --options-first : false
+         --separator : ----
+           --version : <nil>
+                  -A : <nil>
+                   : : true
+              <argv> : [pipo molo toto]
+                 doc : usage: prog [-9] FILE...
+        bash_version :
+################## bash ##################
+                  -9 : false
+                FILE : [pipo molo toto]
+----------------------------------------
+# name_mangle:error:cannot transform into a bash identifier: -9:-9
+FILE=('pipo', 'molo', 'toto')
+
+```
+
+
+```
+sylvain@lap40:~/code/docopt/docopts$ ./docopts  -h "usage: prog [-9] FILE..." : pipo molo toto
+./docopts: name could not be mangled into a valid Bash identifier: -9
+```
+
 
 # next
 
 from `testee.sh` merge `get_raw_value` into `docopts.sh`
 
-## provid test on old environment
+## provide test on old environment
 
 docker?
 32bist

@@ -31,6 +31,7 @@ docopts get --env SOME_DOCOPTS_JSON -- --code
 # or
 DOCOPTS_JSON_VAR=SOME_DOCOPTS_JSON
 docopts get --code
+
 ```
 
 ## --no-declare
@@ -40,3 +41,28 @@ remove the output of `declare -A hash_name`
 ## build and publish binary
 
 reuse build.sh to build golang binary and pubilsh it as a new release too.
+
+## generate bash completion from usage
+
+```
+docopts -h "$help" --generate-completion
+```
+
+## embed test routine (validation)?
+
+may we cat interract with the caller to eval some validation…
+It is needed? Is it our goal?
+
+```
+# with tests
+# pass value to parent: JSON or some_thing_else
+eval $(docopts --eval --json --help="Usage: mystuff [--code] INFILE [--out=OUTFILE]" -- "$@")
+if docopts test -- file_exists:--code !file_exists:--out
+
+eval $(docopts --eval --json --help="Usage: prog [--count=NUM] INFILE..."  -- "$@")
+if docopts test -- num:gt:1:--count file_exists:INFILE
+```
+
+## config file parse config to option format
+
+À la nslcd… ?
