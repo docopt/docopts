@@ -30,6 +30,7 @@ FILE=('pipo', 'molo', 'toto')
 
 ```
 
+old python version
 
 ```
 sylvain@lap40:~/code/docopt/docopts$ ./docopts  -h "usage: prog [-9] FILE..." : pipo molo toto

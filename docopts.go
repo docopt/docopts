@@ -21,6 +21,9 @@ var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
   docopts [options] -h <msg> : [<argv>...]
+  docopts [options] -A <name>   -h <msg> : [<argv>...]
+  docopts [options] -G <prefix> -h <msg> : [<argv>...]
+  docopts [options] --no-mangle -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -35,6 +38,9 @@ Options:
                                 read from standard input, it is read first.
                                 If no argument is given, print docopts's own
                                 version message and quit.
+  -s <str>, --separator=<str>   The string to use to separate the help message
+                                from the version message when both are given
+                                via standard input. [default: ----]
   -O, --options-first           Disallow interspersing options and positional
                                 arguments: all arguments starting from the
                                 first one that does not begin with a dash will
@@ -42,9 +48,11 @@ Options:
   -H, --no-help                 Don't handle --help and --version specially.
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
-  -s <str>, --separator=<str>   The string to use to separate the help message
-                                from the version message when both are given
-                                via standard input. [default: ----]
+  -G <prefix>                   As without -A, but outputs Bash compatible
+                                GLOBAL varibles assignment, uses the given
+                                <prefix>_{option}={parsed_option}. Can be used
+                                with numerical incompatible option as well.
+                                See also: --no-mangle
   --no-mangle                   Output parsed option not suitable for bash eval.
                                 As without -A but full option names are kept.
                                 Rvalue is still shellquoted.
@@ -75,6 +83,12 @@ func print_args(args docopt.Opts, message string) {
     for _, key := range mk {
         fmt.Printf("%20s : %v\n", key, args[key])
     }
+}
+
+// store global behavior to not pass to method as optional arguments
+type Docopts struct {
+	Global_prefix string
+    Mangle_key bool
 }
 
 // output assoc array output
@@ -147,7 +161,7 @@ func To_bash(v interface{}) string {
         for i, e := range arr {
             arr_out[i] = Shellquote(e)
         }
-        s = fmt.Sprintf("('%s')", strings.Join(arr_out[:],"', '"))
+        s = fmt.Sprintf("('%s')", strings.Join(arr_out[:],"' '"))
     case nil:
         s = ""
     default:
@@ -157,27 +171,30 @@ func To_bash(v interface{}) string {
     return s
 }
 
-func Print_bash_global(args docopt.Opts, mangle_key bool) {
+func (d *Docopts) Print_bash_global(args docopt.Opts) {
     var new_name string
     var err error
+    var out_buf string
 
     // value is an interface{}
     for key, value := range args {
-        if mangle_key {
-            new_name, err = Name_mangle(key)
+        if d.Mangle_key {
+            new_name, err = d.Name_mangle(key)
             if err != nil {
-                // skip
-                fmt.Fprintf(out, "# Name_mangle:error:%v\n", err)
-                continue
+                docopts_error("%v", err)
             }
         } else {
             new_name = key
         }
-        fmt.Fprintf(out, "%s=%s\n", new_name, To_bash(value))
+
+        out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(value))
     }
+
+    // final output
+    fmt.Fprintf(out, "%s", out_buf)
 }
 
-func Name_mangle(elem string) (string, error) {
+func (d *Docopts) Name_mangle(elem string) (string, error) {
     var v string
 
     if elem == "-" || elem == "--" {
@@ -194,7 +211,13 @@ func Name_mangle(elem string) (string, error) {
         v = elem
     }
 
-    v = strings.Replace(v, "-", "_", -1)
+    // alter output if we have a prefix
+    key_fmt := "%s"
+    if d.Global_prefix != "" {
+        key_fmt = fmt.Sprintf("%s_%%s", d.Global_prefix)
+    }
+
+    v = fmt.Sprintf(key_fmt, strings.Replace(v, "-", "_", -1))
 
     if ! IsBashIdentifier(v) {
         return "", fmt.Errorf("cannot transform into a bash identifier: %s", elem)
@@ -255,6 +278,14 @@ var HelpHandler_golang = func(err error, usage string) {
     }
 }
 
+func docopts_error(msg string, err error) {
+    if err != nil {
+        msg = fmt.Sprintf(msg, err)
+    }
+    fmt.Fprintf(os.Stderr, "docopts:error: %s\n", msg)
+    os.Exit(1)
+}
+
 func main() {
     golang_parser := &docopt.Parser{
       OptionsFirst: true,
@@ -273,6 +304,12 @@ func main() {
         print_args(arguments, "golang")
     }
 
+    // create our Docopts struct
+    d := &Docopts{
+        Global_prefix: "",
+        Mangle_key: true,
+    }
+
     // parse docopts's own arguments
     argv := arguments["<argv>"].([]string)
     doc := arguments["--help"].(string)
@@ -280,7 +317,11 @@ func main() {
     options_first := arguments["--options-first"].(bool)
     no_help :=  arguments["--no-help"].(bool)
     separator := arguments["--separator"].(string)
-    mangle_key := ! arguments["--no-mangle"].(bool)
+    d.Mangle_key = ! arguments["--no-mangle"].(bool)
+    global_prefix, err := arguments.String("-G")
+    if err == nil {
+        d.Global_prefix = global_prefix
+    }
 
     // read from stdin
     if doc == "-" && bash_version == "-" {
@@ -326,13 +367,12 @@ func main() {
         name, err := arguments.String("-A")
         if err == nil {
             if ! IsBashIdentifier(name) {
-                fmt.Printf("-A: not a valid Bash identifier: %s", name)
+                fmt.Printf("-A: not a valid Bash identifier: '%s'", name)
                 return
             }
             Print_bash_args(name, bash_args)
         } else {
-            // TODO: add global prefix
-            Print_bash_global(bash_args, mangle_key)
+            d.Print_bash_global(bash_args)
         }
     } else {
         panic(err)

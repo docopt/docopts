@@ -75,3 +75,24 @@ PATH=..:$PATH
     [[ -z "$docopt_sh_me" ]]
 }
 
+@test "global eval" {
+   eval $(docopts -G ARGS -h "usage: p  FILE..." : one two three)
+   [[ $? -eq 0 ]]
+   # check content
+   for f in ${ARGS_FILE[@]} ; do
+       echo "======== $f"
+   done
+   [[ ${#ARGS_FILE[@]} -eq 3 ]]
+   [[ ${ARGS_FILE[0]} == one ]]
+   [[ ${ARGS_FILE[1]} == two ]]
+   [[ ${ARGS_FILE[2]} == three ]]
+}
+
+@test "docopts error" {
+    run docopts -h "usage: p [-9] FILE..." : -9 f pipo
+    echo "status=$status"
+    [[ $status -eq 1 ]]
+    run docopts -G ARGS -h "usage: p [-9] FILE..." : -9 f pipo
+    echo "status=$status"
+    [[ $status -eq 0 ]]
+}

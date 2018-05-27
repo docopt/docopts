@@ -12,6 +12,7 @@ import (
     "errors"
     // our json loader for common_input_test.json
     "github.com/Sylvain303/docopts/test_json_load"
+    "fmt"
 )
 
 func TestShellquote(t *testing.T) {
@@ -41,6 +42,9 @@ func TestIsBashIdentifier(t *testing.T) {
         {"i''i", false},
         {"'\\''pipo'\\''", false},
         {"OK", true},
+        {"ARGS", true},
+        // unsecable space at first char
+        {" ARGS", false},
         {"123", false},
         {"var%%", false},
         {"varname ", false},
@@ -143,7 +147,7 @@ func TestTo_bash(t *testing.T) {
         {123, "123"},
         {nil, ""},
         {"", "''"},
-        {[]string{"pipo", "molo"}, "('pipo', 'molo')"},
+        {[]string{"pipo", "molo"}, "('pipo' 'molo')"},
         {true, "true"},
     }
 
@@ -155,11 +159,32 @@ func TestTo_bash(t *testing.T) {
     }
 }
 
+func rewrite_not_mangled(input map[string]interface{}) string {
+    var out string
+    for k, v := range input {
+        out += fmt.Sprintf("%s=%s\n", k, To_bash(v))
+    }
+    return out
+}
+
+func rewrite_prefix(prefix string, expected []string) string {
+    var out string
+    for _, l := range expected {
+        out += fmt.Sprintf("%s_%s\n", prefix, l)
+    }
+    return out
+}
+
 func TestPrint_bash_global(t *testing.T) {
     // replace out (os.Stdout) by a buffer
     bak := out
     out = new(bytes.Buffer)
     defer func() { out = bak }()
+
+    d := &Docopts{
+        Global_prefix: "",
+        Mangle_key: true,
+    }
 
     tables, _ := test_json_loader.Load_json("./common_input_test.json")
     //tables := []struct{
@@ -169,7 +194,7 @@ func TestPrint_bash_global(t *testing.T) {
     //    {
     //     map[string]interface{}{ "FILE" : []string{"pipo", "molo", "toto"} },
     //     []string{
-    //      "FILE=('pipo', 'molo', 'toto')",
+    //      "FILE=('pipo' 'molo' 'toto')",
     //   },
     //  },
     //    {
@@ -193,11 +218,43 @@ func TestPrint_bash_global(t *testing.T) {
     //}
 
     for _, table := range tables {
-        Print_bash_global(table.Input, true)
+        d.Print_bash_global(table.Input)
         res := out.(*bytes.Buffer).String()
         expect := strings.Join(table.Expect_global[:],"\n") + "\n"
         if res != expect {
            t.Errorf("Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
+        }
+        out.(*bytes.Buffer).Reset()
+    }
+
+    // without Mangle_key
+    d = &Docopts{
+        Global_prefix: "",
+        Mangle_key: false,
+    }
+
+    for _, table := range tables {
+        d.Print_bash_global(table.Input)
+        res := out.(*bytes.Buffer).String()
+        expect := rewrite_not_mangled(table.Input)
+        if res != expect {
+            t.Errorf("Mangle_key false: Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
+        }
+        out.(*bytes.Buffer).Reset()
+    }
+
+    // without Mangle_key
+    d = &Docopts{
+        Global_prefix: "ARGS",
+        Mangle_key: true,
+    }
+
+    for _, table := range tables {
+        d.Print_bash_global(table.Input)
+        res := out.(*bytes.Buffer).String()
+        expect := rewrite_prefix("ARGS", table.Expect_global)
+        if res != expect {
+            t.Errorf("with prefix: Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
         }
         out.(*bytes.Buffer).Reset()
     }
@@ -247,8 +304,13 @@ func TestName_mangle(t *testing.T) {
         },
     }
 
+    d := &Docopts{
+        Global_prefix: "",
+        Mangle_key: true,
+    }
+
     for _, table := range tables {
-        res, err := Name_mangle(table.input)
+        res, err := d.Name_mangle(table.input)
         if table.expect.e != nil && err == nil {
            t.Errorf("Name_mangle for '%v'\ngot: '%v'\nwant: '%v'\n", table.input, err, table.expect.e)
         }

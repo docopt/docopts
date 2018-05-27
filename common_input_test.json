@@ -11,7 +11,7 @@
         "args['FILE,#']=3"
     ],
     "expect_global" : [
-        "FILE=('pipo', 'molo', 'toto')"
+        "FILE=('pipo' 'molo' 'toto')"
     ]
   },
   {
