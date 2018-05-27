@@ -1,14 +1,6 @@
 # docopts (docopt for bash) TODO list
 
-## global prefix
-
--G PREFIX
-
-this option must be incompatible with -A (see also: --no-mangle)
-
-outputs
-
-`PREFIX_MANGLED_NAME=value`
+## functional testing for all option
 
 ## return or kill for function instead of exit
 
@@ -33,10 +25,6 @@ DOCOPTS_JSON_VAR=SOME_DOCOPTS_JSON
 docopts get --code
 
 ```
-
-## --no-declare
-
-remove the output of `declare -A hash_name`
 
 ## build and publish binary
 

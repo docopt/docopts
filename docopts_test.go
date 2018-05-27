@@ -124,10 +124,15 @@ func TestPrint_bash_args(t *testing.T) {
     //  },
     //}
 
+    d := &Docopts{
+        Global_prefix: "",
+        Mangle_key: true,
+        Output_declare: true,
+    }
 
     tables, _ := test_json_loader.Load_json("./common_input_test.json")
     for _, table := range tables {
-        Print_bash_args("args", table.Input)
+        d.Print_bash_args("args", table.Input)
         res := out.(*bytes.Buffer).String()
         expect := strings.Join(table.Expect_args[:],"\n") + "\n"
         if res != expect {

@@ -30,6 +30,7 @@
 # Note that `language_agnostic_tester.py` is only compatible with
 # Python 2.7.
 
+source ./docopts.sh
 script=$(./docopts -A args -h - : "$@" < /dev/stdin)
 
 if [[ $(tail -n 1 <<< "$script") =~ ^exit\ [0-9]+$ ]] ; then
@@ -38,12 +39,6 @@ fi
 
 shopt -s extglob
 eval "$script"
-
-get_raw_value() {
-  local k=$(printf "args['%s']" "$1")
-  # split on '=', outputs $2 for the matching $1
-  awk -F= "\$1 == \"$k\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$script"
-}
 
 # start JSON
 echo -n '{'
@@ -60,7 +55,7 @@ for key in "${!args[@]}" ; do
               # For numeric value, the JSON is distinct if it is a counter
               # (no quote) or a string (quoted value). But bash can't distiguish
               # any. So we look at the outputed value as text
-              if [[ $(get_raw_value "$key") =~ $regexp ]]
+              if [[ $(get_raw_value args "$key" "$script") =~ $regexp ]]
               then
                   echo -n "\"$key\": \"$value\""
               else

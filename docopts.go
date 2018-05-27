@@ -21,7 +21,7 @@ var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
   docopts [options] -h <msg> : [<argv>...]
-  docopts [options] -A <name>   -h <msg> : [<argv>...]
+  docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
   docopts [options] -G <prefix> -h <msg> : [<argv>...]
   docopts [options] --no-mangle -h <msg> : [<argv>...]
 
@@ -56,6 +56,8 @@ Options:
   --no-mangle                   Output parsed option not suitable for bash eval.
                                 As without -A but full option names are kept.
                                 Rvalue is still shellquoted.
+  --no-declare                  Don't output 'declare -A <name>', used only
+                                with -A argument.
   --debug                       Output extra parsing information for debuging.
                                 Output cannot be used in bash eval.
 
@@ -87,19 +89,22 @@ func print_args(args docopt.Opts, message string) {
 
 // store global behavior to not pass to method as optional arguments
 type Docopts struct {
-	Global_prefix string
+    Global_prefix string
     Mangle_key bool
+    Output_declare bool
 }
 
 // output assoc array output
-func Print_bash_args(bash_assoc string, args docopt.Opts) {
+func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
     // fake nested Bash arrays for repeatable arguments with values
     // structure is:
     // bash_assoc[key,#]=length
     // bash_assoc[key,i]=value
     // i is an integer from 0 to length-1
 
-    fmt.Fprintf(out, "declare -A %s\n" ,bash_assoc)
+    if d.Output_declare {
+        fmt.Fprintf(out, "declare -A %s\n" ,bash_assoc)
+    }
 
     for key, value := range args {
         // some golang tricks here using reflection to loop over the map[]
@@ -308,6 +313,7 @@ func main() {
     d := &Docopts{
         Global_prefix: "",
         Mangle_key: true,
+        Output_declare: true,
     }
 
     // parse docopts's own arguments
@@ -318,6 +324,7 @@ func main() {
     no_help :=  arguments["--no-help"].(bool)
     separator := arguments["--separator"].(string)
     d.Mangle_key = ! arguments["--no-mangle"].(bool)
+    d.Output_declare = ! arguments["--no-declare"].(bool)
     global_prefix, err := arguments.String("-G")
     if err == nil {
         d.Global_prefix = global_prefix
@@ -370,7 +377,7 @@ func main() {
                 fmt.Printf("-A: not a valid Bash identifier: '%s'", name)
                 return
             }
-            Print_bash_args(name, bash_args)
+            d.Print_bash_args(name, bash_args)
         } else {
             d.Print_bash_global(bash_args)
         }

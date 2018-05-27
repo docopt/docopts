@@ -5,7 +5,7 @@
 #
 # Usage:
 #   source path/to/docopts.sh
-#   docopts -A args -h "$help" -V $version : "$@"
+#   docopts -A ARGS -h "$help" -V $version : "$@"
 #
 # the prefix docopt_* is used to export globals and functions
 
@@ -31,7 +31,7 @@ docopt_get_help_string() {
 }
 
 # fetch version information from the given filename or string
-# usually $0 in the main level script, or the help string extacted
+# usually $0 in the main level script, or the help string extracted
 # by docopt_get_help_string()
 docopt_get_version_string() {
     if [[ -f "$1" ]] ; then
@@ -53,11 +53,11 @@ docopt_get_version_string() {
 #}
 
 # convert a repeatable option parsed by docopts into a bash ARRAY
-#   args['FILE,#']=3
-#   args['FILE,0']=somefile1
-#   args['FILE,1']=somefile2
-#   args['FILE,2']=somefile3
-# Usage: myarray=( $(docopt_get_values args --repeatable-option") )
+#   ARGS['FILE,#']=3
+#   ARGS['FILE,0']=somefile1
+#   ARGS['FILE,1']=somefile2
+#   ARGS['FILE,2']=somefile3
+# Usage: myarray=( $(docopt_get_values ARGS --repeatable-option") )
 docopt_get_values() {
     local opt=$2
     local ref="\${$1[$opt,#]}"
@@ -73,7 +73,7 @@ docopt_get_values() {
 }
 
 # echo evaluable code to get alls the values into a bash array
-# Usage: eval "$(docopt_get_eval_array args FILE myarray)"
+# Usage: eval "$(docopt_get_eval_array ARGS FILE myarray)"
 docopt_get_eval_array() {
     local ref="\${$1[$2,#]}"
     local nb_val=$(eval echo "$ref")
@@ -87,30 +87,47 @@ docopt_get_eval_array() {
     done
 }
 
-# Auto parser for the same docopts usage over script, or lazyness.
+# Auto parser for the same docopts usage over scripts, for lazyness.
+#
 # It use this convention:
-#  - help string in: $help
+#  - help string in: $HELP
 #  - Usage extracted by docopt_get_help_string at beginning of the script
-#  - arguments are evaluated at global level in the assoc: $args[]
+#  - arguments are evaluated at global level in the assoc: $ARGS[]
 #  - no version information
 #
 docopt_auto_parse() {
     local script_fname=$1
     shift
-    # $help in global scope
-    help="$(docopt_get_help_string "$script_fname")"
-    # $args[] assoc array must be declared outside on this function
-    # or it's scope will be local, that's why we filtering it out.
-    docopts -A args -h "$help" : "$@" | grep -v -- 'declare -A args'
+    # $HELP in global scope
+    HELP="$(docopt_get_help_string "$script_fname")"
+    # $ARGS[] assoc array must be declared outside of this function
+    # or it's scope will be local, that's why we don't print it.
+    docopts -A ARGS --no-declare -h "$HELP" : "$@"
     # returns the status of the docopts command, not grep status
     return ${PIPESTATUS[0]}
 }
 
+# Extract the raw value of a parsed docopts output.
+# arguments:
+#  - assoc: the docopts assoc name
+#  - key:   the wanted key
+#  - docopts_out: the full parsed output (before eval)
+get_raw_value() {
+    local assoc=$1
+    local key="$2"
+    local docopts_out="$3"
+    local kstr=$(printf "%s['%s']" $assoc "$key")
+    # split on '=', outputs the remaining for the matching $1
+    awk -F= "\$1 == \"$kstr\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$docopts_out"
+}
+
 ## main code
-# --auto : don't forget to pass $@
+# --auto : don't forget to pass "$@"
 # Usage: source docopts.sh --auto "$@"
 if [[ "$1" == "--auto" ]] ; then
     shift
-    declare -A args
+    # declare must be used at global scope to be accessible at
+    # global level any were in the caller script.
+    declare -A ARGS
     eval "$(docopt_auto_parse "${BASH_SOURCE[1]}" "$@")"
 fi
