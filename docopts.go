@@ -16,14 +16,21 @@ import (
     "sort"
 )
 
-var Version string = "docopts 0.6.3"
+var Version string = `docopts 0.6.3
+Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
+Copyleft (Ɔ) 2018 Sylvain Viart (golang version).
+License MIT <http://opensource.org/licenses/MIT>.
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+`
+
 var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
   docopts [options] -h <msg> : [<argv>...]
   docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
-  docopts [options] -G <prefix> -h <msg> : [<argv>...]
-  docopts [options] --no-mangle -h <msg> : [<argv>...]
+  docopts [options] -G <prefix>  -h <msg> : [<argv>...]
+  docopts [options] --no-mangle  -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -60,11 +67,6 @@ Options:
                                 with -A argument.
   --debug                       Output extra parsing information for debuging.
                                 Output cannot be used in bash eval.
-
-Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
-License MIT <http://opensource.org/licenses/MIT>.
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
 `
 
 // testing trick, out can be mocked to catch stdout and validate
@@ -87,20 +89,22 @@ func print_args(args docopt.Opts, message string) {
     }
 }
 
-// store global behavior to not pass to method as optional arguments
+// Store global behavior to avoid passing many optional arguments to methods.
 type Docopts struct {
     Global_prefix string
     Mangle_key bool
     Output_declare bool
+    Exit_function bool
 }
 
-// output assoc array output
+// output bash 4 compatible assoc array, suitable for eval.
 func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
-    // fake nested Bash arrays for repeatable arguments with values
-    // structure is:
+    // Reuse python's fake nested Bash arrays for repeatable arguments with values.
+    // The structure is:
     // bash_assoc[key,#]=length
     // bash_assoc[key,i]=value
-    // i is an integer from 0 to length-1
+    // 'i' is an integer from 0 to length-1
+    // length can be 0, for empty array
 
     if d.Output_declare {
         fmt.Fprintf(out, "declare -A %s\n" ,bash_assoc)
@@ -124,7 +128,7 @@ func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
     }
 }
 
-// test if a value is an array
+// Check if a value is an array
 func IsArray(rt reflect.Type) bool {
     if rt == nil {
         return false
@@ -148,8 +152,9 @@ func IsBashIdentifier(s string) bool {
     return identifier.MatchString(s)
 }
 
-// convert a parsed type to a text string suitable for bash eval
-// as a right-hand side of an assignment
+// Convert a parsed type to a text string suitable for bash eval
+// as a right-hand side of an assignment.
+// Handles quoting for string, no quote for number or bool.
 func To_bash(v interface{}) string {
     var s string
     switch v.(type) {
@@ -176,6 +181,10 @@ func To_bash(v interface{}) string {
     return s
 }
 
+// Performs output for bash Globals (not bash 4 assoc) Names are mangled to became
+// suitable for bash eval.
+// If Docopts.Mangle_key: false simply print left-hand side assignment verbatim.
+// used for --no-mangle
 func (d *Docopts) Print_bash_global(args docopt.Opts) {
     var new_name string
     var err error
@@ -199,6 +208,9 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) {
     fmt.Fprintf(out, "%s", out_buf)
 }
 
+// Transform a parsed option or place-holder name into a bash identifier if possible.
+// It Docopts.Global_prefix is prepended if given, wrong prefix may produce invalid
+// bash identifier and this method will fail.
 func (d *Docopts) Name_mangle(elem string) (string, error) {
     var v string
 
@@ -225,7 +237,7 @@ func (d *Docopts) Name_mangle(elem string) (string, error) {
     v = fmt.Sprintf(key_fmt, strings.Replace(v, "-", "_", -1))
 
     if ! IsBashIdentifier(v) {
-        return "", fmt.Errorf("cannot transform into a bash identifier: %s", elem)
+        return "", fmt.Errorf("cannot transform into a bash identifier: '%s' => '%s'", elem, v)
     }
 
     return v, nil
@@ -237,26 +249,45 @@ func Match(regex string, source string) bool {
     return matched
 }
 
-// our HelpHandler which outputs bash code to be evaled as error and stop or
-// display program's help or version
-// TODO: handle return or kill instead of exit so it can be launched inside a function
-var HelpHandler_for_bash_eval = func(err error, usage string) {
+// Experimental: Change bash exit source code based on '--function' parameter
+func (d *Docopts) Get_exit_code(exit_code int) (str_code string) {
+    if d.Exit_function {
+        str_code = fmt.Sprintf("return %d", exit_code)
+    } else {
+        str_code = fmt.Sprintf("exit %d", exit_code)
+    }
+    return
+}
+
+// Our HelpHandler which outputs bash source code to be evaled as error and stop or
+// display program's help or version.
+func (d *Docopts) HelpHandler_for_bash_eval (err error, usage string) {
     if err != nil {
-        fmt.Printf("echo 'error: %s\n%s' >&2\nexit 64\n", Shellquote(err.Error()), Shellquote(usage))
+        fmt.Printf("echo 'error: %s\n%s' >&2\n%s\n",
+            Shellquote(err.Error()),
+            Shellquote(usage),
+            d.Get_exit_code(64),
+        )
         os.Exit(1)
     } else {
         // --help or --version found and --no-help was not given
-        fmt.Printf("echo '%s'\nexit 0\n",  Shellquote(usage))
+        fmt.Printf("echo '%s'\n%s\n", Shellquote(usage), d.Get_exit_code(0))
         os.Exit(0)
     }
 }
 
-var HelpHandler_golang = func(err error, usage string) {
+// HelpHandler for go parser which parses docopts options. See: HelpHandler_for_bash_eval for parsing
+// bash options. This handler is called when docopts itself detects a parse error on docopts usage.
+// If docopts parsing is OK, then HelpHandler_for_bash_eval will be called by a second parser based on the
+// help string given with -h <msg> or --help=<msg>. This behavior is a legacy behavior from docopts python
+// previous version. This introduce strange hack in option parsing and may be changed after initial docopts go
+// version release.
+func HelpHandler_golang(err error, usage string) {
     if err != nil {
         err_str := err.Error()
+        // we hack for our polymorphic argument -h or -V
+        // it was the same hack in python version
         if len(err_str) >= 9 {
-            // we hack for our polymorphic argument -h or -V
-            // it was the same hack in python version
             if err_str[0:2] == "-h" || err_str[0:6] == "--help" {
                 // print full usage message (global var)
                 fmt.Println(strings.TrimSpace(Usage))
@@ -268,9 +299,13 @@ var HelpHandler_golang = func(err error, usage string) {
             }
         }
 
+        // When we have an error with err_str empty, this is a special case:
+        // we received an usage string which MUST receive an argument and no argument has been
+        // given by the user. So this is a valid, from golang point of view but not for bash.
         if len(err_str) == 0 {
             // no arg at all, display small usage, also exits 1
-            HelpHandler_for_bash_eval(fmt.Errorf("no argument"), usage)
+            d := &Docopts{Exit_function: false}
+            d.HelpHandler_for_bash_eval(fmt.Errorf("no argument"), usage)
         }
 
         // real error
@@ -297,6 +332,7 @@ func main() {
       SkipHelpFlags: true,
       HelpHandler: HelpHandler_golang,
     }
+
     arguments, err := golang_parser.ParseArgs(Usage, nil, Version)
 
     if err != nil {
@@ -314,6 +350,8 @@ func main() {
         Global_prefix: "",
         Mangle_key: true,
         Output_declare: true,
+        // Exit_function is experimental
+        Exit_function: false,
     }
 
     // parse docopts's own arguments
@@ -359,9 +397,9 @@ func main() {
         fmt.Printf("%20s : %v\n", "bash_version", bash_version)
     }
 
-    // now parse bash program's arguments
+    // now parses bash program's arguments
     parser := &docopt.Parser{
-      HelpHandler: HelpHandler_for_bash_eval,
+      HelpHandler: d.HelpHandler_for_bash_eval,
       OptionsFirst: options_first,
       SkipHelpFlags: no_help,
     }

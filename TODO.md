@@ -8,23 +8,7 @@ Add a parameter to handle return or kill instead of exit so it can be launched i
 
 ## embeded JSON
 
-```
-DOCOPTS_JSON=$(docopts --json --help-mesg="Usage: mystuff [--code] INFILE [--out=OUTFILE]" -- "$@")
-
-# automaticly use  $DOCOPTS_JSON
-if [[ $(docopts get -- --code) == checkit ]]
-then
-  action
-fi
-
-# or
-docopts get --env SOME_DOCOPTS_JSON -- --code
-
-# or
-DOCOPTS_JSON_VAR=SOME_DOCOPTS_JSON
-docopts get --code
-
-```
+See [API_proposal.md](API_proposal.md)
 
 ## build and publish binary
 

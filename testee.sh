@@ -12,7 +12,7 @@
 # counter or accepts an integer argument:
 #   both `--speed=2` and `--speed --speed` map to `"--speed": 2`.
 # A trick is to read the outputed value of docopts and not evaled result.
-# See: get_raw_value()
+# See: docopt_get_raw_value()
 #
 # There is currently no way to automatically test the operation mode of
 # docopts that name-mangles elements into Bash variables, as this
@@ -55,7 +55,7 @@ for key in "${!args[@]}" ; do
               # For numeric value, the JSON is distinct if it is a counter
               # (no quote) or a string (quoted value). But bash can't distiguish
               # any. So we look at the outputed value as text
-              if [[ $(get_raw_value args "$key" "$script") =~ $regexp ]]
+              if [[ $(docopt_get_raw_value args "$key" "$script") =~ $regexp ]]
               then
                   echo -n "\"$key\": \"$value\""
               else

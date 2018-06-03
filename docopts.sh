@@ -8,6 +8,7 @@
 #   docopts -A ARGS -h "$help" -V $version : "$@"
 #
 # the prefix docopt_* is used to export globals and functions
+# docopt_auto_parse() modify $HELP and $ARGS
 
 # compute this file dirpath:
 docopt_sh_me=$(readlink -f "${BASH_SOURCE[0]}")
@@ -44,20 +45,12 @@ docopt_get_version_string() {
     fi
 }
 
-## function wrapper
-## Usage: same as docopts.py
-#docopt() {
-#    #   docopts [options] -h <msg> : [<argv>...]
-#    # call python parser on embedded code
-#    python <(sed -n -e '/^### EMBEDDED/,$ s/^#> // p' "$docopt_sh_me") "$@"
-#}
-
 # convert a repeatable option parsed by docopts into a bash ARRAY
 #   ARGS['FILE,#']=3
 #   ARGS['FILE,0']=somefile1
 #   ARGS['FILE,1']=somefile2
 #   ARGS['FILE,2']=somefile3
-# Usage: myarray=( $(docopt_get_values ARGS --repeatable-option") )
+# Usage: myarray=( $(docopt_get_values ARGS FILE") )
 docopt_get_values() {
     local opt=$2
     local ref="\${$1[$opt,#]}"
@@ -89,11 +82,11 @@ docopt_get_eval_array() {
 
 # Auto parser for the same docopts usage over scripts, for lazyness.
 #
-# It use this convention:
-#  - help string in: $HELP
-#  - Usage extracted by docopt_get_help_string at beginning of the script
-#  - arguments are evaluated at global level in the assoc: $ARGS[]
-#  - no version information
+# It uses this convention:
+#  - help string in: $HELP (modified at gobal scope)
+#  - Usage is extracted by docopt_get_help_string at beginning of the script
+#  - arguments are evaluated at global scope in the bash 4 assoc $ARGS
+#  - no version information is handled
 #
 docopt_auto_parse() {
     local script_fname=$1
@@ -103,8 +96,8 @@ docopt_auto_parse() {
     # $ARGS[] assoc array must be declared outside of this function
     # or it's scope will be local, that's why we don't print it.
     docopts -A ARGS --no-declare -h "$HELP" : "$@"
-    # returns the status of the docopts command, not grep status
-    return ${PIPESTATUS[0]}
+    res=$?
+    return $res
 }
 
 # Extract the raw value of a parsed docopts output.
@@ -112,13 +105,34 @@ docopt_auto_parse() {
 #  - assoc: the docopts assoc name
 #  - key:   the wanted key
 #  - docopts_out: the full parsed output (before eval)
-get_raw_value() {
+docopt_get_raw_value() {
     local assoc=$1
     local key="$2"
     local docopts_out="$3"
     local kstr=$(printf "%s['%s']" $assoc "$key")
     # split on '=', outputs the remaining for the matching $1
     awk -F= "\$1 == \"$kstr\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$docopts_out"
+}
+
+# Debug, prints env varible ARGS or $1 formated as a bash 4 assoc array
+docopt_print_ARGS() {
+    local assoc="$1"
+    if [[ -z $assoc ]] ; then
+        assoc=ARGS
+    fi
+
+    # bash dark magic copying $assoc argument to a local myassoc array
+    # inspired by:
+    # https://stackoverflow.com/questions/6660010/bash-how-to-assign-an-associative-array-to-another-variable-name-e-g-rename-t#8881121
+    declare -A myassoc
+    eval $(typeset -A -p $tab|sed "s/ $assoc=/ myassoc=/")
+
+    # loop on keys
+    echo "docopt_print_ARGS => $assoc"
+    local a
+    for a in ${!myassoc[@]} ; do
+        printf "%20s = %s\n" $a "${myassoc[$a]}"
+    done
 }
 
 ## main code

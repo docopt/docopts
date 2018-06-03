@@ -1,5 +1,5 @@
 #!/bin/bash
-# vim: set ts=4 sw=4 sts=4 ft=sh
+# vim: set et ts=4 sw=4 sts=4 ft=sh:
 #
 # unit test for bash helpers in docopts.sh
 # run with bats
@@ -57,4 +57,45 @@ EOF
     [[ ${#myarray[@]} -eq 4 ]]
     [[ ${myarray[2]} == 'somefile3' ]]
     [[ ${myarray[3]} == "somefile4 with space inside" ]]
+}
+
+@test "docopt_get_raw_value" {
+    PATH=..:$PATH
+    # --num arg is handled as a string
+    run docopts -A myargs -h "usage: count --num=<counter>  FILE" : --num=2 file1
+    [[ $status -eq 0 ]]
+    run docopt_get_raw_value myargs --num "$output"
+    echo "status=$status"
+    echo "lines0=${lines[0]}"
+    [[ $status -eq 0 ]]
+    [[ ${lines[0]} == "'2'" ]]
+    # -v is a counter it is handled as an integer
+    run docopts -A myargs -h "Usage: prog -v ..." : -vvv
+    run docopt_get_raw_value myargs -v "$output"
+    [[ $status -eq 0 ]]
+    [[ ${lines[0]} == "3" ]]
+}
+
+@test "docopt_print_ARGS" {
+    declare -A ARGS
+    ARGS['FILE,#']=4
+    ARGS['FILE,0']=somefile1
+    ARGS['FILE,1']=somefile2
+    ARGS['FILE,2']=somefile3
+    ARGS['FILE,3']="somefile4 with space inside"
+    run docopt_print_ARGS
+    echo "output=$output"
+    grep -q -E 'FILE,3' <<< "$output"
+
+    # with a named assoc
+    declare -A ourargs
+    ourargs['FILE,#']=4
+    ourargs['FILE,0']=somefile1
+    ourargs['FILE,1']=somefile2
+    ourargs['FILE,2']=somefile3
+    ourargs['FILE,3']="somefile4 with space inside"
+    run docopt_print_ARGS ourargs
+    echo "output=$output"
+    grep -q -E 'FILE,3' <<< "$output"
+    grep -q -E 'ourargs' <<< "$output"
 }
