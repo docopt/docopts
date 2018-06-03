@@ -5,7 +5,7 @@ See Proposal lib API: [on `docopts` Wiki](https://github.com/docopt/docopts/wiki
 The [develop branch](https://github.com/docopt/docopts/tree/develop) is abandoned!
 
 The current go version is 100% compatible with python's docopts.
-Please report any non working code with issue and examples.
+Please report any non working code with [issue](https://github.com/docopt/docopts/issues) and examples.
 
 ## docopts
 
