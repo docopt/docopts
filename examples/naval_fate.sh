@@ -2,12 +2,12 @@
 # Naval Fate.
 #
 # Usage:
-#   naval_fate.py ship new <name>...
-#   naval_fate.py ship <name> move <x> <y> [--speed=<kn>]
-#   naval_fate.py ship shoot <x> <y>
-#   naval_fate.py mine (set|remove) <x> <y> [--moored|--drifting]
-#   naval_fate.py -h | --help
-#   naval_fate.py --version
+#   naval_fate.sh ship new <name>...
+#   naval_fate.sh ship <name> move <x> <y> [--speed=<kn>]
+#   naval_fate.sh ship shoot <x> <y>
+#   naval_fate.sh mine (set|remove) <x> <y> [--moored|--drifting]
+#   naval_fate.sh -h | --help
+#   naval_fate.sh --version
 #
 # Options:
 #   -h --help     Show this screen.
