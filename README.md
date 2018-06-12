@@ -48,7 +48,7 @@ See manual and [Examples](examples/)
 
 ## Compiling
 
-With go workspace.
+With a go workspace.
 
 cross compile for 32btis
 ```
@@ -57,9 +57,17 @@ env GOOS=linux GOARCH=386 go build docopts.go
 
 local build
 ```
+go get github.com/docopt/docopt-go
 go get github.com/Sylvain303/docopts
 cd src/github.com/Sylvain303/docopts
 go build docopts.go
+```
+
+or via Makefile (generate 64bits, 32bits, arm and OSX-64bits version of docopts)
+
+```
+cd src/github.com/Sylvain303/docopts
+make all
 ```
 
 Tested built on: `go version go1.10.2 linux/amd64`
@@ -79,9 +87,8 @@ You don't need a python interpreter anymore.
 As of 2018-05-22
 
 * `docopts` is able to reproduce 100% of the python version.
-* Language agnostic test is 100% (on adm64 Linux)
 * unit test for go, hack as you wish.
-* 100% `language_agnostic_tester.py` passed
+* 100% `language_agnostic_tester.py` passed (GNU/Linux 64bits)
 
 ## Developpers
 
