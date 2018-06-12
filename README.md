@@ -29,7 +29,18 @@ next as root
 cp docopts docopts.sh /usr/local/bin
 ```
 
-TODO: upload pre-built binary to release to they could be fetched directly
+### pre-built binary
+
+pre-built binary are attached to [releases](https://github.com/Sylvain303/docopts/releases)
+
+download and rename it as `docopts` and put in your `PATH`
+
+```
+mv docopts-32bit docopts
+cp docopts docopts.sh /usr/local/bin
+```
+
+You are strongly encouraged to build your own binary. Find a local golang developper in whom you trust and ask her, for a beer or two, if she could build it for you. ;)
 
 ## Usage
 
