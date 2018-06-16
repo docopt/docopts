@@ -21,3 +21,8 @@ docopts-OSX: docopts.go
 # build 32 bits version too
 docopts-arm: docopts.go
 	env GOOS=linux GOARCH=arm go build -o docopts-arm docopts.go
+
+test: docopts
+	go test -v
+	python language_agnostic_tester.py ./testee.sh
+	cd tests/ && ./bats/bin/bats .
