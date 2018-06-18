@@ -1,0 +1,53 @@
+[
+  {
+    "input" : {
+           "FILE" : [ "pipo", "molo", "toto" ]
+    },
+    "expect_args" : [
+        "declare -A args",
+        "args['FILE,0']='pipo'",
+        "args['FILE,1']='molo'",
+        "args['FILE,2']='toto'",
+        "args['FILE,#']=3"
+    ],
+    "expect_global" : [
+        "FILE=('pipo' 'molo' 'toto')"
+    ]
+  },
+  {
+    "input" : {
+           "--counter" : 2
+    },
+    "expect_args" : [
+        "declare -A args",
+        "args['--counter']=2"
+      ],
+    "expect_global" : [
+        "counter=2"
+      ]
+  },
+  {
+    "input" : {
+           "--counter" : "2"
+    },
+    "expect_args" : [
+        "declare -A args",
+        "args['--counter']='2'"
+      ],
+    "expect_global" : [
+        "counter='2'"
+      ]
+  },
+  {
+    "input" : {
+           "bool" : true
+    },
+    "expect_args" : [
+        "declare -A args",
+        "args['bool']=true"
+      ],
+    "expect_global" : [
+        "bool=true"
+      ]
+  }
+]

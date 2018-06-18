@@ -1,8 +1,3 @@
-
- WARNING: The `upcoming 0.7.0 release of docopts
- <https://github.com/docopt/docopts/tree/develop>`_ will feature a completely
- different user interface.  Prepare for script breakage.
-
 ================================================================================
  docopts
 ================================================================================
@@ -10,6 +5,7 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
+                Sylvain303@github.com
 :Date:           2013-02-07
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
 :Version:        0.6.1+fix
