@@ -2,6 +2,7 @@
 
 finish examples/
 make repository cleanup
+change import path to github.com/docopt/docopts
 
 # next
 
