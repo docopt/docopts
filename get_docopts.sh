@@ -9,25 +9,25 @@ GIT_USER=Sylvain303
 GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 RELEASE=v0.6.3-alpha1
-DEST_BIN=docopts
+BINARY=docopts
 
-if [[ -e $DEST_BIN ]]
+if [[ -e $BINARY ]]
 then
-  echo "file in the way: '$DEST_BIN' remove it."
+  echo "file in the way: '$BINARY' remove it."
   exit 1
 fi
 
 if [[ $(getconf LONG_BIT) == "64" ]]
 then
     echo "I'm 64-bits"
-    URL="$BASE_URL/$RELEASE/docopts"
+    URL="$BASE_URL/$RELEASE/$BINARY"
 else
     echo "I'm 32-bits"
-    URL="$BASE_URL/$RELEASE/docopts-32bits"
+    URL="$BASE_URL/$RELEASE/${BINARY}-32bits"
 fi
 
 set -e
 echo "Fetching from: $URL"
-wget -q -O $DEST_BIN "$URL"
-file $DEST_BIN
-chmod a+x $DEST_BIN
+wget -q -O $BINARY "$URL"
+file $BINARY
+chmod a+x $BINARY
