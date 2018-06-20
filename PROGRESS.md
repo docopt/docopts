@@ -1,10 +1,13 @@
 # current work in PROGRRESS
 
 finish examples/
-make repository cleanup
-change import path to github.com/docopt/docopts
+examples without lib docopts.sh
 
 # next
+
+## release and binary
+
+publish release and pre-build binaries
 
 ## CI
 integration with automated tests
