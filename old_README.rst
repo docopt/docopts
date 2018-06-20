@@ -5,7 +5,7 @@
  shell interface for docopt, the CLI description language
 --------------------------------------------------------------------------------
 :Author:        `Lari Rasku <rasku@lavabit.com>`_
-                Sylvain303@github.com
+                `modified by Sylvain Viart Sylvain303@github (go version)`_
 :Date:           2013-02-07
 :Copyright:     `MIT <http://opensource.org/licenses/MIT>`_
 :Version:        0.6.1+fix

@@ -11,7 +11,7 @@ import (
     "bytes"
     "errors"
     // our json loader for common_input_test.json
-    "github.com/Sylvain303/docopts/test_json_load"
+    "github.com/docopt/docopts/test_json_load"
     "fmt"
 )
 

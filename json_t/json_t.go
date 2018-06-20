@@ -2,7 +2,7 @@ package main
 
 import (
     "fmt"
-    "github.com/Sylvain303/docopts/test_json_load"
+    "github.com/docopt/docopts/test_json_load"
 )
 
 func main() {
