@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vim: set et sw=4 ts=4 sts=4:
 #
 # docopts helper for bash
