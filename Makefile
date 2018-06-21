@@ -26,3 +26,6 @@ test: docopts
 	go test -v
 	python language_agnostic_tester.py ./testee.sh
 	cd tests/ && ./bats/bin/bats .
+
+clean:
+	rm -f docopts-* docopts

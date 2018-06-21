@@ -61,8 +61,8 @@ local build
 
 ```
 go get github.com/docopt/docopt-go
-go get github.com/Sylvain303/docopts
-cd src/github.com/Sylvain303/docopts
+go get github.com/docopt/docopts
+cd src/github.com/docopt/docopts
 go build docopts.go
 ```
 
@@ -75,7 +75,7 @@ env GOOS=linux GOARCH=386 go build docopts.go
 or via Makefile (generate 64bits, 32bits, arm and OSX-64bits version of docopts)
 
 ```
-cd src/github.com/Sylvain303/docopts
+cd src/github.com/docopt/docopts
 make all
 make test
 ```
@@ -165,7 +165,7 @@ bats .
 #### language_agnostic_tester
 
 This script was provided with the original `docopts`. I fixed number/string output parsing failure with an extra function
-for bash in [docopts.sh](https://github.com/Sylvain303/docopts/blob/docopts-go/docopts.sh#L108)
+for bash in [docopts.sh](https://github.com/docopt/docopts/blob/docopts-go/docopts.sh#L108)
 `docopt_get_raw_value()`. This is a hack to get 100% pass, and it is not very efficient.
 
 ```
