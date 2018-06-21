@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Testee script for docopts.  This script reads an arbitrary docopts usage
 # from standard input and uses it to parse whatever arguments are passed to it
