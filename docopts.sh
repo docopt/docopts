@@ -125,7 +125,7 @@ docopt_print_ARGS() {
     # inspired by:
     # https://stackoverflow.com/questions/6660010/bash-how-to-assign-an-associative-array-to-another-variable-name-e-g-rename-t#8881121
     declare -A myassoc
-    eval $(typeset -A -p $tab|sed "s/ $assoc=/ myassoc=/")
+    eval $(typeset -A -p $assoc|sed "s/ $assoc=/ myassoc=/")
 
     # loop on keys
     echo "docopt_print_ARGS => $assoc"

@@ -2,6 +2,7 @@
 
 finish examples/
 examples without lib docopts.sh
+test .travis.yml with 2 OSes
 
 # next
 
