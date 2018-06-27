@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vim: set et ts=4 sw=4 sts=4 ft=sh:
 #
 # unit test for bash helpers in docopts.sh
@@ -10,7 +10,7 @@ source ../docopts.sh
 @test "docopt_get_help_string" {
     tmp=./tmp_docopt_get_help_string
     cat <<EOF > $tmp
-#!/bin/bash
+#!/usr/bin/env bash
 # some test
 # Usage: docopt_get_help_string $0
 #   docopt_get_help_string prout

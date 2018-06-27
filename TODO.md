@@ -12,7 +12,7 @@ See [API_proposal.md](API_proposal.md)
 
 ## build and publish binary
 
-reuse build.sh to build golang binary and pubilsh it as a new release too.
+Reuse build.sh to build golang binary and pubilsh it as a new release too.
 
 ## generate bash completion from usage
 
@@ -22,7 +22,7 @@ docopts -h "$help" --generate-completion
 
 ## embed test routine (validation)?
 
-may we cat interract with the caller to eval some validation…
+May we can interract with the caller to eval some validation…
 It is needed? Is it our goal?
 
 ```
@@ -38,3 +38,6 @@ if docopts test -- num:gt:1:--count file_exists:INFILE
 ## config file parse config to option format
 
 À la nslcd… ?
+
+* json merge
+* toml merge (ini)

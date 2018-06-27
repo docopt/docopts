@@ -17,12 +17,15 @@
 #   --drifting    Drifting mine.
 #
 
-VERSION='Naval Fate 2.0'
 
 # if docopts is in PATH, not needed.
 # Note: docopts.sh is also found in PATH
 PATH=..:$PATH
-# auto parse the header above, See: docopt_get_help_string
-source docopts.sh --auto "$@"
+
+VERSION='Naval Fate 2.0'
+source docopts.sh
+# no vesion support in docopt_auto_parse() so we call docopts directly
+usage=$(docopt_get_help_string "$0")
+eval "$(docopts -A ARGS -V "$VERSION" -h "$usage" : "$@")"
 
 docopt_print_ARGS

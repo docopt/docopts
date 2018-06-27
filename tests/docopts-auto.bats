@@ -8,7 +8,7 @@
 mktmp() {
     tmp=./tmp-docopt_auto_parse.sh
     cat <<'EOF' >$tmp
-#!/bin/bash
+#!/usr/bin/env bash
 # Usage: sometest [--opt] [--output=FILE] INFILE
 
 source ../docopts.sh --auto "$@"

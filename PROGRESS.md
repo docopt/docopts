@@ -1,15 +1,16 @@
 # current work in PROGRRESS
 
-finish examples/
-make repository cleanup
+old style loop bash examples
 
 # next
 
-## CI
-integration with automated tests
+## release and binary
+
+publish release and pre-build binaries
 
 ## provide test on old environment
 
 docker?
 32bist
 bash 3
+
