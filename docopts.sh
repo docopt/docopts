@@ -11,7 +11,7 @@
 # docopt_auto_parse() modify $HELP and $ARGS
 
 # compute this file dirpath:
-docopt_sh_me=$(readlink -f "${BASH_SOURCE[0]}")
+docopt_sh_me=$($(type -p greadlink readlink | head -1 ) -f "${BASH_SOURCE[0]}")
 docopt_sh_dir="$(dirname "$docopt_sh_me")"
 
 # fetch Usage: from the given filename
