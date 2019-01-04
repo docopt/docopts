@@ -4,7 +4,7 @@ DOCOPT_GO=${GOPATH}/linux_amd64/github.com/docopt/docopt-go.a
 PREFIX ?= /usr/local
 
 install: docopts
-	cp doctops docopts.sh $(PREFIX)/bin
+	cp docopts docopts.sh $(PREFIX)/bin
 
 # build 64 bits version
 docopts: docopts.go
