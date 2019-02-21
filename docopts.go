@@ -56,7 +56,7 @@ Options:
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
   -G <prefix>                   As without -A, but outputs Bash compatible
-                                GLOBAL varibles assignment, uses the given
+                                GLOBAL variables assignment, uses the given
                                 <prefix>_{option}={parsed_option}. Can be used
                                 with numerical incompatible option as well.
                                 See also: --no-mangle
