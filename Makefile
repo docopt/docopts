@@ -17,7 +17,7 @@ docopts: docopts.go
 docopt-go:
 	go get github.com/docopt/docopt-go
 
-all: docopt-go docopts docopts-arm docopts-32bits docopts-OSX
+all: docopts docopts-arm docopts-32bits docopts-OSX sha256sum.txt
 
 # compile 32 bits version too
 docopts-32bits: docopts.go
@@ -37,10 +37,13 @@ test: docopts
 	cd tests/ && ./bats/bin/bats .
 
 # for building debian package
-build: build_orig_tgz
+build: all build_orig_tgz
 
 build_orig_tgz: docopts docopts-32bits docopts.sh
 	tar czf ./docopts_${VERSION}.tar.gz docopts docopts-32bits docopts.sh
+
+sha256sum.txt: docopts docopts-32bits docopts.sh
+	sha256sum docopts docopts-32bits docopts.sh > sha256sum.txt
 
 # some fake local dir for testing install
 ${LOCAL_DIR}:
