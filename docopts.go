@@ -181,24 +181,35 @@ func To_bash(v interface{}) string {
     return s
 }
 
-// Performs output for bash Globals (not bash 4 assoc) Names are mangled to became
+// Performs output for bash Globals (not bash 4 assoc) Names are mangled to become
 // suitable for bash eval.
-// If Docopts.Mangle_key: false simply print left-hand side assignment verbatim.
+// If Docopts.Mangle_key is false: simply print left-hand side assignment verbatim.
 // used for --no-mangle
-func (d *Docopts) Print_bash_global(args docopt.Opts) {
+func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
     var new_name string
     var err error
     var out_buf string
 
-    // value is an interface{}
+    varmap := make(map[string]string)
+
+    // docopt.Opts is of type map[string]interface{}
+    // so value is an interface{}
     for key, value := range args {
         if d.Mangle_key {
             new_name, err = d.Name_mangle(key)
             if err != nil {
-                docopts_error("%v", err)
+                return err
             }
         } else {
             new_name = key
+        }
+
+        // test if already present in the map
+        prev_key, seen := varmap[new_name]
+        if seen {
+            return fmt.Errorf("%s: two or more elements have identically mangled names", prev_key)
+        } else {
+          varmap[new_name] = key
         }
 
         out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(value))
@@ -206,6 +217,8 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) {
 
     // final output
     fmt.Fprintf(out, "%s", out_buf)
+
+    return nil
 }
 
 // Transform a parsed option or place-holder name into a bash identifier if possible.
@@ -417,7 +430,10 @@ func main() {
             }
             d.Print_bash_args(name, bash_args)
         } else {
-            d.Print_bash_global(bash_args)
+            err = d.Print_bash_global(bash_args)
+            if err != nil {
+                docopts_error("Print_bash_global:%v", err)
+            }
         }
     } else {
         panic(err)

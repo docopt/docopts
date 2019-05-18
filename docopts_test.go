@@ -186,11 +186,6 @@ func TestPrint_bash_global(t *testing.T) {
     out = new(bytes.Buffer)
     defer func() { out = bak }()
 
-    d := &Docopts{
-        Global_prefix: "",
-        Mangle_key: true,
-    }
-
     tables, _ := test_json_loader.Load_json("./common_input_test.json")
     //tables := []struct{
     //    input map[string]interface{}
@@ -222,8 +217,16 @@ func TestPrint_bash_global(t *testing.T) {
     //  },
     //}
 
+    var err error
+    d := &Docopts{
+        Global_prefix: "",
+        Mangle_key: true,
+    }
     for _, table := range tables {
-        d.Print_bash_global(table.Input)
+        err = d.Print_bash_global(table.Input)
+        if err != nil {
+            t.Errorf("Print_bash_global doesn't return nil for err: %v\n", err)
+        }
         res := out.(*bytes.Buffer).String()
         expect := strings.Join(table.Expect_global[:],"\n") + "\n"
         if res != expect {
@@ -237,9 +240,11 @@ func TestPrint_bash_global(t *testing.T) {
         Global_prefix: "",
         Mangle_key: false,
     }
-
     for _, table := range tables {
-        d.Print_bash_global(table.Input)
+        err = d.Print_bash_global(table.Input)
+        if err != nil {
+            t.Errorf("Print_bash_global doesn't return nil for err: %v\n", err)
+        }
         res := out.(*bytes.Buffer).String()
         expect := rewrite_not_mangled(table.Input)
         if res != expect {
@@ -248,14 +253,16 @@ func TestPrint_bash_global(t *testing.T) {
         out.(*bytes.Buffer).Reset()
     }
 
-    // without Mangle_key
+    // with Mangle_key
     d = &Docopts{
         Global_prefix: "ARGS",
         Mangle_key: true,
     }
-
     for _, table := range tables {
-        d.Print_bash_global(table.Input)
+        err = d.Print_bash_global(table.Input)
+        if err != nil {
+            t.Errorf("Print_bash_global doesn't return nil for err: %v\n", err)
+        }
         res := out.(*bytes.Buffer).String()
         expect := rewrite_prefix("ARGS", table.Expect_global)
         if res != expect {
@@ -263,6 +270,17 @@ func TestPrint_bash_global(t *testing.T) {
         }
         out.(*bytes.Buffer).Reset()
     }
+
+    // with Mangle_key plus name collision
+    input_args := make(map[string]interface{})
+    input_args["--long-option"] = true
+    input_args["<long-option>"] = "dummy_value"
+
+    err = d.Print_bash_global(input_args)
+    if err == nil {
+        t.Errorf("Print_bash_global expecting err on duplicate Mangle_key options")
+    }
+    out.(*bytes.Buffer).Reset()
 }
 
 type Expected struct {
