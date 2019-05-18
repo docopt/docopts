@@ -190,7 +190,7 @@ done
 
 Using the associative array with `-A`:
 
-```
+```bash
 help="
 Usage: example [--long-option-with-argument=value] <argument-with-multiple-values>...
 "
