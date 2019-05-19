@@ -20,7 +20,7 @@
 
 # if docopts is in PATH, not needed.
 # Note: docopts.sh is also found in PATH
-PATH=..:$PATH
+PATH=../..:$PATH
 
 VERSION='Naval Fate 2.0'
 source docopts.sh
