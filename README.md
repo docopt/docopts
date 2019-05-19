@@ -1,19 +1,19 @@
 # docopts
 
-[docopt](http://docopt.org/) for shell - make beautifull CLI with ease.
+[docopt](http://docopt.org/) for shell - make beautiful CLI with ease.
 
 Status: Alpha - work is done.
 
 `docopts` : the command line wrapper for bash.
 
-Most concept are documented in `docopt` (without S) manual.
+Most concepts are documented in the `docopt` (without S) manual - see [docopt.org](http://docopt.org/).
 
-Many examples uses associative array in bash 4.x, but there is a legacy support, for mac OSX bash 3.2 or legacy
+Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OSX) or legacy
 GNU/Linux OS.
 
 This is a transitional release: 0.6.2
 
-This release will be maintained for compatibity, only fix will be provided. The 0.6.2 version is fully compatible with
+This release will be maintained for compatibility, only fixes will be provided. The 0.6.2 version is fully compatible with
 the previous version of `docopts`.
 
 ## SYNOPSIS
@@ -117,8 +117,8 @@ Options:
   -H, --no-help                 Don't handle --help and --version specially.
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
-  -G <prefix>                   As without -A, but outputs Bash compatible
-                                GLOBAL varibles assignment, uses the given
+  -G <prefix>                   As with -A, but outputs Bash 3.x compatible
+                                GLOBAL variables assignment, using the given
                                 <prefix>_{option}={parsed_option}. Can be used
                                 with numerical incompatible option as well.
                                 See also: --no-mangle
@@ -135,7 +135,7 @@ Options:
 
 More examples in [examples/ folder](examples/).
 
-Read the help and version messages from standard input (`docopts` found in `$PATH`)
+Read the help and version messages from standard input (`docopts` found in `$PATH`):
 
 [examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
 
@@ -188,7 +188,7 @@ for arg in "${argv[@]}"; do
 done
 ```
 
-Using the associative array with `-A`:
+Using the Bash 4.x associative array with `-A`:
 
 ```bash
 help="
@@ -216,12 +216,12 @@ done
 
 ## History
 
-`docopts` was first developped by Lari Rasku <rasku@lavabit.com> and was written in python based on the python parser.
+`docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the Python parser.
 
-The current version is written in [go](https://golang.org/) and is 100% compatible with previous python's `docopts`.
+The current version is written in [go](https://golang.org/) and is 100% compatible with previous Python-based `docopts`.
 Please report any non working code with [issue](https://github.com/docopt/docopts/issues) and examples.
 
-## A new shell API is proposed
+## Roadmap: A new shell API is proposed
 
 Starting at release: 0.7.0 a new lib API based on JSON will be introduced:
 
@@ -240,25 +240,25 @@ With root privileges you could do:
 cp docopts docopts.sh /usr/local/bin
 ```
 
-### pre-built binary
+### Pre-built binaries
 
-Pre-built binary for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/Sylvain303/docopts/releases).
+Pre-built Go binaries for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/Sylvain303/docopts/releases).
 
-Download and rename it as `docopts` and put it in your `PATH`.
+Download and rename to `docopts` and put it in your `PATH`:
 
 ```
 mv docopts-32bit docopts
 cp docopts docopts.sh /usr/local/bin
 ```
 
-You are strongly encouraged to build your own binary. Find a local golang developper in whom you trust and ask her, in exchange of a beer or two, if she could build it for you. ;)
+You are strongly encouraged to build your own binary. Find a local golang developper in whom you trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
 
 
 ## Compiling
 
-With a go workspace.
+Requires a directory to use as [Go workspace](https://golang.org/doc/code.html#Organization).
 
-local build
+local build:
 
 ```
 go get github.com/docopt/docopt-go
@@ -267,13 +267,13 @@ cd src/github.com/docopt/docopts
 go build docopts.go
 ```
 
-cross compile for 32btis
+cross compile for 32 bit:
 
 ```
 env GOOS=linux GOARCH=386 go build docopts.go
 ```
 
-or via Makefile (generate 64bits, 32bits, arm and OSX-64bits version of docopts)
+or via Makefile (generates 64 bit, 32 bit, arm and macOS-64bit versions of docopts)
 
 ```
 cd src/github.com/docopt/docopts
@@ -281,7 +281,7 @@ make all
 make test
 ```
 
-Tested built on: `go version go1.11.4 linux/amd64`
+Tested builds are built on: `go version go1.11.4 linux/amd64`
 
 ## Features
 
@@ -298,13 +298,13 @@ As of 2019-05-18
 * unit test for go are provided, so hack as you wish.
 * 100% `language_agnostic_tester.py` passed (GNU/Linux 64bits)
 
-## Developpers
+## Developers
 
 All python related stuff has been removed, excepted `language_agnostic_tester.py`.
 
 If you want to clone this repository and hack `docopts`:
 
-Use `git clone --recursive`, to get submodules only required for testing with `bats`.
+Use `git clone --recursive`, to get submodules - these are only required for testing with `bats`.
 [`bats`](https://github.com/sstephenson/bats) or [`bats-core`](https://github.com/bats-core/bats-core) installed in your
 PATH should work too.
 
@@ -314,7 +314,7 @@ Fetch the extra golang version of `docopt-go` (required for building `docopts`)
 go get github.com/docopt/docopt-go
 ```
 
-If you forgot `--recursive`, you can also run it afterward:
+If you forgot `--recursive`, you can also run it afterwards:
 
 ~~~bash
 git submodule init
@@ -334,21 +334,21 @@ Current folder structure:
 ├── PROGRESS.md - what I'm working on
 ├── README.md
 ├── testcases.docopt - agnostic testcases copied from python's docopt
-├── testee.sh - bash wrapper to convert docopts output to JSON (now use docopts.sh)
-├── tests - unit and functional testing written in bats (require submodule)
+├── testee.sh - bash wrapper to convert docopts output to JSON (now uses docopts.sh)
+├── tests - unit and functional testing written in bats (requires submodule)
 └── TODO.md - Some todo list on this golang version of docopts
 ~~~
 
 ## Tests
 
-Some tests are coded along this code base.
+Some tests are coded along with this code base:
 
-- bats bash unit tests and functionnal testing.
-- `language_agnostic_tester.py` (old python wrapper, full docopt compatibily tests)
-- See Also: [docopt.go](https://github.com/docopt/docopts-go/) own tests in golang.
-- `docopts_test.go` go unit test for `docopts.go`
+- bats - bash unit tests and functional testing.
+- `language_agnostic_tester.py` - old python wrapper, full docopt compatibility tests.
+- See also: [docopt.go](https://github.com/docopt/docopt.go) has its own tests in golang.
+- `docopts_test.go` - go unit test for `docopts.go`
 
-### Runing tests
+### Running tests
 
 ```
 make test
@@ -368,6 +368,7 @@ This script was provided with the original `docopts`. I fixed number/string outp
 for bash in [docopts.sh](https://github.com/docopt/docopts/blob/docopts-go/docopts.sh#L108)
 `docopt_get_raw_value()`. This is a hack to get 100% pass, and it is not very efficient.
 
+Run these tests from top of repo:
 ```
 python language_agnostic_tester.py ./testee.sh
 ```
