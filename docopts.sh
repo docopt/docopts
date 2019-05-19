@@ -11,10 +11,14 @@
 # docopt_auto_parse() modify $HELP and $ARGS
 #
 # Code should work on bash 3.2 (mostly macOS) except where bash 4 mentioned
+#
+# For bash 3.2, don't use --auto, or invoke docopts with -A.  Instead, use:
+#   source path/to/docopts.sh
+#   docopts -G ARGS -h "$help" -V $version : "$@"
 
-# compute this file dirpath:
-## docopt_sh_me=$($(type -p greadlink readlink | head -1 ) -f "${BASH_SOURCE[0]}")
-## docopt_sh_dir="$(dirname "$docopt_sh_me")"
+# compute this file's absolute paths
+docopt_sh_dir="$( cd "$( dirname ${BASH_SOURCE[0]} 2>/dev/null)" && pwd 2>/dev/null)"
+docopt_sh_me="$docopt_sh_dir/${BASH_SOURCE[0]}"
 
 # fetch Usage: from the given filename
 # usually $0 in the main level script
