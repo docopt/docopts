@@ -55,17 +55,17 @@ Options:
   -H, --no-help                 Don't handle --help and --version specially.
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
-  -G <prefix>                   Don't uses associative array but outputs
+  -G <prefix>                   Don't use associative array but output
                                 Bash 3.x compatible GLOBAL variables assignment:
                                   <prefix>_{mangled_args}={parsed_value}
-                                Can be used with numerical incompatible option
+                                Can be used with numeric incompatible options
                                 as well.  See also: --no-mangle
   --no-mangle                   Output parsed option not suitable for bash eval.
                                 Full option names are kept. Rvalue is still
                                 shellquoted. Extra parsing is required.
   --no-declare                  Don't output 'declare -A <name>', used only
                                 with -A argument.
-  --debug                       Output extra parsing information for debuging.
+  --debug                       Output extra parsing information for debugging.
                                 Output cannot be used in bash eval.
 `
 
