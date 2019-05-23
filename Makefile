@@ -24,7 +24,7 @@ docopts-OSX: docopts.go
 docopts-arm: docopts.go
 	env GOOS=linux GOARCH=arm go build -o docopts-arm docopts.go
 
-install: docopts
+install: all 
 	cp docopts docopts.sh $(PREFIX)/bin
 
 test: docopts
