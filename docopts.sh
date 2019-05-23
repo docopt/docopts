@@ -9,10 +9,16 @@
 #
 # the prefix docopt_* is used to export globals and functions
 # docopt_auto_parse() modify $HELP and $ARGS
+#
+# Code should work on bash 3.2 (mostly macOS) except where bash 4 mentioned
+#
+# For bash 3.2, don't use --auto, or invoke docopts with -A.  Instead, use:
+#   source path/to/docopts.sh
+#   docopts -G ARGS -h "$help" -V $version : "$@"
 
-# compute this file dirpath:
-docopt_sh_me=$($(type -p greadlink readlink | head -1 ) -f "${BASH_SOURCE[0]}")
-docopt_sh_dir="$(dirname "$docopt_sh_me")"
+# compute this file's absolute paths
+docopt_sh_dir="$( cd "$( dirname ${BASH_SOURCE[0]} 2>/dev/null)" && pwd 2>/dev/null)"
+docopt_sh_me="$docopt_sh_dir/${BASH_SOURCE[0]}"
 
 # fetch Usage: from the given filename
 # usually $0 in the main level script
@@ -26,9 +32,9 @@ docopt_get_help_string() {
     # -n : no print output
     # -e : pass sed code inline
     # /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
-    #  s/^# \?// : substitute comment marker and an optional space
+    #  s/^# \{0,1\}// : substitute comment marker and an optional space (POSIX regex)
     #  p : print
-    sed -n -e '/^# Usage:/,/^$/ s/^# \?//p' < $myfname
+    sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < $myfname
 }
 
 # fetch version information from the given filename or string
@@ -45,7 +51,7 @@ docopt_get_version_string() {
     fi
 }
 
-# convert a repeatable option parsed by docopts into a bash ARRAY
+# convert a repeatable option parsed by docopts into a bash 4 ARRAY
 #   ARGS['FILE,#']=3
 #   ARGS['FILE,0']=somefile1
 #   ARGS['FILE,1']=somefile2
@@ -65,7 +71,7 @@ docopt_get_values() {
     echo $vars
 }
 
-# echo evaluable code to get alls the values into a bash array
+# echo evaluable code to get all the values into a bash array
 # Usage: eval "$(docopt_get_eval_array ARGS FILE myarray)"
 docopt_get_eval_array() {
     local ref="\${$1[$2,#]}"
@@ -80,10 +86,10 @@ docopt_get_eval_array() {
     done
 }
 
-# Auto parser for the same docopts usage over scripts, for lazyness.
+# Auto parser for the same docopts usage over scripts, for laziness - bash 4
 #
 # It uses this convention:
-#  - help string in: $HELP (modified at gobal scope)
+#  - help string in: $HELP (modified in global scope)
 #  - Usage is extracted by docopt_get_help_string at beginning of the script
 #  - arguments are evaluated at global scope in the bash 4 assoc $ARGS
 #  - no version information is handled
@@ -94,7 +100,7 @@ docopt_auto_parse() {
     # $HELP in global scope
     HELP="$(docopt_get_help_string "$script_fname")"
     # $ARGS[] assoc array must be declared outside of this function
-    # or it's scope will be local, that's why we don't print it.
+    # or its scope will be local, that's why we don't print it.
     docopts -A ARGS --no-declare -h "$HELP" : "$@"
     res=$?
     return $res
@@ -114,7 +120,7 @@ docopt_get_raw_value() {
     awk -F= "\$1 == \"$kstr\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$docopts_out"
 }
 
-# Debug, prints env varible ARGS or $1 formated as a bash 4 assoc array
+# Debug, prints env varible ARGS or $1 formatted as a bash 4 assoc array
 docopt_print_ARGS() {
     local assoc="$1"
     if [[ -z $assoc ]] ; then
@@ -135,13 +141,13 @@ docopt_print_ARGS() {
     done
 }
 
-## main code
+## main code - bash 4
 # --auto : don't forget to pass "$@"
 # Usage: source docopts.sh --auto "$@"
 if [[ "$1" == "--auto" ]] ; then
     shift
     # declare must be used at global scope to be accessible at
-    # global level any were in the caller script.
+    # global level anywhere in the caller script.
     declare -A ARGS
     eval "$(docopt_auto_parse "${BASH_SOURCE[1]}" "$@")"
 fi
