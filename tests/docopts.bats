@@ -27,6 +27,41 @@ EOF
     rm -f $tmp
 }
 
+@test "docopt_get_help_string_with_options" {
+    tmp=./tmp_docopt_get_help_string_with_options
+    cat <<EOF > $tmp
+#!/usr/bin/env bash
+# rock
+#
+# Usage: rock [options] <argv>...
+#
+# Options:
+#       --verbose  Generate verbose messages.
+#       --help     Show help options.
+#       --version  Print program version.
+
+# an empty line above
+EOF
+    [[ -f $tmp ]]
+    run docopt_get_help_string $tmp
+
+    :>log
+    echo '--- output ---' >> log
+    echo "$output" >> log
+    echo '--- lines ---' >> log
+    for line in "${lines[@]}"; do
+        echo "$line" >> log
+    done
+    echo '---' >> log
+    echo "Line count = ${#lines[@]}" >> log
+
+    regexp='Options:'
+    [[ ${#lines[@]} -eq 6 ]]
+    [[ "${lines[2]}" =~ $regexp ]]
+
+    rm -f $tmp
+}
+
 @test "docopt_get_values" {
     declare -A args
     args['FILE,#']=3
