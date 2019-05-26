@@ -95,14 +95,25 @@ docopt_get_eval_array() {
 #  - no version information is handled
 #
 docopt_auto_parse() {
+    local use_associative=true
+    if [[ $1 == '-G' ]] ; then
+        use_associative=false
+        shift
+    fi
     local script_fname=$1
     shift
     # $HELP in global scope
     HELP="$(docopt_get_help_string "$script_fname")"
-    # $ARGS[] assoc array must be declared outside of this function
-    # or its scope will be local, that's why we don't print it.
-    docopts -A ARGS --no-declare -h "$HELP" : "$@"
-    res=$?
+    if $use_associative ;  then
+        # $ARGS[] assoc array must be declared outside of this function
+        # or its scope will be local, that's why we don't print it.
+        docopts -A ARGS --no-declare -h "$HELP" : "$@"
+        res=$?
+    else
+        # uses globals with ARGS_ prefix
+        docopts -G ARGS -h "$HELP" : "$@"
+        res=$?
+    fi
     return $res
 }
 
@@ -144,10 +155,17 @@ docopt_print_ARGS() {
 ## main code - bash 4
 # --auto : don't forget to pass "$@"
 # Usage: source docopts.sh --auto "$@"
+## not using associative array but globals
+# --auto -G : -G will invoke docopts -G ARGS and outputs globals assignment instead.
 if [[ "$1" == "--auto" ]] ; then
     shift
-    # declare must be used at global scope to be accessible at
-    # global level anywhere in the caller script.
-    declare -A ARGS
-    eval "$(docopt_auto_parse "${BASH_SOURCE[1]}" "$@")"
+    if [[ $2 == '-G' ]] ; then
+        shift
+        eval "$(docopt_auto_parse -G "${BASH_SOURCE[1]}" "$@")"
+    else
+        # declare must be used at global scope to be accessible at
+        # global level anywhere in the caller script.
+        declare -A ARGS
+        eval "$(docopt_auto_parse "${BASH_SOURCE[1]}" "$@")"
+    fi
 fi
