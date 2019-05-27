@@ -1,6 +1,12 @@
 # current work in PROGRRESS
 
-old style loop bash examples
+## -G for auto_parse
+
+add functionnal testing
+
+## old style loop bash examples
+
+see examples/legacy_bash/sshdiff_legacy.sh
 
 # next
 

@@ -1,18 +1,26 @@
 #!/usr/bin/env bash
 # vim: set et sw=4 ts=4 sts=4:
 #
-# docopts helper for bash
+# docopts helper for bash, provides some functions for common usages
 #
 # Usage:
 #   source path/to/docopts.sh
 #   docopts -A ARGS -h "$help" -V $version : "$@"
 #
-# the prefix docopt_* is used to export globals and functions
-# docopt_auto_parse() modify $HELP and $ARGS
+#   # or for auto parsing the caller script comment (bash 4 associative array):
+#   source path/to/docopts.sh --auto "$@"
+#
+#   # or for using globals variables (bash 3.2 compatible):
+#   source path/to/docopts.sh --auto -G "$@" 
+#
+# Conventions: 
+#   The prefix docopt_* is used to export globals and functions
+#   docopt_auto_parse() modify $HELP and $ARGS or populate $ARGS_* globals.
 #
 # Code should work on bash 3.2 (mostly macOS) except where bash 4 mentioned
 #
-# For bash 3.2, don't use --auto, or invoke docopts with -A.  Instead, use:
+# For bash 3.2, you could use --auto -G for globals.
+# Or simply source the helper if you need it, and use docopts directly:
 #   source path/to/docopts.sh
 #   docopts -G ARGS -h "$help" -V $version : "$@"
 
@@ -86,12 +94,16 @@ docopt_get_eval_array() {
     done
 }
 
-# Auto parser for the same docopts usage over scripts, for laziness - bash 4
+# Auto parser for the same docopts usage over scripts, for laziness.
+# Used by --auto.
+#
+# bash 4:    convention use $ARGS as associative array
+# bash 3.2:  convention use $ARGS_ prefix for globals variables
 #
 # It uses this convention:
 #  - help string in: $HELP (modified in global scope)
 #  - Usage is extracted by docopt_get_help_string at beginning of the script
-#  - arguments are evaluated at global scope in the bash 4 assoc $ARGS
+#  - arguments are evaluated at global scope in the bash 4 assoc $ARGS (or globals with -G)
 #  - no version information is handled
 #
 docopt_auto_parse() {
@@ -132,37 +144,43 @@ docopt_get_raw_value() {
 }
 
 # Debug, prints env varible ARGS or $1 formatted as a bash 4 assoc array
+# or with -G [prefix] greps ${prefix}_ variables from environment
 docopt_print_ARGS() {
+    local use_associative=true
+    if [[ $1 == '-G' ]] ; then
+        use_associative=false
+        shift
+    fi
     local assoc="$1"
     if [[ -z $assoc ]] ; then
         assoc=ARGS
     fi
 
-    # bash dark magic copying $assoc argument to a local myassoc array
-    # inspired by:
-    # https://stackoverflow.com/questions/6660010/bash-how-to-assign-an-associative-array-to-another-variable-name-e-g-rename-t#8881121
-    declare -A myassoc
-    eval $(typeset -A -p $assoc|sed "s/ $assoc=/ myassoc=/")
+    if $use_associative ; then
+        # bash dark magic copying $assoc argument to a local myassoc array
+        # inspired by:
+        # https://stackoverflow.com/questions/6660010/bash-how-to-assign-an-associative-array-to-another-variable-name-e-g-rename-t#8881121
+        declare -A myassoc
+        eval $(typeset -A -p $assoc|sed "s/ $assoc=/ myassoc=/")
 
-    # loop on keys
-    echo "docopt_print_ARGS => $assoc"
-    local a
-    for a in ${!myassoc[@]} ; do
-        printf "%20s = %s\n" $a "${myassoc[$a]}"
-    done
+        # loop on keys
+        echo "docopt_print_ARGS => $assoc"
+        local a
+        for a in ${!myassoc[@]} ; do
+            printf "%20s = %s\n" $a "${myassoc[$a]}"
+        done
+    else
+        set | grep "^${assoc}_"
+    fi
 }
 
-## main code - bash 4
-# --auto : don't forget to pass "$@"
-# Usage: source docopts.sh --auto "$@"
-## not using associative array but globals
-# --auto -G : -G will invoke docopts -G ARGS and outputs globals assignment instead.
+## main code if sourced with arguments
 if [[ "$1" == "--auto" ]] ; then
-    shift
     if [[ $2 == '-G' ]] ; then
-        shift
+        shift 2
         eval "$(docopt_auto_parse -G "${BASH_SOURCE[1]}" "$@")"
     else
+        shift
         # declare must be used at global scope to be accessible at
         # global level anywhere in the caller script.
         declare -A ARGS

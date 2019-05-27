@@ -91,7 +91,9 @@ not just the current function.
 
 ## OPTIONS
 
-This is the verbatim output of `docopts --help`:
+This is the verbatim output of the `--help` (inserted by script)
+
+make build_doc: `./docopts --help | sed -n '/^Options/,$ p'`
 
 ```
 Options:
@@ -137,7 +139,7 @@ More examples in [examples/ folder](examples/).
 
 Read the help and version messages from standard input (`docopts` found in `$PATH`):
 
-[examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
+make build_doc: [examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
 
 ```bash
 eval "$(docopts -V - -h - : "$@" <<EOF
@@ -164,7 +166,7 @@ fi
 Parse the help and version messages from script comments and pass them as
 command line arguments:
 
-[examples/legacy_bash/rock_hello_world_with_grep.sh](examples/legacy_bash/rock_hello_world_with_grep.sh)
+make build_doc: [examples/legacy_bash/rock_hello_world_with_grep.sh](examples/legacy_bash/rock_hello_world_with_grep.sh)
 
 ```bash
 #? rock 0.1.0

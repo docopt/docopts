@@ -27,7 +27,7 @@ EOF
     rm -f $tmp
 }
 
-@test "docopt_get_help_string_with_options" {
+@test "docopt_get_help_string with Options" {
     tmp=./tmp_docopt_get_help_string_with_options
     cat <<EOF > $tmp
 #!/usr/bin/env bash
@@ -45,6 +45,7 @@ EOF
     [[ -f $tmp ]]
     run docopt_get_help_string $tmp
 
+    # truncate log
     :>log
     echo '--- output ---' >> log
     echo "$output" >> log
@@ -133,4 +134,19 @@ EOF
     echo "output=$output"
     grep -q -E 'FILE,3' <<< "$output"
     grep -q -E 'ourargs' <<< "$output"
+}
+
+@test "docopt_print_ARGS -G" {
+    ARGS_FILE=( somefile1 somefile2 somefile3 "somefile4 with space inside" )
+    run docopt_print_ARGS -G
+    echo "output=$output"
+    grep -q -E 'ARGS_FILE' <<< "$output"
+
+    unset ARGS_FILE
+
+    # with a named prefix
+    someprefix_FILE=( somefile1 somefile2 somefile3 "somefile4 with space inside" )
+    run docopt_print_ARGS -G someprefix
+    echo "output=$output"
+    grep -q -E 'someprefix_FILE' <<< "$output"
 }

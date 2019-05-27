@@ -1,17 +1,22 @@
 #!/bin/bash
+#
+# This example isn't using docopts, this is a demonstration for conversion from
+# legacy shell script to docopts.
+#
+# See: sshdiff_with_docopts.sh for the converted code
 
 usage() {
   cat << EOF
 Show file differences between 2 hosts.
-Usage: sshdiff.sh [-h] [-s] <host1> <host2> <file> [<lines_context>]
+Usage: sshdiff.sh [-h] [-s] HOST1 HOST2 FILENAME [LINES_CONTEXT]
 
 Use colordiff if available.
 
 Options:
     -h   display this help and exit
-    -s   use sort instead of cat to show remote FILE
+    -s   use sort instead of cat to show remote FILENAME
 
-If not specified, <lines_context> defaults to 3.
+If not specified, LINES_CONTEXT defaults to 3.
 
 Environment variable:
   EXTRA_DIFF  pass extra argument to diff command
@@ -54,17 +59,18 @@ HOST1=$1
 HOST2=$2
 FILENAME=$3
 
-# main code
 LINES_CONTEXT="3"
 if [ -n "$4" ]; then
   if [ "$4" -gt 0 ]; then
     LINES_CONTEXT="$4"
   else
-    echo "<lines_context>: '$4' must be greater than 0." >&2
+    echo "LINES_CONTEXT: '$4' must be greater than 0." >&2
     usage
     exit 1
   fi
 fi
+
+########################### main code after option parsing and default
 
 # selecting diff program
 DIFF="$(which diff)"
