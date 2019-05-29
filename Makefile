@@ -11,7 +11,7 @@ docopts: docopts.go
 docopt-go:
 	go get github.com/docopt/docopt-go
 
-all: docopt-go docopts docopts-arm docopts-32bits docopts-OSX
+all: docopt-go docopts docopts-arm docopts-32bits docopts-OSX README.md
 
 # build 32 bits version too
 docopts-32bits: docopts.go
@@ -25,7 +25,7 @@ docopts-OSX: docopts.go
 docopts-arm: docopts.go
 	env GOOS=linux GOARCH=arm go build -o docopts-arm docopts.go
 
-install: all 
+install: all
 	cp docopts docopts.sh $(PREFIX)/bin
 
 test: docopts
@@ -38,4 +38,4 @@ README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_he
 	mv README.tmp README.md
 
 clean:
-	rm -f docopts-* docopts
+	rm -f docopts-* docopts README.tmp

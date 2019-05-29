@@ -1,13 +1,31 @@
 #!/bin/bash
 # vim: set et ts=4 sw=4 sts=4 ft=sh:
 #
-# unit test with bats
+# fonctional tests with bats
 # test sourcing and auto parse header
 #
 
+# create a sample script that uses docopts.sh
+# modify $TMP
+# Usage: mktmp [global|assoc]
 mktmp() {
-    tmp=./tmp-docopt_auto_parse.sh
-    cat <<'EOF' >$tmp
+    case $1 in
+    globals|global)
+        # invoke auto parse with -G and generate Globals variables
+        TMP=./tmp-docopt_auto_parse_globals.sh
+        cat <<'EOF' >$TMP
+#!/usr/bin/env bash
+# Usage: sometest [--opt] [--output=FILE] INFILE
+
+source ../docopts.sh --auto -G "$@"
+
+echo "$ARGS_INFILE"
+EOF
+    ;;
+
+    assoc|"")
+        TMP=./tmp-docopt_auto_parse_assoc.sh
+        cat <<'EOF' >$TMP
 #!/usr/bin/env bash
 # Usage: sometest [--opt] [--output=FILE] INFILE
 
@@ -15,24 +33,27 @@ source ../docopts.sh --auto "$@"
 
 echo "${ARGS[INFILE]}"
 EOF
-    echo $tmp
+    ;;
+    esac
+    chmod a+x $TMP
+    echo $TMP
 }
 
-# to be sure to find docopts binray in the $PATH
+# to be sure to find docopts binary in the $PATH
 PATH=..:$PATH
 
 @test "docopt_auto_parse testing internal behavior" {
     # internal
     source ../docopts.sh
     [[ ! -z "$docopt_sh_me" ]]
-    mktmp
-    [[ ! -z "$tmp" ]]
+    mktmp assoc
+    [[ ! -z "$TMP" ]]
     unset ARGS
     unset HELP
     declare -A ARGS
 
     # auto call without argument (which is an error) and display help
-    run docopt_auto_parse $tmp
+    run docopt_auto_parse $TMP
     echo "$output"
     echo "status=$status"
     [[ ! -z "$output" ]]
@@ -42,7 +63,7 @@ PATH=..:$PATH
     [[ "${lines[-1]}" == "exit 64" ]]
 
     # but runing with -h ==> exit 0
-    run docopt_auto_parse $tmp -h
+    run docopt_auto_parse $TMP -h
     echo "$output"
     echo "status=$status"
     [[ ! -z "$output" ]]
@@ -50,23 +71,71 @@ PATH=..:$PATH
     [[ "${lines[-1]}" == "exit 0" ]]
 
     # with some options
-    run docopt_auto_parse $tmp --opt afilename
+    run docopt_auto_parse $TMP --opt afilename
     regexp='^ARGS\[[^]]+\]'
     [[ "${lines[0]}" =~ $regexp ]]
 
-    run docopt_auto_parse $tmp afilename
+    run docopt_auto_parse $TMP afilename
     [[ "${lines[0]}" =~ $regexp ]]
-    rm $tmp
+    rm $TMP
 }
 
-@test "docopt_auto_parse functionnal testing" {
-    mktmp
-    [[ -f $tmp ]]
-    chmod a+x $tmp
-    run $tmp prout
-    # echo "$output" >> log
+@test "docopt_auto_parse -G for globals" {
+    source ../docopts.sh
+    mktmp globals
+    [[ -x "$TMP" ]]
+    # temporary script has the expected name
+    regexp='_globals.sh'
+    [[ "$TMP" =~ $regexp ]]
+    unset HELP
+
+    # auto call without argument (which is an error) and display help
+    run docopt_auto_parse -G $TMP
+    echo "$output"
+    echo "status=$status"
+    [[ ! -z "$output" ]]
+    [[ $status == 1 ]]
+    regexp="^echo 'error:"
+    [[ "${lines[0]}" =~ $regexp ]]
+    [[ "${lines[-1]}" == "exit 64" ]]
+
+    # but runing with -h ==> exit 0
+    run docopt_auto_parse -G $TMP -h
+    echo "$output"
+    echo "status=$status"
+    [[ ! -z "$output" ]]
+    [[ $status == 0 ]]
+    [[ "${lines[-1]}" == "exit 0" ]]
+
+    # with some options
+    run docopt_auto_parse -G $TMP --opt afilename
+    echo "$output"
+    regexp='^ARGS_(INFILE|opt|output)'
+    [[ "${lines[0]}" =~ $regexp ]]
+
+    run docopt_auto_parse -G $TMP afilename
+    [[ $status == 0 ]]
+    echo "$output"
+    unset ARGS_INFILE
+    eval "$output"
+    [[ "$ARGS_INFILE" == 'afilename' ]]
+    rm $TMP
+}
+
+@test "docopt_auto_parse functional testing associative array" {
+    mktmp assoc
+    [[ -x $TMP ]]
+    run $TMP prout
     [[ "$output" == prout ]]
-    rm $tmp
+    rm $TMP
+}
+
+@test "docopt_auto_parse -G functional testing globals variables" {
+    mktmp global
+    [[ -x $TMP ]]
+    run $TMP prout_from_global
+    [[ "$output" == prout_from_global ]]
+    rm $TMP
 }
 
 @test "no source" {

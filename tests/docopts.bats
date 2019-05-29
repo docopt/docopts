@@ -27,7 +27,7 @@ EOF
     rm -f $tmp
 }
 
-@test "docopt_get_help_string with Options" {
+@test "docopt_get_help_string with Options (this test may fail if bats fix #224)" {
     tmp=./tmp_docopt_get_help_string_with_options
     cat <<EOF > $tmp
 #!/usr/bin/env bash
@@ -46,19 +46,23 @@ EOF
     run docopt_get_help_string $tmp
 
     # truncate log
-    :>log
-    echo '--- output ---' >> log
-    echo "$output" >> log
-    echo '--- lines ---' >> log
-    for line in "${lines[@]}"; do
-        echo "$line" >> log
-    done
-    echo '---' >> log
-    echo "Line count = ${#lines[@]}" >> log
+    # :>log
+    #echo '--- output ---' >> log
+    #echo "$output" >> log
+    #echo '--- lines ---' >> log
+    #for line in "${lines[@]}"; do
+    #    echo "$line" >> log
+    #done
+    #echo '---' >> log
+    #echo "Line count = ${#lines[@]}" >> log
 
+    # bats bug missing empty line: https://github.com/bats-core/bats-core/issues/224
+    # we can rely on bats to split HELP correctly
+    line_count=$(wc -l <<<"$output")
+    [[ $line_count -eq 6 ]]
     regexp='Options:'
-    [[ ${#lines[@]} -eq 6 ]]
-    [[ "${lines[2]}" =~ $regexp ]]
+    # index 1 must be 2 when bats issue 224 will be corrected
+    [[ "${lines[1]}" =~ $regexp ]]
 
     rm -f $tmp
 }
