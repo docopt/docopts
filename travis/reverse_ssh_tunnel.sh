@@ -1,16 +1,5 @@
 #!/bin/bash
 
-SUDO=false
-
-# sudo wrapper to test if on my user
-sudo() {
-  if $SUDO ; then
-    /usr/bin/sudo "$@"
-  else
-    echo "cmd: $*"
-  fi
-}
-
 SSHPASSWORD="mypass"
 BOUNCEHOSTIP="51.68.156.147"
 REMOTE_SSH_PUBKEY=/tmp/bounce-travis/id_rsa
@@ -38,22 +27,18 @@ fetch_ssh_keys() {
   chmod 600 $ssh_dir/*
 }
 
-#brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
-## change local password to connect from remote
-#echo travis:$SSHPASSWORD | sudo chpasswd
-
 fetch_ssh_keys
 
-## autorise password auth
-#sudo sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
-#sudo service ssh restart
-
-# initiate ssh tunnel to bounce-host
-#sudo apt-get install sshpass
-
+# start ssh agent and add the private key
 eval $(ssh-agent)
 trap "kill $SSH_AGENT_PID" QUIT TERM EXIT
 ssh-add $REMOTE_SSH_PUBKEY
+
+# allow ssh back to us with the same key
+mkdir $HOME/.ssh
+chmod 700 $HOME/.ssh
+cp $REMOTE_SSH_PUBKEY.pub $HOME/.ssh/authorized_keys
+chmod 600 $HOME/.ssh/authorized_keys
 
 #sshpass -p $SSHPASSWORD 
 ssh -R 9999:localhost:22 \
