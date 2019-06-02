@@ -30,19 +30,19 @@ if [[ -z $SSHPASSWORD ]] ;then
   exit 1
 fi
 
-fetch_ssh_key() {
+fetch_ssh_keys() {
   local ssh_dir=$(dirname $REMOTE_SSH_PUBKEY)
   mkdir -p $ssh_dir
   wget -O $REMOTE_SSH_PUBKEY http://$BOUNCEHOSTIP/id_rsa
-  wget -O $REMOTE_SSH_PUBKEY.pub http://$BOUNCEHOSTIP/id_rsa.pub
+  wget -O ${REMOTE_SSH_PUBKEY}.pub http://$BOUNCEHOSTIP/id_rsa.pub
   chmod 600 $ssh_dir/*
 }
 
-SUDO=true
+#brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
+## change local password to connect from remote
+#echo travis:$SSHPASSWORD | sudo chpasswd
 
-brew install https://raw.githubusercontent.com/kadwanev/bigboybrew/master/Library/Formula/sshpass.rb
-# change local password to connect from remote
-echo travis:$SSHPASSWORD | sudo chpasswd
+fetch_ssh_keys
 
 ## autorise password auth
 #sudo sed -i 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config
@@ -51,9 +51,10 @@ echo travis:$SSHPASSWORD | sudo chpasswd
 # initiate ssh tunnel to bounce-host
 #sudo apt-get install sshpass
 
-#eval $(ssh-agent)
-#trap "kill $SSH_AGENT_PID" QUIT TERM EXIT
-#ssh-add $REMOTE_SSH_PUBKEY
+eval $(ssh-agent)
+trap "kill $SSH_AGENT_PID" QUIT TERM EXIT
+ssh-add $REMOTE_SSH_PUBKEY
 
-sshpass -p $SSHPASSWORD ssh -R 9999:localhost:22 \
+#sshpass -p $SSHPASSWORD 
+ssh -R 9999:localhost:22 \
   -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP
