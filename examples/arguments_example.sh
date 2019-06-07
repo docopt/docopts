@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Usage: arguments_example.sh [-vqrh] [FILE] ...
-#           arguments_example.sh (--left | --right) CORRECTION FILE
+#        arguments_example.sh (--left | --right) CORRECTION FILE
 #
 # Process FILE and optionally apply correction to either left-hand side or
 # right-hand side.
@@ -27,7 +27,7 @@ source docopts.sh --auto "$@"
 
 # docopt_auto_parse use ARGS bash 4 globla assoc array
 # main code
-# on assoc array '!' before nane gike hash keys
+# on bash assoc array a '!' before name gives hash keys list
 for a in ${!ARGS[@]} ; do
     echo "$a = ${ARGS[$a]}"
 done

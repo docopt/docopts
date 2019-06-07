@@ -4,16 +4,20 @@
 # docopts helper for bash, provides some functions for common usages
 #
 # Usage:
+#   # raw usage
 #   source path/to/docopts.sh
-#   docopts -A ARGS -h "$help" -V $version : "$@"
+#   usage=$(docopt_get_help_string "$0")
+#   version=$(docopt_get_version_string "$0")
+#   eval $(docopts -A ARGS -h "$usage" -V $version : "$@")
+#   myarray=( $(docopt_get_values ARGS FILE") )
 #
 #   # or for auto parsing the caller script comment (bash 4 associative array):
 #   source path/to/docopts.sh --auto "$@"
 #
 #   # or for using globals variables (bash 3.2 compatible):
-#   source path/to/docopts.sh --auto -G "$@" 
+#   source path/to/docopts.sh --auto -G "$@"
 #
-# Conventions: 
+# Conventions:
 #   The prefix docopt_* is used to export globals and functions
 #   docopt_auto_parse() modify $HELP and $ARGS or populate $ARGS_* globals.
 #
@@ -24,35 +28,32 @@
 #   source path/to/docopts.sh
 #   docopts -G ARGS -h "$help" -V $version : "$@"
 
-# compute this file's absolute paths
-docopt_sh_dir="$( cd "$( dirname ${BASH_SOURCE[0]} 2>/dev/null)" && pwd 2>/dev/null)"
-docopt_sh_me="$docopt_sh_dir/${BASH_SOURCE[0]}"
-
 # fetch Usage: from the given filename
 # usually $0 in the main level script
 docopt_get_help_string() {
     local myfname=$1
-    # filter the block (/!\ all blocks) starting at a "# Usage:" and ending
-    # at an empty line, one level of comment markup is removed
+    # filter the block (/!\ ALL blocks) starting at a "# Usage:" and ending
+    # at an empty line, one level of comment markup is removed.
     #
-    ## sed -n -e '/^# Usage:/,/\(^# \?----\|^$\)/ { /----/ d; s/^# \?//p }' rock_no-stdin_example.sh
-
+    # sed gory details:
     # -n : no print output
     # -e : pass sed code inline
-    # /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
-    #  s/^# \{0,1\}// : substitute comment marker and an optional space (POSIX regex)
-    #  p : print
-    sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < $myfname
+    #   /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
+    #   s/^# \{0,1\}//   : substitute comment marker and an optional space (POSIX regex)
+    #   p                : print
+    sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < "$myfname"
 }
 
-# fetch version information from the given filename or string
-# usually $0 in the main level script, or the help string extracted
+# Fetch version information from the given filename or string.
+# Usually $0 in the main level script, or the help string extracted
 # by docopt_get_help_string()
+#
+# Use standard delimiter ----
 docopt_get_version_string() {
     if [[ -f "$1" ]] ; then
         # filter the block (all blocks) starting at a "# Usage:" and ending
         # at an empty line, one level of comment markup is removed
-        sed -n -e '/^# ----/,/^$/ s/^# \{0,1\}//p' < "$1"
+        sed -n -e '/^# ----/,/^$/ { 1d; s/^# \{0,1\}//; /----/ d; p }' < "$1"
     else
         # use docopts --separator behavior
         echo "$1"
@@ -143,19 +144,23 @@ docopt_get_raw_value() {
     awk -F= "\$1 == \"$kstr\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$docopts_out"
 }
 
-# Debug, prints env varible ARGS or $1 formatted as a bash 4 assoc array
-# or with -G [prefix] greps ${prefix}_ variables from environment
+# Debug, prints env variable ARGS or $1 formatted
+# Usage: docopt_print_ARGS [ASSOC_ARRAY_NAME]
+#        docopt_print_ARGS -G [VARIABLE_PREFIX]
+# with -G VARIABLE_PREFIX grep ${VARIABLE_PREFIX}_ variables from environment
 docopt_print_ARGS() {
     local use_associative=true
     if [[ $1 == '-G' ]] ; then
         use_associative=false
         shift
     fi
+    # $1 can be the name of the global assoc array, or the prefix if -G is given
     local assoc="$1"
     if [[ -z $assoc ]] ; then
         assoc=ARGS
     fi
 
+    local a
     if $use_associative ; then
         # bash dark magic copying $assoc argument to a local myassoc array
         # inspired by:
@@ -165,11 +170,11 @@ docopt_print_ARGS() {
 
         # loop on keys
         echo "docopt_print_ARGS => $assoc"
-        local a
         for a in ${!myassoc[@]} ; do
             printf "%20s = %s\n" $a "${myassoc[$a]}"
         done
     else
+        echo "docopt_print_ARGS -G => ${assoc}_*"
         set | grep "^${assoc}_"
     fi
 }

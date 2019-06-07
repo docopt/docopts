@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Naval Fate.
 #
 # Usage:
@@ -27,7 +27,10 @@ source docopts.sh
 # no version support in docopt_auto_parse() so we call docopts directly
 usage=$(docopt_get_help_string "$0")
 parsed="$(docopts -G ARGS -V "$VERSION" -h "$usage" : "$@")"
+echo "============ parsed output"
 echo "$parsed"
+# now vars are populated at global scope
 eval "$parsed"
 
-# docopt_print_ARGS
+echo "============== docopt_print_ARGS"
+docopt_print_ARGS -G

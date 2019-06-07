@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # This example isn't using docopts, this is a demonstration for conversion from
 # legacy shell script to docopts.

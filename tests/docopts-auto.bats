@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # vim: set et ts=4 sw=4 sts=4 ft=sh:
 #
 # fonctional tests with bats
@@ -45,9 +45,10 @@ PATH=..:$PATH
 @test "docopt_auto_parse testing internal behavior" {
     # internal
     source ../docopts.sh
-    [[ ! -z "$docopt_sh_me" ]]
+    [[ -n "$(typeset -f docopt_get_help_string)" ]]
+
     mktmp assoc
-    [[ ! -z "$TMP" ]]
+    [[ -n "$TMP" ]]
     unset ARGS
     unset HELP
     declare -A ARGS
@@ -56,7 +57,7 @@ PATH=..:$PATH
     run docopt_auto_parse $TMP
     echo "$output"
     echo "status=$status"
-    [[ ! -z "$output" ]]
+    [[ -n "$output" ]]
     [[ $status == 1 ]]
     regexp="^echo 'error:"
     [[ "${lines[0]}" =~ $regexp ]]
@@ -66,8 +67,8 @@ PATH=..:$PATH
     run docopt_auto_parse $TMP -h
     echo "$output"
     echo "status=$status"
-    [[ ! -z "$output" ]]
-    [[ $status == 0 ]]
+    [[ -n "$output" ]]
+    [[ $status -eq 0 ]]
     [[ "${lines[-1]}" == "exit 0" ]]
 
     # with some options
@@ -93,7 +94,7 @@ PATH=..:$PATH
     run docopt_auto_parse -G $TMP
     echo "$output"
     echo "status=$status"
-    [[ ! -z "$output" ]]
+    [[ -n "$output" ]]
     [[ $status == 1 ]]
     regexp="^echo 'error:"
     [[ "${lines[0]}" =~ $regexp ]]
@@ -103,8 +104,8 @@ PATH=..:$PATH
     run docopt_auto_parse -G $TMP -h
     echo "$output"
     echo "status=$status"
-    [[ ! -z "$output" ]]
-    [[ $status == 0 ]]
+    [[ -n "$output" ]]
+    [[ $status -eq 0 ]]
     [[ "${lines[-1]}" == "exit 0" ]]
 
     # with some options
@@ -114,7 +115,7 @@ PATH=..:$PATH
     [[ "${lines[0]}" =~ $regexp ]]
 
     run docopt_auto_parse -G $TMP afilename
-    [[ $status == 0 ]]
+    [[ $status -eq 0 ]]
     echo "$output"
     unset ARGS_INFILE
     eval "$output"
@@ -141,7 +142,7 @@ PATH=..:$PATH
 @test "no source" {
     # test isolation is ok
     [[ -z "${ARGS[*]}" ]]
-    [[ -z "$docopt_sh_me" ]]
+    [[ $(env | grep ARGS_ | wc -l) -eq 0 ]]
 }
 
 @test "global eval" {

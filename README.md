@@ -145,6 +145,10 @@ Read the help and version messages from standard input (`docopts` found in `$PAT
 make build_doc: include [examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
 
 ```bash
+#!/usr/bin/env bash
+# Example from README.md
+
+PATH=$PATH:../..
 eval "$(docopts -V - -h - : "$@" <<EOF
 Usage: rock [options] <argv>...
 
@@ -172,6 +176,10 @@ command line arguments:
 make build_doc: include [examples/legacy_bash/rock_hello_world_with_grep.sh](examples/legacy_bash/rock_hello_world_with_grep.sh)
 
 ```bash
+#!/usr/bin/env bash
+# Example from README.md
+PATH=$PATH:../..
+
 #? rock 0.1.0
 #? Copyright (C) 200X Thomas Light
 #? License RIT (Robot Institute of Technology)

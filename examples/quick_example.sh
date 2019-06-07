@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Usage:
 #  quick_example.sh tcp <host> <port> [--timeout=<seconds>]

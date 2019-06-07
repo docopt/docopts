@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Not a serious example.
 #
 # Usage:

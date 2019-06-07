@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Show file differences between 2 hosts.
 # Usage: sshdiff.sh [-h] [-s] HOST1 HOST2 FILENAME [LINES_CONTEXT]

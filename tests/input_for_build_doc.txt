@@ -1,0 +1,21 @@
+line 1
+make build_doc: include [text](link/to/file)
+
+```
+old input
+line 6
+line 7
+```
+
+line 10
+
+make build_doc: `some command`
+
+```
+previous command output here
+line 16
+line 17
+```
+
+some text after
+line 21

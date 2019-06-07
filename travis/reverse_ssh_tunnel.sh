@@ -1,23 +1,24 @@
 #!/bin/bash
 
-SSHPASSWORD="mypass"
+# a bounce host must be set before
 BOUNCEHOSTIP="51.68.156.147"
 REMOTE_SSH_PUBKEY=/tmp/bounce-travis/id_rsa
 
-if [[ -z $BOUNCEHOSTIP ]] ;then
-  echo "failed BOUNCEHOSTIP must be set"
-  exit 1
-fi
+fail_if_empty() {
+  local varname
+  local v
+  # allow multiple check on the same line
+  for varname in $*
+  do
+    eval "v=\$$varname"
+    if [[ -z "$v" ]] ; then
+      echo "error: $varname empty or unset at ${BASH_SOURCE[1]}:${FUNCNAME[1]} line ${BASH_LINENO[0]}"
+      exit 1
+    fi
+  done
+}
 
-if [[ -z $SSHPASSWORD ]] ;then
-  echo "failed SSHPASSWORD must be set"
-  exit 1
-fi
-
-if [[ -z $SSHPASSWORD ]] ;then
-  echo "failed SSHPASSWORD must be set"
-  exit 1
-fi
+fail_if_empty BOUNCEHOSTIP REMOTE_SSH_PUBKEY
 
 fetch_ssh_keys() {
   local ssh_dir=$(dirname $REMOTE_SSH_PUBKEY)
@@ -40,6 +41,7 @@ chmod 700 $HOME/.ssh
 cp $REMOTE_SSH_PUBKEY.pub $HOME/.ssh/authorized_keys
 chmod 600 $HOME/.ssh/authorized_keys
 
-#sshpass -p $SSHPASSWORD 
+# for 10 min without output Success
+# https://travis-ci.org/Sylvain303/docopts/builds/540455090#L1295
 ssh -R 9999:localhost:22 \
   -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP

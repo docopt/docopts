@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Usage: counted_example.sh --help
 #        counted_example.sh -v...

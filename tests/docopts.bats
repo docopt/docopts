@@ -27,7 +27,7 @@ EOF
     rm -f $tmp
 }
 
-@test "docopt_get_help_string with Options (this test may fail if bats fix #224)" {
+@test "docopt_get_help_string with Options (this test may fail if bats fix their issue #224)" {
     tmp=./tmp_docopt_get_help_string_with_options
     cat <<EOF > $tmp
 #!/usr/bin/env bash
@@ -153,4 +153,34 @@ EOF
     run docopt_print_ARGS -G someprefix
     echo "output=$output"
     grep -q -E 'someprefix_FILE' <<< "$output"
+}
+
+@test "docopt_get_version_string from \$0" {
+    tmp=./tmp_docopt_get_version_string
+    cat <<EOF > $tmp
+#!/usr/bin/env bash
+#
+# Usage: rock [options] <argv>...
+# 
+# Options:
+#       --verbose  Generate verbose messages.
+#       --help     Show help options.
+#       --version  Print program version.
+# ----
+# rock 0.1.0
+# Copyright (C) 200X Thomas Light
+# License RIT (Robot Institute of Technology)
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+
+# an empty line above
+EOF
+    [[ -f $tmp ]]
+    run docopt_get_version_string $tmp
+    regexp='^rock'
+    echo "${lines[0]}"
+    [[ "${lines[0]}" =~ $regexp ]]
+    [[ ${#lines[@]} -eq 5 ]]
+
+    rm -f $tmp
 }

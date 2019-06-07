@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Example from README.md
 PATH=$PATH:../..
 
