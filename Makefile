@@ -33,8 +33,8 @@ test: docopts
 	python language_agnostic_tester.py ./testee.sh
 	cd tests/ && ./bats/bin/bats .
 
-README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_hello_world_with_grep.sh docopts.go
-	./build_doc.sh > README.tmp
+README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_hello_world_with_grep.sh docopts
+	./build_doc.sh README.md > README.tmp
 	mv README.tmp README.md
 
 clean:
