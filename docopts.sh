@@ -53,7 +53,7 @@ docopt_get_version_string() {
     if [[ -f "$1" ]] ; then
         # filter the block (all blocks) starting at a "# Usage:" and ending
         # at an empty line, one level of comment markup is removed
-        sed -n -e '/^# ----/,/^$/ { 1d; s/^# \{0,1\}//; /----/ d; p }' < "$1"
+        sed -n -e '/^# ----/,/^$/ { 1d; s/^# \{0,1\}//; /----/ d; p; }' < "$1"
     else
         # use docopts --separator behavior
         echo "$1"

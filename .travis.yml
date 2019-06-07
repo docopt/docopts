@@ -9,7 +9,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
   - bash --version ; type bash
   - go get github.com/docopt/docopt-go
-  # get our official repos to
+  # get our official repos too
   - go get github.com/docopt/docopts
 branches:
   only:
