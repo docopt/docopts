@@ -32,7 +32,7 @@ get_build_doc() {
   local cmd num_line start_line end_line type
   # read the output of the grep at the end of the while
   # which is a splited grep -n output
-  while read num_line source 
+  while read num_line source
   do
     type=""
     # ${var:0:1} extract first char of a string in bash
@@ -89,7 +89,7 @@ markdown_extract_link() {
 # search position of $2 in $1
 # return -1 if not found
 # 0 to n-1
-strpos() { 
+strpos() {
 	# remove $2 from $1 and any character following to the end
   local x="${1%%$2*}"
   [[ "$x" = "$1" ]] && echo -1 || echo "${#x}"
@@ -147,6 +147,7 @@ main_build_doc() {
 }
 
 if [[ $0 == $BASH_SOURCE ]] ; then
+  PATH=.:$PATH
   source ./docopts.sh --auto -G "$@"
   main_build_doc "$ARGS_README_FILE"
 fi
