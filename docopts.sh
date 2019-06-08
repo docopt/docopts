@@ -180,8 +180,8 @@ docopt_print_ARGS() {
 }
 
 ## main code if sourced with arguments
-if [[ "$1" == "--auto" ]] ; then
-    if [[ $2 == '-G' ]] ; then
+if [[ $# -ge 1 && "$1" == "--auto" ]] ; then
+    if [[ $# -ge 2 && $2 == '-G' ]] ; then
         shift 2
         eval "$(docopt_auto_parse -G "${BASH_SOURCE[1]}" "$@")"
     else
