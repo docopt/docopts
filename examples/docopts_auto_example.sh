@@ -14,6 +14,9 @@
 
 # Auto parse needs an empty line after the top comment above ^^^
 
+# docopts.sh is compatible with 'set -u'
+set -u
+
 # if docopts is in PATH no need to change it.
 PATH=..:$PATH
 
