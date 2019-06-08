@@ -8,7 +8,7 @@ Status: Alpha - work is done.
 
 Most concepts are documented in the `docopt` (without S) manual - see [docopt.org](http://docopt.org/).
 
-Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OSX) or legacy
+Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OS X) or legacy
 GNU/Linux OS.
 
 This is a transitional release: 0.6.2
@@ -123,7 +123,7 @@ Options:
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
-                                Bash 3.x compatible GLOBAL variables assignment:
+                                Bash 3.2 compatible GLOBAL variables assignment:
                                   <prefix>_{mangled_args}={parsed_value}
                                 Can be used with numeric incompatible options
                                 as well.  See also: --no-mangle
@@ -135,6 +135,17 @@ Options:
   --debug                       Output extra parsing information for debugging.
                                 Output cannot be used in bash eval.
 ```
+
+## COMPATIBILITY
+
+Bash 4.x and higher is the main target.  You can also use bash 3.2 (mostly for macOS) with the `-G` option
+to `docopts` binary, and `source docopts.sh --auto -G` ([example](examples/legacy_bash/sshdiff_with_docopts.sh)),
+which both avoid using bash 4.x associative arrays.
+
+The `docopts.sh` helper supports the use of `set -u`, which [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin) on undefined variables in your scripts.
+
+[Unofficial strict mode](http://redsymbol.net/articles/unofficial-bash-strict-mode/) for bash
+should also work with `docopts.sh`, but may have issues.
 
 ## EXAMPLES
 
@@ -242,8 +253,8 @@ See and contribute on the [docopts Wiki](https://github.com/docopt/docopts/wiki)
 
 ## Install
 
-You only have to drop the binary, and eventually the `docopts.sh` lib helper, in your PATH.
-The binary is standalone and staticaly linked. So it runs everywhere.
+You only have to drop the binary, and ideally also the `docopts.sh` lib helper, in a directory on your PATH.
+The binary is standalone and statically linked, so it runs everywhere.
 
 See build section.
 
@@ -264,12 +275,14 @@ mv docopts-32bit docopts
 cp docopts docopts.sh /usr/local/bin
 ```
 
-You are strongly encouraged to build your own binary. Find a local golang developper in whom you trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
-
+You are strongly encouraged to build your own binary, which is easy once
+you have Go installed. Or find a local golang developer that you
+trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
 
 ## Compiling
 
-Requires a directory to use as [Go workspace](https://golang.org/doc/code.html#Organization).
+Requires a directory to use as a [Go workspace](https://golang.org/doc/code.html#Organization),
+such as `~/gocode`.
 
 local build:
 
@@ -300,7 +313,7 @@ Tested builds are built on: `go version go1.11.4 linux/amd64`
 
 Warning: may be not up-to-date feature list.
 
-The [`docopts.sh`](docopts.sh) is an extra bash library that you can source in your CLI script.
+The [`docopts.sh`](docopts.sh) helper is an extra bash library that you can source in your shell script.
 This library provides some bash helpers and is not required in order to use `docopts`.
 
 You don't need a python interpreter anymore, so it works on any legacy system.
@@ -308,8 +321,8 @@ You don't need a python interpreter anymore, so it works on any legacy system.
 As of 2019-05-18
 
 * `docopts` is able to reproduce 100% of the python version.
-* unit test for go are provided, so hack as you wish.
-* 100% `language_agnostic_tester.py` passed (GNU/Linux 64bits)
+* unit tests for go are provided, so hack as you wish.
+* 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits)
 
 ## Developers
 
@@ -356,7 +369,7 @@ Current folder structure:
 
 Some tests are coded along with this code base:
 
-- bats - bash unit tests and functional testing.
+- bats - bash unit tests and f.unctional testing.
 - `language_agnostic_tester.py` - old python wrapper, full docopt compatibility tests.
 - See also: [docopt.go](https://github.com/docopt/docopt.go) has its own tests in golang.
 - `docopts_test.go` - go unit test for `docopts.go`
