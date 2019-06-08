@@ -369,7 +369,7 @@ Current folder structure:
 
 Some tests are coded along with this code base:
 
-- bats - bash unit tests and f.unctional testing.
+- bats - bash unit tests and functional testing.
 - `language_agnostic_tester.py` - old python wrapper, full docopt compatibility tests.
 - See also: [docopt.go](https://github.com/docopt/docopt.go) has its own tests in golang.
 - `docopts_test.go` - go unit test for `docopts.go`
