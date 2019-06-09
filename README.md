@@ -123,7 +123,7 @@ Options:
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
-                                Bash 3.2 compatible GLOBAL variables assignment:
+                                Bash 3.x compatible GLOBAL variables assignment:
                                   <prefix>_{mangled_args}={parsed_value}
                                 Can be used with numeric incompatible options
                                 as well.  See also: --no-mangle
@@ -138,14 +138,17 @@ Options:
 
 ## COMPATIBILITY
 
-Bash 4.x and higher is the main target.  You can also use bash 3.2 (mostly for macOS) with the `-G` option
-to `docopts` binary, and `source docopts.sh --auto -G` ([example](examples/legacy_bash/sshdiff_with_docopts.sh)),
-which both avoid using bash 4.x associative arrays.
+Bash 4.x and higher is the main target.  You can also use bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash 4.x associative arrays:
 
-The `docopts.sh` helper supports the use of `set -u`, which [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin) on undefined variables in your scripts.
+- don't use the `-A` option to `docopts` binary, or
+- use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
+
+The `docopts.sh` helper allows the use of `set -u`, which
+[gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin)
+on undefined variables in your scripts.
 
 [Unofficial strict mode](http://redsymbol.net/articles/unofficial-bash-strict-mode/) for bash
-should also work with `docopts.sh`, but may have issues.
+should also work with `docopts.sh`, but may have some issues.
 
 ## EXAMPLES
 
@@ -281,8 +284,7 @@ trust and ask her, in exchange for a beer or two, if she could build it for you.
 
 ## Compiling
 
-Requires a directory to use as a [Go workspace](https://golang.org/doc/code.html#Organization),
-such as `~/gocode`.
+Requires a directory to use as a [Go workspace](https://golang.org/doc/code.html#Organization).
 
 local build:
 
