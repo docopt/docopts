@@ -18,7 +18,7 @@ the previous version of `docopts`.
 
 ## SYNOPSIS
 
-make build_doc: `./docopts --help | get_usage`
+[make README.md]: # (./docopts --help | get_usage)
 
 ```
   docopts [options] -h <msg> : [<argv>...]
@@ -36,7 +36,7 @@ output as a snippet of Bash source code.  Passing this snippet as an argument to
 most scripts.
 
 If `<argv>` matches one of the usage patterns defined in `<msg>`, `docopts`
-generates code for storing the parsed arguments as Bash variables.  As most
+generates code for storing the parsed arguments as Bash variables. As most
 command line argument names are not valid Bash identifiers, some name mangling
 will take place:
 
@@ -96,7 +96,7 @@ not just the current function.
 
 This is the verbatim output of the `--help` (inserted by script)
 
-make build_doc: `./docopts --help | sed -n '/^Options/,$ p'`
+[make README.md]: # (./docopts --help | sed -n '/^Options/,$ p')
 
 ```
 Options:
@@ -153,7 +153,9 @@ More examples in [examples/ folder](examples/).
 
 Read the help and version messages from standard input (`docopts` found in `$PATH`):
 
-make build_doc: include [examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
+[make README.md]: # (include examples/legacy_bash/rock_hello_world.sh)
+
+[source examples/legacy_bash/rock_hello_world.sh](examples/legacy_bash/rock_hello_world.sh)
 
 ```bash
 #!/usr/bin/env bash
@@ -184,7 +186,9 @@ fi
 Parse the help and version messages from script comments and pass them as
 command line arguments:
 
-make build_doc: include [examples/legacy_bash/rock_hello_world_with_grep.sh](examples/legacy_bash/rock_hello_world_with_grep.sh)
+[make README.md]: # (include examples/legacy_bash/rock_hello_world_with_grep.sh)
+
+[source examples/legacy_bash/rock_hello_world_with_grep.sh](examples/legacy_bash/rock_hello_world_with_grep.sh)
 
 ```bash
 #!/usr/bin/env bash
