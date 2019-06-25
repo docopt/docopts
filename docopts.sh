@@ -28,7 +28,8 @@
 #   source path/to/docopts.sh
 #   docopts -G ARGS -h "$help" -V $version : "$@"
 
-# fetch Usage: from the given filename
+# Doc:
+# fetch `Usage:` bloc from the given filename
 # usually $0 in the main level script
 docopt_get_help_string() {
     local myfname=$1
@@ -44,6 +45,7 @@ docopt_get_help_string() {
     sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < "$myfname"
 }
 
+# Doc:
 # Fetch version information from the given filename or string.
 # Usually $0 in the main level script, or the help string extracted
 # by docopt_get_help_string()
@@ -60,6 +62,7 @@ docopt_get_version_string() {
     fi
 }
 
+# Doc:
 # convert a repeatable option parsed by docopts into a bash 4 ARRAY
 #   ARGS['FILE,#']=3
 #   ARGS['FILE,0']=somefile1
@@ -80,6 +83,7 @@ docopt_get_values() {
     echo $vars
 }
 
+# Doc:
 # echo evaluable code to get all the values into a bash array
 # Usage: eval "$(docopt_get_eval_array ARGS FILE myarray)"
 docopt_get_eval_array() {
@@ -95,6 +99,7 @@ docopt_get_eval_array() {
     done
 }
 
+# Doc:
 # Auto parser for the same docopts usage over scripts, for laziness.
 # Used by --auto.
 #
@@ -130,6 +135,7 @@ docopt_auto_parse() {
     return $res
 }
 
+# Doc:
 # Extract the raw value of a parsed docopts output.
 # arguments:
 #  - assoc: the docopts assoc name
@@ -144,6 +150,7 @@ docopt_get_raw_value() {
     awk -F= "\$1 == \"$kstr\" {sub(\"^[^=]+=\", \"\", \$0);print}" <<<"$docopts_out"
 }
 
+# Doc:
 # Debug, prints env variable ARGS or $1 formatted
 # Usage: docopt_print_ARGS [ASSOC_ARRAY_NAME]
 #        docopt_print_ARGS -G [VARIABLE_PREFIX]

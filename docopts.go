@@ -56,7 +56,7 @@ Options:
   -A <name>                     Export the arguments as a Bash 4.x associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
-                                Bash 3.x compatible GLOBAL variables assignment:
+                                Bash 3.2 compatible GLOBAL variables assignment:
                                   <prefix>_{mangled_args}={parsed_value}
                                 Can be used with numeric incompatible options
                                 as well.  See also: --no-mangle

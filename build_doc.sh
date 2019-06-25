@@ -2,70 +2,87 @@
 #
 # helper that insert external source into README.md content
 #
-# Usage: ./build_doc.sh [-d] [-i] README_FILE
+# Usage: build_doc.sh [-d] [-i] README_FILE
 #
 # Options:
 #   -i         Edit in place README_FILE is modified
 #   -d         diff: README_FILE is unmodified diff is outputed
 #
+# The generated text from README_FILE is outputed on stdout by default.
+#
 # Behavior:
-#   parse README_FILE and look for marker matching: ^make build_doc
+#   parse README_FILE and look for marker matching markdown link identifier.
+#   https://stackoverflow.com/questions/4823468/comments-in-markdown#20885980
 #
-#   make build_doc: `markdown bash command`
-#   make build_doc: include [markdown link](to/a/local file)
+#   our markup format: (with and empty line above)
 #
-# bash command : will be executed and inserted verbatim
-# local file   : imported verbatim
+#   [make README.md]: # (PARSED_CODE_HERE)
 #
-# The generated text from README_FILE is outputed on stdout.
+# PARSED_CODE_HERE can be:
+#   bash command         : will be executed and inserted verbatim
+#   include local/file   : imported verbatim
 #
-# The markup "make build_doc: *" is conserved.
+# The markdown following code bloc ``` [...] ``` will be remplaced with
+# the new content.
 #
-# some files: /tmp/content.* are created
+# For include, a markdown link to the local/file will also be remplaced
+# and inserted above the code block.
+#
+# Our markup is conserved.
+#
+# some temporary files: /tmp/content.* are created.
 
 # blank line above ^^
 
+################################ our functions
+
 # Input parser:
-# return a @ separated $start_line@$end_line@$type@$shell_cmd
-get_build_doc() {
+# return a @ separated $line_num@$edit_line@$shell_cmd
+parse_input() {
   local input=$1
-  local cmd num_line start_line end_line type
-  # read the output of the grep at the end of the while
-  # which is a splited grep -n output
-  while read num_line source
+  local cmd line_num edit_line src
+  local oldIFS=$IFS
+  IFS=$'\n\t '
+  # read the output of the extracted content at the end of the while
+  while read line_num src
   do
-    type=""
-    # ${var:0:1} extract first char of a string in bash
-    if [[ ${source:0:1} == '`' ]] ; then
+    # ${var:0:7} extract first 7 chars of a string in bash
+    if [[ ${src:0:7} == 'include' ]] ; then
+      # local file link
+      # format: include local/path/to/filename
+
+      local src=${src:8}
+      cmd="include '$src'"
+
+      # line_num+4 is supposed to be the starting ```
+      # because to maintain a source link in markdown too
+      edit_line=$((line_num + 4))
+    else
       # free bash command
 
-      # extract inner text, removing first char and last char
-      cmd=${source:1:$((${#source} - 2))}
-    elif [[ ${source:0:7} == 'include' ]] ; then
-      # local file link
-
-      local src=$(markdown_extract_link "$source")
-      cmd="include '$src' $num_line"
-
-      # detect file type
-      if grep -q 'shell script' <<< "$(file $src)" ; then
-        type="bash"
-      fi
-    else
-      # unknown command
-      cmd="echo '$num_line: not recognized command: $source'"
+      cmd="$src"
+      # line_num+2 is supposed to be the starting ```
+      edit_line=$((line_num + 2))
     fi
 
-    # num_line+2 is supposed to be the starting ```
-    start_line=$(($num_line + 2))
-
-    # find closing ``` : first matching ``` after $start_line
-    end_line=$(awk "NR > $start_line && /^\`{3}/ {print NR; exit}" $input)
-
     # display result
-    echo "$start_line@$end_line@$type@$cmd"
+    echo "$line_num@$edit_line@$cmd"
 
-  done < <(grep -n '^make build_doc' $input | awk -F':' '{$2=""; print $0}')
+  done < <(extract_markup $input)
+  IFS=$oldIFS
+}
+
+# fetch line with our markup
+# for each line:
+#
+#   [make README.md]: # (PARSED_CODE_HERE)
+#
+# we output:
+#
+#   line_num PARSED_CODE_HERE
+extract_markup() {
+  local input=$1
+  grep -n '^\[make README.md\]' $input | awk -F'[():]' '{print $1" "$4}'
 }
 
 # transform a free string to a valid filename identifier
@@ -95,7 +112,69 @@ strpos() {
   [[ "$x" = "$1" ]] && echo -1 || echo "${#x}"
 }
 
-# formating helpers
+find_end_content() {
+  local start_line=$1
+  local input=$2
+  # find closing ``` : first matching ``` after $start_line
+  awk "NR > $start_line && /^\`{3}/ {print NR; exit}" $input
+}
+
+eval_wrapper() {
+  local line_num=$1
+  local start=$2
+  local mycmd="$3"
+
+  # used by printf -v var_name to return a modified value
+  # See man bash for printf
+  local return_begin_var=$4
+  local return_content_filename=$5
+
+  # build temporary filename used later by sed
+  local content_filename=/tmp/content.$(to_filename "$mycmd")
+  # merge multiple output
+  if [[ $mycmd =~ ^include ]] ; then
+    # we shift back to also replace markdown source link
+    printf -v $return_begin_var "%d" $((start - 2))
+    # pass the line number
+    eval "$mycmd $start" > $content_filename
+  else
+    # default
+    printf -v $return_begin_var "%d" $start
+    echo '```'       >  $content_filename
+    eval "$mycmd"    >> $content_filename
+    echo -e '```\n'  >> $content_filename
+  fi
+
+  printf -v $return_content_filename "%s" $content_filename
+}
+
+build_sed_cmd() {
+  local input=$1
+  local build=$(parse_input $input)
+
+  local oldIFS=$IFS
+  IFS=$'@\n'
+  # the loop combine the parsed input into a valid sed command
+  # building a oneliner sed allow us to keep lines number while deleting old content for replacing it.
+  local sed_cmd=""
+  local filename start begin_line end_line mycmd line_num
+  while read line_num start mycmd
+  do
+    eval_wrapper $line_num $start "$mycmd" begin_line filename
+    end_line=$(find_end_content $start $input)
+    # The begin_line,end_line computation must keep the insert line itself or no content will be outputed.
+    # begin_line is the index on the first line to replace (we remove the blank line above)
+    # end_line   is the index of the last line.
+    # We insert at end_line+1, reusing the blank line after the bloc, which will become the new blank
+    # line on top of the inserted block. Inserted block also append a new extra blank line to keep our
+    # logic.
+    sed_cmd="$sed_cmd -e '$((begin_line-1)),$((end_line)) d' -e '$((end_line+1)) r $filename'"
+  done <<<"$build"
+  echo "$sed_cmd"
+  IFS=$oldIFS
+}
+
+##################################### formating helpers
 
 # extract text bloc starting at Usage to the first blank line.
 # remove Usage and blank line.
@@ -107,10 +186,20 @@ get_usage() {
 include() {
   local local_file="$1"
   local num_line=$2
-  if [[ $local_file == no_match ]] ; then
-    echo "include: file not matched at line '$num_line'"
+  if [[ ! -f $local_file ]] ; then
+    echo "include: file not found '$local_file' at '$num_line'"
+    return 1
   else
+    local format_type=""
+    # detect file type
+    if grep -q 'shell script' <<< "$(file $local_file)" ; then
+      format_type="bash"
+    fi
+
+    echo -e "[source $local_file]($local_file)\n"
+    echo '```'"$format_type"
     cat "$local_file"
+    echo -e '```\n'
   fi
 }
 
@@ -119,21 +208,7 @@ include() {
 main_build_doc() {
   README_FILE=$1
 
-  build=$(get_build_doc $README_FILE)
-
-  # NOTE: changing IFS will alter get_build_doc parsing, it must be done after.
-  IFS=$'@\n'
-  # the loop combine the parsed input into a valid sed command
-  # building a oneliner sed allow us to keep lines number while deleting old content for replacing it.
-  sed_cmd=""
-  while read start end format_type mycmd
-  do
-    content=/tmp/content.$(to_filename "$mycmd")
-    # merge multiple output
-    { echo '```'"$format_type" ; eval "$mycmd" ; echo -e '```\n'; }  > $content
-    # the start end computation must keep the line itself or no content will be outputed
-    sed_cmd="$sed_cmd -e '$((start -1)),$end d' -e '$((end +1)) r $content'"
-  done <<<"$build"
+  local sed_cmd=$(build_sed_cmd $README_FILE)
 
   # eval is required to preserve multiple args quoting and passing multiple actions to one sed process.
   if $ARGS_i ; then
@@ -142,12 +217,13 @@ main_build_doc() {
   elif $ARGS_d ; then
     diff -u $README_FILE <(eval "sed $sed_cmd $README_FILE")
   else
+    # echo "$sed_cmd"
     eval "sed $sed_cmd $README_FILE"
   fi
 }
 
 if [[ $0 == $BASH_SOURCE ]] ; then
-  PATH=.:$PATH
-  source ./docopts.sh --auto -G "$@"
+  PATH=$(dirname $0):$PATH
+  source docopts.sh --auto -G "$@"
   main_build_doc "$ARGS_README_FILE"
 fi

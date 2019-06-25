@@ -94,7 +94,7 @@ not just the current function.
 
 ## OPTIONS
 
-This is the verbatim output of the `--help` (inserted by script)
+This is the verbatim output of the `--help`:
 
 [make README.md]: # (./docopts --help | sed -n '/^Options/,$ p')
 
@@ -138,23 +138,32 @@ Options:
 
 ## COMPATIBILITY
 
-Bash 4.x and higher is the main target.  You can also use bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash 4.x associative arrays:
+Bash 4.x and higher is the main target.
 
-- don't use the `-A` option to `docopts` binary, or
-- use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
+In order to use `docopts` with bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash 4.x associative arrays,
+you can:
 
-The `docopts.sh` helper allows the use of `set -u`, which
+* don't use the `-A` option
+* use GLOBAL generated mangled variables
+* use `-G` `<prefix>` option to generate GLOBAL with `prefix_`
+* use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
+
+The `[docopts.sh](docopts.sh)` helper allows the use of `set -u`, which
 [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin)
 on undefined variables in your scripts.
 
 [Unofficial strict mode](http://redsymbol.net/articles/unofficial-bash-strict-mode/) for bash
-should also work with `docopts.sh`, but may have some issues.
+should also work with `docopts.sh`, please report any [issue](https://github.com/docopt/docopts/issues) with examples.
+
+## `docopts.sh` helper
+
+The helper has its own documentation here [docs/README.md](docs/README.md).
 
 ## EXAMPLES
 
-More examples in [examples/ folder](examples/).
+Find more examples in [examples/ folder](examples/).
 
-Read the help and version messages from standard input (`docopts` found in `$PATH`):
+This example reads the help and version messages from standard input (`docopts` found in `$PATH`):
 
 [make README.md]: # (include examples/legacy_bash/rock_hello_world.sh)
 
@@ -186,7 +195,7 @@ if $verbose ; then
 fi
 ```
 
-Parse the help and version messages from script comments and pass them as
+The following example, parses the help and version messages from script comments and pass them as
 command line arguments:
 
 [make README.md]: # (include examples/legacy_bash/rock_hello_world_with_grep.sh)
@@ -219,7 +228,7 @@ for arg in "${argv[@]}"; do
 done
 ```
 
-Using the Bash 4.x associative array with `-A`:
+The next example shows how using the Bash 4.x associative array with `-A`:
 
 ```bash
 help="
@@ -244,10 +253,10 @@ while [[ $i -lt ${args[<argument-with-multiple-values>,#]} ]] ; do
 done
 ```
 
-
 ## History
 
-`docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the Python parser.
+`docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the
+[docopt Python parser](https://github.com/docopt/docopt).
 
 The current version is written in [go](https://golang.org/) and is 100% compatible with previous Python-based `docopts`.
 Please report any non working code with [issue](https://github.com/docopt/docopts/issues) and examples.
@@ -260,7 +269,7 @@ See and contribute on the [docopts Wiki](https://github.com/docopt/docopts/wiki)
 
 ## Install
 
-You only have to drop the binary, and ideally also the `docopts.sh` lib helper, in a directory on your PATH.
+You only have to drop the binary, and optionally also the `docopts.sh` lib helper, in a directory on your PATH.
 The binary is standalone and statically linked, so it runs everywhere.
 
 See build section.
@@ -337,8 +346,7 @@ All python related stuff has been removed, excepted `language_agnostic_tester.py
 If you want to clone this repository and hack `docopts`:
 
 Use `git clone --recursive`, to get submodules - these are only required for testing with `bats`.
-[`bats`](https://github.com/sstephenson/bats) or [`bats-core`](https://github.com/bats-core/bats-core) installed in your
-PATH should work too.
+If [`bats-core`](https://github.com/bats-core/bats-core) installed in your PATH should work too.
 
 Fetch the extra golang version of `docopt-go` (required for building `docopts`)
 
@@ -388,13 +396,15 @@ make test
 
 #### bats
 
+`bats.alias` modify your current environment to define a alias on the submodule of `bats` installed (if you did it).
+
 ```
 cd ./tests
 . bats.alias
 bats .
 ```
 
-#### language_agnostic_tester
+#### `language_agnostic_tester`
 
 This script was provided with the original `docopts`. I fixed number/string output parsing failure with an extra function
 for bash in [docopts.sh](https://github.com/docopt/docopts/blob/docopts-go/docopts.sh#L108)
@@ -407,7 +417,7 @@ python language_agnostic_tester.py ./testee.sh
 
 #### golang docopt.go (golang parser lib)
 
-This lib is outside this project, but it is the base of the `docopt` parsing for this wrapper.
+This lib is outside this project, but it is the base of the `docopt` language parsing for this wrapper.
 
 ```
 cd PATH/to/go/src/github.com/docopt/docopt-go/

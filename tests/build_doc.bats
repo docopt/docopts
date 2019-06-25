@@ -5,11 +5,31 @@
 
 source ../build_doc.sh
 
-@test "get_build_doc" {
-  run get_build_doc input_for_build_doc.txt
+output_split_lines() {
+  local oldIFS=$IFS
+  IFS=$'\n'
+  local i=0
+  local l
+  for l in $output
+  do
+    lines[$i]=$l
+    i=$((i+1))
+  done
+  IFS=$oldIFS
+}
+
+@test "extract_markup" {
+  run extract_markup input_for_build_doc.txt
   echo "$output"
-  [[ ${lines[0]} == "4@8@@include 'link/to/file' 2" ]]
-  [[ ${lines[1]} == "14@18@@some command" ]]
+  [[ ${lines[0]} == "2 include test_content.txt" ]]
+  [[ ${lines[1]} == '14 echo "new outputed content"' ]]
+}
+
+@test "parse_input" {
+  run parse_input input_for_build_doc.txt
+  echo "$output"
+  [[ ${lines[0]} == "2@6@include 'test_content.txt'" ]]
+  [[ ${lines[1]} == '14@16@echo "new outputed content"' ]]
 }
 
 @test "to_filename" {
@@ -55,16 +75,62 @@ EOT
   [[ ${lines[0]} == "  usage get_usage line 1" ]]
 }
 
+@test "find_end_content" {
+  run find_end_content 6 input_for_build_doc.txt
+  [[ $output -eq 10 ]]
+}
+
 @test "include" {
-  run include "some file"
+  # file doesn't exist
+  run include "some file" 42
   echo "$output"
   [[ $status -ne 0 ]]
-  run include "no_match" 42
+  run include "test_content.txt" 42
   echo "$output"
   [[ $status -eq 0 ]]
-  [[ $output == "include: file not matched at line '42'" ]]
-  run include input_for_build_doc.txt 0
-  echo "$output"
-  [[ $status -eq 0 ]]
-  [[ ${lines[0]} == "line 1" ]]
+  # bats bug #224 (blank line missing in $lines)
+  readarray -t lines <<<"$output"
+  [[ ${lines[0]} == "[source test_content.txt](test_content.txt)" ]]
+  [[ ${lines[1]} == "" ]]
+  [[ ${lines[2]} == '```' ]]
+  [[ ${lines[3]} == "some include test content"  ]]
+}
+
+populate_var_by_printf_v() {
+  printf -v $1 "%s" $2
+  test $var == "value"
+  return $?
+}
+
+@test "bats bug fail to printf -v var" {
+  run populate_var_by_printf_v var value
+  [[ -z $var ]] # should be $var == "value"
+}
+
+test_eval_wrapper_helper() {
+  eval_wrapper 2 6 "include test_content.txt" our_start our_filename
+  echo $our_start
+  echo $our_filename
+}
+
+@test "eval_wrapper" {
+  # it seems that populating variables by printf -v inside function seems not visible by bats
+  run test_eval_wrapper_helper
+  #  so we read content from stdout
+  begin_line=${lines[0]}
+  filename=${lines[1]}
+
+  [[ -n $begin_line ]]
+  [[ -n $filename ]]
+  [[ $begin_line -eq 4 ]]
+}
+
+@test "build_sed_cmd" {
+  infile=input_for_build_doc.txt
+  run build_sed_cmd $infile
+  expect=" -e '3,10 d' -e '11 r /tmp/content.includetest_contenttxt' -e '15,20 d' -e '21 r /tmp/content.echonewoutputedcontent'"
+  [[ $output == $expect ]]
+
+  # apply
+  eval "sed $output $infile" | diff expect_build_doc.txt -
 }

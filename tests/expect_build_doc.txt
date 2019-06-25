@@ -1,12 +1,14 @@
 line 1 (should be empty for markdown, but for testing we only care numbers)
 [make README.md]: # (include test_content.txt)
 
-[source link/to/file](link/to/file) # old markdown link
+[source test_content.txt](test_content.txt)
 
 ```
-old input
-line 8
-line 9
+some include test content
+line 2
+
+line 4
+end
 ```
 
 line 12
@@ -14,9 +16,7 @@ line 12
 [make README.md]: # (echo "new outputed content")
 
 ```
-previous command output here
-line 18
-line 19
+new outputed content
 ```
 
 some text after
