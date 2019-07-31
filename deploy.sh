@@ -20,22 +20,21 @@ create_release()
 
 upload_binaries()
 {
-  local filename=$1
-  sha256sum $filename >> sha256sum.txt
-  gothub upload \
-      --user $GITHUB_USER \
-      --repo $GITHUB_REPO \
-      --tag $TAG \
-      --name "$filename" \
-      --file $filename
+  local filenames=$*
+  sha256sum $filenames > sha256sum.txt
 
-  gothub upload \
-      --user $GITHUB_USER \
-      --repo $GITHUB_REPO \
-      --tag $TAG \
-      --name "sha256sum.txt" \
-      --file  sha256sum.txt
+  local f
+  for f in $filenames sha256sum.txt
+  do
+    echo "uploading '$f' ..."
+    gothub upload \
+        --user $GITHUB_USER \
+        --repo $GITHUB_REPO \
+        --tag $TAG \
+        --name "$f" \
+        --file $f \
+        --replace
+  done
 }
 
-rm sha256sum.txt
-upload_binaries $1
+upload_binaries docopts docopts-32bits docopts-OSX
