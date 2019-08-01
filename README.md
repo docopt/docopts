@@ -148,7 +148,7 @@ you can:
 * use `-G` `<prefix>` option to generate GLOBAL with `prefix_`
 * use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
 
-The `[docopts.sh](docopts.sh)` helper allows the use of `set -u`, which
+The [`docopts.sh`](docopts.sh) helper allows the use of `set -u`, which
 [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin)
 on undefined variables in your scripts.
 
