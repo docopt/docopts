@@ -1,0 +1,39 @@
+---
+releases:
+  # to key match the git tag
+  v0.6.3-alpha2:
+    name: "docopts binary transitional"
+    description: |
+      This is a transitional release. 
+
+      It supports all the previous API plus some extra command line options.
+      Fully compatible with previous 0.6.2 python code for Bash.
+      See: https://github.com/docopt/docopts/tree/v0.6.1%2Bfix
+
+      based on master branch
+
+      changes:
+        - more test for MACOS
+        - bash 3.2 support is more documented and fixed
+        - use bats-core as testing framework
+        - updated README merged from old README.rst
+        - now documentation introduce `docopts.sh`
+        - added Makefile
+        - added build_doc.sh PoC markdown preprocessor
+
+        all examples written for docopts:
+          - shebang conversion `#!/bin/bash` ==> `#!/usr/bin/env bash`
+          - legacy example completed
+          - example from README extracted a file, and merged in README via build_doc.sh
+          - sshdiff full example coded
+          - added examples with `--auto -G`
+
+        docopts.sh helper:
+          - is more documented in the code
+          - as a documenation in docs/README.md
+          - now supports bash strict mode (`set -euo pipefail`)
+          - now supports `--auto -G` to auto parse with global vars (no bash 4 associative array)
+
+        `docopts` behavior sould be unchanged:
+          - add mangled name collision detection
+

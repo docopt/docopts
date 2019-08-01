@@ -223,6 +223,8 @@ main_build_doc() {
 }
 
 if [[ $0 == $BASH_SOURCE ]] ; then
+  # we add our repository path to run our local docopts binary
+  # you will have to build it first of course.
   PATH=$(dirname $0):$PATH
   source docopts.sh --auto -G "$@"
   main_build_doc "$ARGS_README_FILE"
