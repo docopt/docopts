@@ -161,7 +161,7 @@ EOF
 #!/usr/bin/env bash
 #
 # Usage: rock [options] <argv>...
-# 
+#
 # Options:
 #       --verbose  Generate verbose messages.
 #       --help     Show help options.
@@ -183,4 +183,34 @@ EOF
     [[ ${#lines[@]} -eq 5 ]]
 
     rm -f $tmp
+}
+
+@test "bash strict mode docopt_print_ARGS" {
+    tmp=./tmp_docopt_print_ARGS
+    cat << 'EOF' > $tmp
+#!/usr/bin/env bash
+#
+# Usage: dummy [options] print TEXT
+#
+# Options:
+#       --verbose  Generate verbose messages.
+#       --help     Show help options.
+
+# an empty line above
+
+# enable strict mode
+set -euo pipefail
+
+PATH=..:$PATH
+source ../docopts.sh --auto -G "$@"
+docopt_print_ARGS -G
+EOF
+    chmod a+x $tmp
+    [[ -x $tmp ]]
+    run $tmp print some_text
+    echo $output
+    [[ $status -eq 0 ]]
+    echo "lines1: ${line[1]}"
+    [[ ${lines[1]} == 'ARGS_TEXT=some_text' ]]
+    rm $tmp
 }

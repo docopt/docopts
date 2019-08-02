@@ -157,12 +157,12 @@ docopt_get_raw_value() {
 # with -G VARIABLE_PREFIX grep ${VARIABLE_PREFIX}_ variables from environment
 docopt_print_ARGS() {
     local use_associative=true
-    if [[ $1 == '-G' ]] ; then
+    if [[ $# -eq 1 && $1 == '-G' ]] ; then
         use_associative=false
         shift
     fi
     # $1 can be the name of the global assoc array, or the prefix if -G is given
-    local assoc="$1"
+    local assoc="${1:-}"
     if [[ -z $assoc ]] ; then
         assoc=ARGS
     fi
