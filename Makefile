@@ -1,5 +1,8 @@
+#
+# Makefile for managing docopts build
+#
+# See also: deploy.sh
 
-DOCOPT_GO=${GOPATH}/linux_amd64/github.com/docopt/docopt-go.a
 
 PREFIX ?= /usr/local
 
@@ -25,6 +28,7 @@ docopts-OSX: docopts.go
 docopts-arm: docopts.go
 	env GOOS=linux GOARCH=arm go build -o docopts-arm docopts.go
 
+# requires write access to $PREFIX
 install: all
 	cp docopts docopts.sh $(PREFIX)/bin
 
@@ -40,4 +44,4 @@ README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_he
 	mv README.tmp README.md
 
 clean:
-	rm -f docopts-* docopts README.tmp
+	rm -f docopts-* docopts README.tmp build/docopts_*

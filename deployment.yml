@@ -1,10 +1,18 @@
 ---
+build:
+  - darwin/386
+  - darwin/amd64
+  - linux/386
+  - linux/amd64
+  - linux/arm
+  # doesn't compile
+  #- android/arm
 releases:
   # to key match the git tag
   v0.6.3-alpha2:
     name: "docopts binary transitional"
     description: |
-      This is a transitional release. 
+      This is a transitional release.
 
       It supports all the previous API plus some extra command line options.
       Fully compatible with previous 0.6.2 python code for Bash.
@@ -37,3 +45,19 @@ releases:
         `docopts` behavior sould be unchanged:
           - add mangled name collision detection
 
+  v0.6.2:
+    name: "first release in Go"
+    description: |
+      This is a transitional release.
+
+      Dopopt for shell.
+
+      It supports all the previous API.
+      Fully compatible with previous 0.6.1 python code for Bash.
+      See: https://github.com/docopt/docopts/tree/v0.6.1%2Bfix
+
+      based on master branch
+
+      changes:
+        - now written in Go, no more python dependancies
+      

@@ -24,13 +24,13 @@ current folder.
 ## Release binaries
 
 This section is for developper. In order to release binaries you will need
-some granted access to github, and to more tools.
-
-Most of the tools require a working [Go developper
-environment](https://golang.org/doc/code.html#Organization). Which should be not too
-complicated to setup.
+some granted access to github.
 
 You will also need some more developper tools.
+
+Most of the tools require a working [Go developper
+environment](https://golang.org/doc/code.html#Organization). Which should not be too
+complicated to setup.
 
 Go for it:
 
@@ -58,7 +58,7 @@ https://help.github.com/articles/creating-an-access-token-for-command-line-use
 
 The token needs to have `repos` auth priviledges.
 
-then export it as a bash environment variable
+then export it as a bash environment variable:
 
 ```
 export GITHUB_TOKEN="you token here"
@@ -77,7 +77,7 @@ git push origin v0.6.3-alpha2
 
 See: http://mikefarah.github.io/yq/
 
-For extracting yaml data from deployment.yml
+For extracting yaml data from `deployment.yml`
 
 ```
 go get gopkg.in/mikefarah/yq.v2
