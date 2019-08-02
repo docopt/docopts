@@ -20,6 +20,7 @@ output_split_lines() {
 
 @test "extract_markup" {
   run extract_markup input_for_build_doc.txt
+
   echo "$output"
   [[ ${lines[0]} == "2 include test_content.txt" ]]
   [[ ${lines[1]} == '14 echo "new outputed content"' ]]
@@ -133,4 +134,11 @@ test_eval_wrapper_helper() {
 
   # apply
   eval "sed $output $infile" | diff expect_build_doc.txt -
+}
+
+@test "extract_markup free character" {
+  in_text="[make README.md]: # (grep -F \"():\" \$input)"
+  run extract_markup <<< "$in_text"
+  echo $output
+  [[ $output == '1 grep -F "():" $input' ]]
 }

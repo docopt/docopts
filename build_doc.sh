@@ -28,7 +28,7 @@
 # For include, a markdown link to the local/file will also be remplaced
 # and inserted above the code block.
 #
-# Our markup is conserved.
+# Our markdown comment markup is conserved.
 #
 # some temporary files: /tmp/content.* are created.
 
@@ -82,7 +82,8 @@ parse_input() {
 #   line_num PARSED_CODE_HERE
 extract_markup() {
   local input=$1
-  grep -n '^\[make README.md\]' $input | awk -F'[():]' '{print $1" "$4}'
+  local our_markup='[make README.md]: # ('
+  grep -n -F "$our_markup" $input | sed -e 's/^\([0-9]\+\):[^(]\+(/\1 /' -e 's/)$//'
 }
 
 # transform a free string to a valid filename identifier
@@ -180,6 +181,14 @@ build_sed_cmd() {
 # remove Usage and blank line.
 get_usage() {
   sed -n '/^Usage:/,/^$/ p' | sed -e '1d' -e '$d'
+}
+
+# extract text bloc starting at Usage to the first blank line.
+# remove Usage and blank line.
+get_version() {
+  local text="$1"
+  local version=$(head -1)
+  echo "$text $version"
 }
 
 # include the given file

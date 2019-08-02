@@ -11,7 +11,11 @@ Most concepts are documented in the `docopt` (without S) manual - see [docopt.or
 Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OS X) or legacy
 GNU/Linux OS.
 
-This is a transitional release: 0.6.2
+[make README.md]: # (./docopts --version | get_version "This is a transitional release:")
+
+```
+This is a transitional release: docopts 0.6.3
+```
 
 This release will be maintained for compatibility, only fixes will be provided. The 0.6.2 version is fully compatible with
 the previous version of `docopts`.
