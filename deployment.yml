@@ -10,7 +10,7 @@ build:
 releases:
   # to key match the git tag
   v0.6.3-alpha2:
-    name: "docopts binary transitional"
+    name: "docopts binary transitional v0.6.3-alpha2"
     description: |
       This is a transitional release.
 
@@ -29,21 +29,31 @@ releases:
         - added Makefile
         - added build_doc.sh PoC markdown preprocessor
 
-        all examples written for docopts:
-          - shebang conversion `#!/bin/bash` ==> `#!/usr/bin/env bash`
-          - legacy example completed
-          - example from README extracted a file, and merged in README via build_doc.sh
-          - sshdiff full example coded
-          - added examples with `--auto -G`
+      all examples written for docopts:
+        - shebang conversion `#!/bin/bash` ==> `#!/usr/bin/env bash`
+        - legacy example completed
+        - example from README extracted a file, and merged in README via build_doc.sh
+        - sshdiff full example coded
+        - added examples with `--auto -G`
 
-        docopts.sh helper:
-          - is more documented in the code
-          - as a documenation in docs/README.md
-          - now supports bash strict mode (`set -euo pipefail`)
-          - now supports `--auto -G` to auto parse with global vars (no bash 4 associative array)
+      docopts.sh helper:
+        - is more documented in the code
+        - as a documenation in docs/README.md
+        - now supports bash strict mode (`set -euo pipefail`)
+        - now supports `--auto -G` to auto parse with global vars (no bash 4 associative array)
 
-        `docopts` behavior sould be unchanged:
-          - add mangled name collision detection
+      `docopts` behavior sould be unchanged:
+        - add mangled name collision detection
+
+  v0.6.3-alpha1:
+    name: "docopts for Bash first release in golang"
+    description: |
+      This is a transitional release. It is a complete rewrite of the python's code in go.
+      It supports all the previous API plus some extra command line options.
+
+      Fully compatible with previous 0.6.2 python code for Bash.
+
+      based on https://github.com/docopt/docopts/tree/packaging-debian
 
   v0.6.2:
     name: "first release in Go"

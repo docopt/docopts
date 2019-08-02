@@ -44,4 +44,4 @@ README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_he
 	mv README.tmp README.md
 
 clean:
-	rm -f docopts-* docopts README.tmp build/docopts_*
+	rm -f docopts-* docopts README.tmp build/*

@@ -16,9 +16,9 @@ import (
     "sort"
 )
 
-var Version string = `docopts 0.6.3
+var Version string = `docopts 0.6.3-alpha2
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
-Copyleft (Ɔ) 2018 Sylvain Viart (golang version).
+Copyleft (Ɔ)  2019 Sylvain Viart (golang version).
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.

@@ -1,8 +1,10 @@
 # docopts pre-built binaries
 
-`docopts` is a shell helper mainly for bash as now, for parsing arguments using [docopt language](https://docopt.org).
+`docopts` is a shell helper mainly for bash as now, for parsing command-line arguments using the
+[docopt language](https://docopt.org).
 
-This implementation use Go, and we provide pre-built binaries on releases.
+This implementation use Go, and we provide pre-built binaries on available for download from
+github releases.
 
 The sha256sum is provided to ensure the uploaded binaries are conform to the
 one built by the uploader.
@@ -13,8 +15,8 @@ You can simply download the one you want from
 [releases](https://github.com/docopt/docopts/releases).
 
 Or we provide a command line helper if you cloned this repository, that will
-simply download from our repository and provide a `docopts` binary in the
-current folder.
+simply download the good binary format from our repository and provide a `docopts` binary in
+your current folder.
 
 
 ```
@@ -24,7 +26,7 @@ current folder.
 ## Release binaries
 
 This section is for developper. In order to release binaries you will need
-some granted access to github.
+some granted access to github API.
 
 You will also need some more developper tools.
 
@@ -94,7 +96,7 @@ make
 ### deploy
 
 We provide a deploy script, which will take the last git tag, and a deployment
-message configured in a yaml file `deployment.yml`.
+message written in a yaml file `deployment.yml`.
 
 So you need to create the release text in `deployment.yml` before you run
 `deploy.sh`.
@@ -102,12 +104,12 @@ So you need to create the release text in `deployment.yml` before you run
 See what will going on:
 
 ```
-./deploy.sh -n
+./deploy.sh deploy -n
 ```
 
 Deploy and replace existing binaries for this release.
 
 ```
-./deploy.sh -n
+./deploy.sh deploy --replace
 ```
 
