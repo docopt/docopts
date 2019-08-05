@@ -2,7 +2,7 @@
 #
 # Tools for deploying our release to github
 #
-# Usage: ./deploy.sh deploy [-n] [-r REMOTE_REPOS] [--replace] [RELEASE_VERSION]
+# Usage: ./deploy.sh deploy [-n] [-r REMOTE_REPOS] [--replace] [-u GITHUB_USER] [RELEASE_VERSION]
 #        ./deploy.sh build [RELEASE_VERSION]
 #        ./deploy.sh delete RELEASE_VERSION
 #
@@ -175,6 +175,8 @@ show_release_data()
   local repository=$(git remote -v | grep $ARGS_REMOTE_REPOS | grep push | head -1)
 
   cat << EOT
+GITHUB_REPO: $GITHUB_REPO
+GITHUB_USER: $GITHUB_USER
 GITHUB_TOKEN: $GITHUB_TOKEN
 build_dir: $BUILD_DEST_DIR
 repository: $repository
@@ -257,6 +259,10 @@ if [[ $0 == $BASH_SOURCE ]] ; then
   source docopts.sh --auto -G "$@"
   # fix docopt bug https://github.com/docopt/docopt/issues/386
   ARGS_REMOTE_REPOS=${ARGS_REMOTE_REPOS:-$ARGS_r}
+
+  if [[ -n $ARGS_GITHUB_USER ]]; then
+    GITHUB_USER=$ARGS_GITHUB_USER
+  fi
 
   #docopt_print_ARGS -G
 
