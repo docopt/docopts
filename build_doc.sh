@@ -183,11 +183,10 @@ get_usage() {
   sed -n '/^Usage:/,/^$/ p' | sed -e '1d' -e '$d'
 }
 
-# extract text bloc starting at Usage to the first blank line.
-# remove Usage and blank line.
+# extract docopts version
 get_version() {
   local text="$1"
-  local version=$(head -1)
+  local version=$(awk 'NR == 1 { print $2 }')
   echo "$text $version"
 }
 

@@ -16,13 +16,24 @@ import (
     "sort"
 )
 
-var Version string = `docopts 0.6.3-alpha2
+// vars defined at compile time
+// https://github.com/ahmetb/govvv
+var (
+    Version string
+    BuildDate string
+    GitCommit string
+    GoBuildVersion string
+)
+
+var copyleft = `
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 Copyleft (Ɔ)  2019 Sylvain Viart (golang version).
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 `
+// Version will be build by main
+var Docopts_Version string
 
 var Usage string = `Shell interface for docopt, the CLI description language.
 
@@ -307,7 +318,7 @@ func HelpHandler_golang(err error, usage string) {
                 os.Exit(0)
             }
             if err_str[0:2] == "-V" || err_str[0:9] == "--version" {
-                fmt.Println(strings.TrimSpace(Version))
+                fmt.Println(strings.TrimSpace(Docopts_Version))
                 os.Exit(0)
             }
         }
@@ -346,7 +357,15 @@ func main() {
       HelpHandler: HelpHandler_golang,
     }
 
-    arguments, err := golang_parser.ParseArgs(Usage, nil, Version)
+    // build Docopts_Version string
+    Docopts_Version = fmt.Sprintf("docopts %s commit %s built at %s\nbuilt from: %s\n%s",
+        Version,
+        GitCommit,
+        BuildDate,
+        GoBuildVersion,
+        strings.TrimSpace(copyleft))
+
+    arguments, err := golang_parser.ParseArgs(Usage, nil, Docopts_Version)
 
     if err != nil {
         msg := fmt.Sprintf("mypanic: %v\n", err)

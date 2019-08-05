@@ -157,7 +157,7 @@ docopt_get_raw_value() {
 # with -G VARIABLE_PREFIX grep ${VARIABLE_PREFIX}_ variables from environment
 docopt_print_ARGS() {
     local use_associative=true
-    if [[ $# -eq 1 && $1 == '-G' ]] ; then
+    if [[ $# -ge 1 && $1 == '-G' ]] ; then
         use_associative=false
         shift
     fi

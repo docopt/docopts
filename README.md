@@ -2,7 +2,7 @@
 
 [docopt](http://docopt.org/) for shell - make beautiful CLI with ease.
 
-Status: Alpha - work is done.
+Status: working.
 
 `docopts` : the command line wrapper for bash.
 
@@ -14,10 +14,10 @@ GNU/Linux OS.
 [make README.md]: # (./docopts --version | get_version "This is a transitional release:")
 
 ```
-This is a transitional release: docopts 0.6.3
+This is a transitional release: v0.6.3-rc1
 ```
 
-This release will be maintained for compatibility, only fixes will be provided. The 0.6.2 version is fully compatible with
+This release will be maintained for compatibility, only fixes will be provided. The 0.6.3 version is fully compatible with
 the previous version of `docopts`.
 
 ## SYNOPSIS
@@ -286,24 +286,37 @@ cp docopts docopts.sh /usr/local/bin
 
 ### Pre-built binaries
 
-Pre-built Go binaries for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/Sylvain303/docopts/releases).
+Pre-built Go binaries for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/docopt/docopts/releases).
 
-Download and rename to `docopts` and put it in your `PATH`:
+We provide a download helper:
 
+```bash
+git clone https://github.com/docopt/docopts.git
+cd doctops
+./get_docopts.sh
 ```
-mv docopts-32bit docopts
+
+Rename to `docopts` and put it in your `PATH`:
+
+```bash
+mv docopts_linux_amd64 docopts
 cp docopts docopts.sh /usr/local/bin
 ```
 
-You are strongly encouraged to build your own binary, which is easy once
-you have Go installed. Or find a local golang developer that you
-trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
+The cloned repository is no more used at this stage. 
+
+Learn more about [pre-built binaries](docs/pre_built_binaries.md).
 
 ## Compiling
 
-Requires a directory to use as a [Go workspace](https://golang.org/doc/code.html#Organization).
+We encourage you to build your own binary, which is easy once
+you have Go installed. Or find a local golang developer that you
+trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
+
+Requires a [Go workspace](https://golang.org/doc/code.html#Organization).
 
 local build:
+(also done with our Makefile default target: `make`)
 
 ```
 go get github.com/docopt/docopt-go
@@ -318,7 +331,7 @@ cross compile for 32 bit:
 env GOOS=linux GOARCH=386 go build docopts.go
 ```
 
-or via Makefile (generates 64 bit, 32 bit, arm and macOS-64bit versions of docopts)
+or via Makefile:
 
 ```
 cd src/github.com/docopt/docopts
@@ -326,111 +339,31 @@ make all
 make test
 ```
 
-Tested builds are built on: `go version go1.11.4 linux/amd64`
+Tested builds are built on: 
+
+[make README.md]: # (go version)
+
+```
+go version go1.11.4 linux/amd64
+```
 
 ## Features
 
 Warning: may be not up-to-date feature list.
 
 The [`docopts.sh`](docopts.sh) helper is an extra bash library that you can source in your shell script.
-This library provides some bash helpers and is not required in order to use `docopts`.
+This library provides some bash helpers and is not required in order to use `docopts`. See [docopts.sh
+documentation](docs/README.md).
 
-You don't need a python interpreter anymore, so it works on any legacy system.
+`docopts` doesn't need a python interpreter anymore, so it works on any legacy system too.
 
 As of 2019-05-18
 
 * `docopts` is able to reproduce 100% of the python version.
-* unit tests for go are provided, so hack as you wish.
-* 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits)
+* unit tests for Go are provided, so hack as you wish.
+* 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits).
+* `bats-core` unittests and fonctional testing are provided too. 
 
 ## Developers
 
-All python related stuff has been removed, excepted `language_agnostic_tester.py`.
-
-If you want to clone this repository and hack `docopts`:
-
-Use `git clone --recursive`, to get submodules - these are only required for testing with `bats`.
-If [`bats-core`](https://github.com/bats-core/bats-core) installed in your PATH should work too.
-
-Fetch the extra golang version of `docopt-go` (required for building `docopts`)
-
-```
-go get github.com/docopt/docopt-go
-```
-
-If you forgot `--recursive`, you can also run it afterwards:
-
-~~~bash
-git submodule init
-git submodule update
-~~~
-
-Current folder structure:
-
-~~~
-.
-├── docopts.go - main source code
-├── docopts_test.go - go unit tests
-├── docopts.sh - library wrapper and helpers
-├── examples - many ported examples in bash, all must be working
-├── language_agnostic_tester.py - old python JSON tester still used with testee.sh
-├── LICENSE-MIT
-├── PROGRESS.md - what I'm working on
-├── README.md
-├── testcases.docopt - agnostic testcases copied from python's docopt
-├── testee.sh - bash wrapper to convert docopts output to JSON (now uses docopts.sh)
-├── tests - unit and functional testing written in bats (requires submodule)
-└── TODO.md - Some todo list on this golang version of docopts
-~~~
-
-## Tests
-
-Some tests are coded along with this code base:
-
-- bats - bash unit tests and functional testing.
-- `language_agnostic_tester.py` - old python wrapper, full docopt compatibility tests.
-- See also: [docopt.go](https://github.com/docopt/docopt.go) has its own tests in golang.
-- `docopts_test.go` - go unit test for `docopts.go`
-
-### Running tests
-
-```
-make test
-```
-
-#### bats
-
-`bats.alias` modify your current environment to define a alias on the submodule of `bats` installed (if you did it).
-
-```
-cd ./tests
-. bats.alias
-bats .
-```
-
-#### `language_agnostic_tester`
-
-This script was provided with the original `docopts`. I fixed number/string output parsing failure with an extra function
-for bash in [docopts.sh](https://github.com/docopt/docopts/blob/docopts-go/docopts.sh#L108)
-`docopt_get_raw_value()`. This is a hack to get 100% pass, and it is not very efficient.
-
-Run these tests from top of repo:
-```
-python language_agnostic_tester.py ./testee.sh
-```
-
-#### golang docopt.go (golang parser lib)
-
-This lib is outside this project, but it is the base of the `docopt` language parsing for this wrapper.
-
-```
-cd PATH/to/go/src/github.com/docopt/docopt-go/
-go test -v .
-```
-
-#### golang docopts (our bash wrapper)
-
-```
-cd PATH/to/go/src/github.com/docopt/docopts
-go test -v
-```
+Read the [doc for developer](docs/developer.md).

@@ -1,4 +1,5 @@
 ---
+# build os/arch for gox
 build:
   - darwin/386
   - darwin/amd64
@@ -8,9 +9,9 @@ build:
   # doesn't compile
   #- android/arm
 releases:
-  # to key match the git tag
-  v0.6.3-alpha2:
-    name: "docopts binary transitional v0.6.3-alpha2"
+  # yaml keys must match the git tag
+  v0.6.3-rc1:
+    name: "docopts binary transitional v0.6.3-rc1"
     description: |
       This is a transitional release.
 
@@ -25,7 +26,7 @@ releases:
         - bash 3.2 support is more documented and fixed
         - use bats-core as testing framework
         - updated README merged from old README.rst
-        - now documentation introduce `docopts.sh`
+        - now documentation introduce `docopts.sh` See [docs](https://github.com/docopt/docopts/tree/v0.6.3-rc1/docs/)
         - added Makefile
         - added build_doc.sh PoC markdown preprocessor
 
@@ -38,9 +39,9 @@ releases:
 
       docopts.sh helper:
         - is more documented in the code
-        - as a documenation in docs/README.md
+        - as a documenation in [docs/README.md](https://github.com/docopt/docopts/tree/v0.6.3-rc1/docs/README.md)
         - now supports bash strict mode (`set -euo pipefail`)
-        - now supports `--auto -G` to auto parse with global vars (no bash 4 associative array)
+        - now supports `--auto -G` to auto parse with global vars (doesn't use bash 4 associative array)
 
       `docopts` behavior sould be unchanged:
         - add mangled name collision detection
@@ -69,5 +70,5 @@ releases:
       based on master branch
 
       changes:
-        - now written in Go, no more python dependancies
+        - now written in Go, no more python dependancy
       

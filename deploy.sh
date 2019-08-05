@@ -4,6 +4,7 @@
 #
 # Usage: ./deploy.sh deploy [-n] [-r REMOTE_REPOS] [--replace] [RELEASE_VERSION]
 #        ./deploy.sh build [RELEASE_VERSION]
+#        ./deploy.sh delete RELEASE_VERSION
 #
 # Options:
 #   -n                   Dry run, show with version, files and description
@@ -12,16 +13,18 @@
 #                        will be deleted first.
 #
 # Arguments:
-#   RELEASE_VERSION      a git tag
+#   RELEASE_VERSION      a git tag, or current for the local modified version
 #
 # Actions:
 #   build      only build using gox and deployment.yml config
 #   deploy     prepare and deploy the release
+#   delete     delete the given RELEASE_VERSION from github and all assets
 #
-# deploy.sh read description in deployment.yml
+# deploy.sh reads description and name for releases in deployment.yml
 
 
 DEPLOYMENT_FILE=deployment.yml
+# change GITHUB_USER + GITHUB_REPO to change repository, it is for building API URL
 GITHUB_USER=sylvain303
 GITHUB_REPO=docopts
 TAG="v0.6.3-alpha2"
@@ -33,16 +36,23 @@ create_release()
   local name="$2"
   local description="$3"
 
-  # TODO: detect alpha ==> pre-release
+  # detect alpha ==> pre-release
+  # match -ending
+  local pre_release=""
+  if [[ $release =~ -[a-zA-Z0-9_-]$ ]] ; then
+    pre_release='--pre-release'
+  fi
+
   gothub release \
       --user $GITHUB_USER \
       --repo $GITHUB_REPO \
       --tag "$release" \
       --name "$name" \
       --description "$description" \
-      --pre-release
+      $pre_release
 }
 
+# check the the given release exists, test with $?
 check_release()
 {
   local release=$1
@@ -61,6 +71,8 @@ delete_release()
       --tag "$release"
 }
 
+# after build, generate sha256sum for all file in BUILD_DEST_DIR
+# then output all files name from parent directory
 prepare_upload()
 {
   local build_dest_dir=$1
@@ -102,6 +114,8 @@ indent()
   fi
 }
 
+# read os/arch from $DEPLOYMENT_FILE
+# format as list or space separated list for gox
 get_arch_build_target()
 {
   local arch_list=$(yq.v2 r $DEPLOYMENT_FILE build | sed -e 's/^- //')
@@ -117,16 +131,38 @@ build_binaries()
 {
   local release=$1
   local build_dest_dir=$2
-  # checkout release version
-  git show $release:./docopts.go > $build_dest_dir/docopts.go
+
+  local ldflags
+
+  if [[ $release == current ]] ; then
+    cp docopts.go $build_dest_dir
+    # will user ./VERSION to get the version
+    ldflags="$(govvv -flags)"
+  else
+    # checkout release version to $BUILD_DEST_DIR and build it from here
+    git show $release:./docopts.go > $build_dest_dir/docopts.go
+    # we force the version to be $release.
+    # before version v0.6.3-rc1. this will overwrite code version string.
+    # Which produces a binary diffrent from `go build` (on those older source) for --version
+    ldflags="$(govvv -flags -version "$release")"
+  fi
+
+	# ldflags need to be synchronised with Makefile
+  local go_version="$(go version)"
+  ldflags+=" -X 'main.GoBuildVersion=$go_version'"
+
   local osarch="$(get_arch_build_target gox)"
+  # chdir to the build_dest_dir, use the docopts.go copy for source to compile.
   pushd $build_dest_dir > /dev/null
-  gox -osarch "$osarch" -output="docopts_{{.OS}}_{{.Arch}}"
+    # -output allow to force generated binaries
+    gox -osarch "$osarch" -output="docopts_{{.OS}}_{{.Arch}}" -ldflags "$ldflags"
   popd > /dev/null
 }
 
-yaml_keys ()
+yaml_keys()
 {
+  # yq seems to young software, quick fix to get keys
+  # https://github.com/mikefarah/yq/issues/20
   yq.v2 r "$1" "$2" | sed -n -e '/^\([^ ]\([^:]\+\)\?\):/  s/:.*// p'
 }
 
@@ -168,19 +204,22 @@ check_name_description()
 
 main_deploy()
 {
+  local release=$1
+
   # redefine GITHUB_TOKEN to test if exported for strict mode
   GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
-  local description=$(yq.v2 r $DEPLOYMENT_FILE "releases[$TAG].description")
-  local name=$(yq.v2 r $DEPLOYMENT_FILE "releases[$TAG].name")
+  local description=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release].description")
+  local name=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release].name")
 
+  # will stop the execution (as set -e is enabled)
   check_name_description "$name" "$description"
 
-  build_binaries $TAG $BUILD_DEST_DIR
+  build_binaries $release $BUILD_DEST_DIR
   UPLOAD_FILES=$(prepare_upload $BUILD_DEST_DIR)
 
   if $ARGS_n ; then
-    show_release_data $TAG "$name" "$description"
+    show_release_data $release "$name" "$description"
     exit 0
   else
     if [[ -z $GITHUB_TOKEN ]] ; then
@@ -188,23 +227,23 @@ main_deploy()
       return 1
     fi
 
-    if check_release $TAG ; then
-      echo "release: already $TAG exists"
+    if check_release $release ; then
+      echo "release already exists: $release"
       if $ARGS_replace ; then
-        echo "deleting existing release $TAG"
-        delete_release $TAG
-        echo "creating release $TAG"
-        create_release $TAG "$name" "$description"
+        echo "deleting existing release: $release"
+        delete_release $release
+        echo "creating release: $release"
+        create_release $release "$name" "$description"
       else
         echo "use --replace to replace the existing release"
         echo "only upload new files"
       fi
     else
-      echo "release: $TAG doesn't exists yet"
-      echo "creating release $TAG ..."
-      create_release $TAG "$name" "$description"
+      echo "release doesn't exists yet: $release"
+      echo "creating new release: $release"
+      create_release $release "$name" "$description"
     fi
-    upload_binaries $TAG $UPLOAD_FILES
+    upload_binaries $release $UPLOAD_FILES
   fi
 }
 
@@ -219,7 +258,7 @@ if [[ $0 == $BASH_SOURCE ]] ; then
   # fix docopt bug https://github.com/docopt/docopt/issues/386
   ARGS_REMOTE_REPOS=${ARGS_REMOTE_REPOS:-$ARGS_r}
 
-  docopt_print_ARGS -G
+  #docopt_print_ARGS -G
 
   if [[ -n $ARGS_RELEASE_VERSION ]] ; then
     TAG=$ARGS_RELEASE_VERSION
@@ -235,7 +274,9 @@ if [[ $0 == $BASH_SOURCE ]] ; then
     ls -l $BUILD_DEST_DIR
     exit 0
   elif [[ $ARGS_deploy ]] ; then
-     main_deploy
+     main_deploy $TAG
+  elif [[ $ARGS_delete ]] ; then
+     delete_release $TAG
   else
     echo "no command found: $*"
     exit 1

@@ -34,6 +34,12 @@ Most of the tools require a working [Go developper
 environment](https://golang.org/doc/code.html#Organization). Which should not be too
 complicated to setup.
 
+All dependancies are installed in your Go workspace with:
+
+```
+make install_builddep
+```
+
 Go for it:
 
 ### gox
@@ -42,6 +48,14 @@ We provide binaries cross-compiled from GNU/Linux using [gox](https://github.com
 
 ```
 go get github.com/mitchellh/gox
+```
+
+### govvv
+
+Get version information to be embedded in binary at compile time
+
+```
+go get github.com/ahmetb/govvv
 ```
 
 ### github release uploader
@@ -60,7 +74,7 @@ https://help.github.com/articles/creating-an-access-token-for-command-line-use
 
 The token needs to have `repos` auth priviledges.
 
-then export it as a bash environment variable:
+Then export it as a bash environment variable:
 
 ```
 export GITHUB_TOKEN="you token here"
@@ -70,9 +84,12 @@ export GITHUB_TOKEN="you token here"
 
 We use [semantic verion tags](https://semver.org/)
 
+Our version is stored in VERSION file to be used by `govvv`.
+
 ```
-git tag -a v0.6.3-alpha2 -m "golang 2019"
-git push origin v0.6.3-alpha2
+echo "v0.6.3-alpha2" > VERSION
+git tag -a "$(cat VERSION)" -m "golang 2019"
+git push origin "$(cat VERSION)"
 ```
 
 ### yaml command-line tool
@@ -101,7 +118,7 @@ message written in a yaml file `deployment.yml`.
 So you need to create the release text in `deployment.yml` before you run
 `deploy.sh`.
 
-See what will going on:
+See what will going on (dry-run):
 
 ```
 ./deploy.sh deploy -n
@@ -113,3 +130,8 @@ Deploy and replace existing binaries for this release.
 ./deploy.sh deploy --replace
 ```
 
+Only build binaries in `build/` dir:
+
+```
+./deploy.sh build
+```
