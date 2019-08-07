@@ -126,7 +126,7 @@ func TestPrint_bash_args(t *testing.T) {
 
     d := &Docopts{
         Global_prefix: "",
-        Mangle_key: true,
+        Key_output: Mangled,
         Output_declare: true,
     }
 
@@ -220,7 +220,7 @@ func TestPrint_bash_global(t *testing.T) {
     var err error
     d := &Docopts{
         Global_prefix: "",
-        Mangle_key: true,
+        Key_output: Mangled,
     }
     for _, table := range tables {
         err = d.Print_bash_global(table.Input)
@@ -238,7 +238,7 @@ func TestPrint_bash_global(t *testing.T) {
     // without Mangle_key
     d = &Docopts{
         Global_prefix: "",
-        Mangle_key: false,
+        Key_output: Verbatim,
     }
     for _, table := range tables {
         err = d.Print_bash_global(table.Input)
@@ -248,7 +248,7 @@ func TestPrint_bash_global(t *testing.T) {
         res := out.(*bytes.Buffer).String()
         expect := rewrite_not_mangled(table.Input)
         if res != expect {
-            t.Errorf("Mangle_key false: Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
+            t.Errorf("Key_output Verbatim: Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
         }
         out.(*bytes.Buffer).Reset()
     }
@@ -256,7 +256,7 @@ func TestPrint_bash_global(t *testing.T) {
     // with Mangle_key
     d = &Docopts{
         Global_prefix: "ARGS",
-        Mangle_key: true,
+        Key_output: Mangled,
     }
     for _, table := range tables {
         err = d.Print_bash_global(table.Input)
@@ -329,7 +329,7 @@ func TestName_mangle(t *testing.T) {
 
     d := &Docopts{
         Global_prefix: "",
-        Mangle_key: true,
+        Key_output: Mangled,
     }
 
     for _, table := range tables {
