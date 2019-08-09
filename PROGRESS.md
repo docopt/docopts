@@ -1,13 +1,9 @@
 # current work in PROGRRESS
 
-## release and binary
+## Alternative #35 docopt.sh
 
-https://github.com/docopt/docopts/issues/32
+Middle ware?
 
-publish release and pre-build binaries
-
-* travis deploy? https://docs.travis-ci.com/user/deployment/releases/
-* https://blog.questionable.services/article/build-go-binaries-travis-ci-github/
 
 ## provide test on old environment
 

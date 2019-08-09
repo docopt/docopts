@@ -10,6 +10,16 @@ build:
   #- android/arm
 releases:
   # yaml keys must match the git tag
+  v0.6.4-alpha1:
+    name: "docopts binary v0.6.4-alpha1"
+    description: |
+      Prototype version
+
+      based on dev-docopt_sh
+
+      changes:
+        - `--docopt_sh` output compatible variable ([see #36](https://github.com/docopt/docopts/issues/36))
+
   v0.6.3-rc1:
     name: "docopts binary transitional v0.6.3-rc1"
     description: |
