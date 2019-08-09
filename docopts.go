@@ -106,8 +106,8 @@ func print_args(args docopt.Opts, message string) {
 type Key_Generator int
 
 const (
-	Mangled Key_Generator = iota + 1
-	Verbatim
+    Mangled Key_Generator = iota + 1
+    Verbatim
     Docopt_sh
 )
 
@@ -295,8 +295,8 @@ func (d *Docopts) Replace_with_undercore(elem string) (string, error) {
     }
 
     // from python r'^[^a-z_]|[^a-z0-9_]', '_', name, 0, re.IGNORECASE
-	re := regexp.MustCompile(`^[^a-zA-Z_]|[^a-zA-Z0-9_]`)
-	v = re.ReplaceAllString(elem, "_")
+    re := regexp.MustCompile(`^[^a-zA-Z_]|[^a-zA-Z0-9_]`)
+    v = re.ReplaceAllString(elem, "_")
 
     return v, nil
 }
