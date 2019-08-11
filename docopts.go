@@ -38,11 +38,10 @@ var Docopts_Version string
 var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] -h <msg> : [<argv>...]
-  docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
-  docopts [options] -G <prefix>  -h <msg> : [<argv>...]
+  docopts [options] [--docopt_sh] -h <msg> : [<argv>...]
+  docopts [options] -G <prefix> [--docopt_sh] -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
-  docopts [options] --docopt_sh  -h <msg> : [<argv>...]
+  docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -232,6 +231,13 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
             if err != nil {
                 return err
             }
+            // alter output if we have a prefix
+            key_fmt := "%s"
+            if d.Global_prefix != "" {
+                key_fmt = fmt.Sprintf("%s_%%s", d.Global_prefix)
+            }
+            new_name = fmt.Sprintf(key_fmt, new_name)
+
         }
 
         // test if already present in the map

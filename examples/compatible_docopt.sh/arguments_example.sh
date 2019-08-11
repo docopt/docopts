@@ -22,12 +22,12 @@ Options:
 main_arguments()
 {
   # main function for this script
+
+  # only display parsed arguments
   set | grep "^$DOCOPT_PREFIX"
 
   return 0
 }
-
-# docopt.sh place holder
 
 DOCOPT_PREFIX=ARGS_
 case $DOCOPT_PARSER in
