@@ -42,9 +42,9 @@ case $DOCOPT_PARSER in
   docopt.sh)
     eval "$(docopt "$@")"
     ;;
-	"")
-		echo "DOCOPT_PARSER is undefined"
-	  exit 1
+  "")
+    echo "DOCOPT_PARSER is undefined"
+    exit 1
     ;;
   *)
     echo "DOCOPT_PARSER unsuported value: $DOCOPT_PARSER"
