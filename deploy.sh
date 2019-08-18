@@ -239,6 +239,8 @@ main_deploy()
       return 1
     fi
 
+    echo "deploying release $GITHUB_USER/$GITHUB_REPO: $release_version"
+
     if check_release $release_version ; then
       echo "release already exists: $release_version"
       if $ARGS_replace ; then
@@ -308,10 +310,11 @@ if [[ $0 == $BASH_SOURCE ]] ; then
     build_binaries $TAG $BUILD_DEST_DIR
     ls -l $BUILD_DEST_DIR
     exit 0
-  elif [[ $ARGS_deploy ]] ; then
-     main_deploy $TAG
-  elif [[ $ARGS_delete ]] ; then
-     delete_release $TAG
+  elif $ARGS_deploy ; then
+    main_deploy $TAG
+  elif $ARGS_delete ; then
+    echo "deleting release $GITHUB_USER/$GITHUB_REPO: $TAG"
+    delete_release $TAG
   else
     echo "no command found: $*"
     exit 1
