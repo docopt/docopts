@@ -11,6 +11,7 @@
 #   -r REMOTE_REPOS      Specify a REMOTE_REPOS name [default: origin]
 #   --replace            Replace existing release with this one, previous release
 #                        will be deleted first.
+#   -u GITHUB_USER       force this GITHUB_USER
 #
 # Arguments:
 #   RELEASE_VERSION      a git tag, or current for the local modified version
@@ -192,14 +193,17 @@ EOT
 
 check_name_description()
 {
-  local name="$1"
-  local description="$2"
+  local release=$1
+  local name="$2"
+  local description="$3"
   if [[ -z $description || $description == null || -z $name || $name == null ]] ; then
-    echo "description or name not found for tag '$TAG' in $DEPLOYMENT_FILE"
+    echo "description or name not found for tag '$release' in $DEPLOYMENT_FILE"
     echo "available git tags:"
     indent "$(git tag)"
     echo "available git tags in $DEPLOYMENT_FILE:"
     indent "$(yaml_keys $DEPLOYMENT_FILE releases)"
+    echo "VERSION contains"
+    indent "$(cat VERSION)"
     return 1
   fi
 }
@@ -207,21 +211,27 @@ check_name_description()
 main_deploy()
 {
   local release=$1
+  local release_version=$release
 
   # redefine GITHUB_TOKEN to test if exported for strict mode
   GITHUB_TOKEN=${GITHUB_TOKEN:-}
 
-  local description=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release].description")
-  local name=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release].name")
+  if [[ $release == current ]] ; then
+    release_version=$(cat VERSION)
+    echo "using current release in VERSION: $release_version"
+  fi
+
+  local description=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release_version].description")
+  local name=$(yq.v2 r $DEPLOYMENT_FILE "releases[$release_version].name")
 
   # will stop the execution (as set -e is enabled)
-  check_name_description "$name" "$description"
+  check_name_description $release_version "$name" "$description"
 
   build_binaries $release $BUILD_DEST_DIR
   UPLOAD_FILES=$(prepare_upload $BUILD_DEST_DIR)
 
   if $ARGS_n ; then
-    show_release_data $release "$name" "$description"
+    show_release_data $release_version "$name" "$description"
     exit 0
   else
     if [[ -z $GITHUB_TOKEN ]] ; then
@@ -229,42 +239,63 @@ main_deploy()
       return 1
     fi
 
-    if check_release $release ; then
-      echo "release already exists: $release"
+    echo "deploying release $GITHUB_USER/$GITHUB_REPO: $release_version"
+
+    if check_release $release_version ; then
+      echo "release already exists: $release_version"
       if $ARGS_replace ; then
-        echo "deleting existing release: $release"
-        delete_release $release
-        echo "creating release: $release"
-        create_release $release "$name" "$description"
+        echo "deleting existing release: $release_version"
+        delete_release $release_version
+        echo "creating release: $release_version"
+        create_release $release_version "$name" "$description"
       else
         echo "use --replace to replace the existing release"
         echo "only upload new files"
       fi
     else
-      echo "release doesn't exists yet: $release"
-      echo "creating new release: $release"
-      create_release $release "$name" "$description"
+      echo "release doesn't exists yet: $release_version"
+      echo "creating new release: $release_version"
+      create_release $release_version "$name" "$description"
     fi
-    upload_binaries $release $UPLOAD_FILES
+    upload_binaries $release_version $UPLOAD_FILES
   fi
+}
+
+check_env()
+{
+  local v val
+  local error=0
+
+  for v in GOPATH GOBIN
+  do
+    eval "val=\${$v:-}"
+    if [[ -z $val ]] ; then
+      echo "$v is undefined, check failed"
+      error=$((error+1))
+    fi
+  done
+  return $error
 }
 
 if [[ $0 == $BASH_SOURCE ]] ; then
   # bash strict mode
   set -euo pipefail
 
+  check_env
+
   # we add our repository path to run our local docopts binary
   # you will have to build it first of course.
   PATH=$(dirname $0):$PATH
   source docopts.sh --auto -G "$@"
+  docopt_print_ARGS -G
+
   # fix docopt bug https://github.com/docopt/docopt/issues/386
   ARGS_REMOTE_REPOS=${ARGS_REMOTE_REPOS:-$ARGS_r}
+  ARGS_GITHUB_USER=${ARGS_GITHUB_USER:-$ARGS_u}
 
   if [[ -n $ARGS_GITHUB_USER ]]; then
     GITHUB_USER=$ARGS_GITHUB_USER
   fi
-
-  #docopt_print_ARGS -G
 
   if [[ -n $ARGS_RELEASE_VERSION ]] ; then
     TAG=$ARGS_RELEASE_VERSION
@@ -279,10 +310,11 @@ if [[ $0 == $BASH_SOURCE ]] ; then
     build_binaries $TAG $BUILD_DEST_DIR
     ls -l $BUILD_DEST_DIR
     exit 0
-  elif [[ $ARGS_deploy ]] ; then
-     main_deploy $TAG
-  elif [[ $ARGS_delete ]] ; then
-     delete_release $TAG
+  elif $ARGS_deploy ; then
+    main_deploy $TAG
+  elif $ARGS_delete ; then
+    echo "deleting release $GITHUB_USER/$GITHUB_REPO: $TAG"
+    delete_release $TAG
   else
     echo "no command found: $*"
     exit 1
