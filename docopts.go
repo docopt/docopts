@@ -38,10 +38,10 @@ var Docopts_Version string
 var Usage string = `Shell interface for docopt, the CLI description language.
 
 Usage:
-  docopts [options] -h <msg> : [<argv>...]
-  docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
-  docopts [options] -G <prefix>  -h <msg> : [<argv>...]
+  docopts [options] [--docopt_sh] -h <msg> : [<argv>...]
+  docopts [options] -G <prefix> [--docopt_sh] -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
+  docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -74,6 +74,8 @@ Options:
   --no-mangle                   Output parsed option not suitable for bash eval.
                                 Full option names are kept. Rvalue is still
                                 shellquoted. Extra parsing is required.
+  --docopt_sh                   Output parsed option suitable for bash eval,
+                                names are converted to be compatible with docopt.sh
   --no-declare                  Don't output 'declare -A <name>', used only
                                 with -A argument.
   --debug                       Output extra parsing information for debugging.
@@ -100,10 +102,18 @@ func print_args(args docopt.Opts, message string) {
     }
 }
 
+type Key_Generator int
+
+const (
+    Mangled Key_Generator = iota + 1
+    Verbatim
+    Docopt_sh
+)
+
 // Store global behavior to avoid passing many optional arguments to methods.
 type Docopts struct {
     Global_prefix string
-    Mangle_key bool
+    Key_output Key_Generator
     Output_declare bool
     Exit_function bool
 }
@@ -194,8 +204,10 @@ func To_bash(v interface{}) string {
 
 // Performs output for bash Globals (not bash 4 assoc) Names are mangled to become
 // suitable for bash eval.
-// If Docopts.Mangle_key is false: simply print left-hand side assignment verbatim.
-// used for --no-mangle
+// Docopts.Key_output will determine how key are printed
+// --no-mangle  : Verbatim
+// -G           : Mangled
+// --docopt_sh  : Docopt_sh
 func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
     var new_name string
     var err error
@@ -206,13 +218,26 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
     // docopt.Opts is of type map[string]interface{}
     // so value is an interface{}
     for key, value := range args {
-        if d.Mangle_key {
+        switch(d.Key_output) {
+        case Mangled:
             new_name, err = d.Name_mangle(key)
             if err != nil {
                 return err
             }
-        } else {
+        case Verbatim:
             new_name = key
+        case Docopt_sh:
+            new_name, err = d.Replace_with_undercore(key)
+            if err != nil {
+                return err
+            }
+            // alter output if we have a prefix
+            key_fmt := "%s"
+            if d.Global_prefix != "" {
+                key_fmt = fmt.Sprintf("%s_%%s", d.Global_prefix)
+            }
+            new_name = fmt.Sprintf(key_fmt, new_name)
+
         }
 
         // test if already present in the map
@@ -263,6 +288,21 @@ func (d *Docopts) Name_mangle(elem string) (string, error) {
     if ! IsBashIdentifier(v) {
         return "", fmt.Errorf("cannot transform into a bash identifier: '%s' => '%s'", elem, v)
     }
+
+    return v, nil
+}
+
+// Transform a string which may contains character no suitable for bash eval to underscore
+func (d *Docopts) Replace_with_undercore(elem string) (string, error) {
+    var v string
+
+    if elem == "-" || elem == "--" {
+        return "", fmt.Errorf("not supported")
+    }
+
+    // from python r'^[^a-z_]|[^a-z0-9_]', '_', name, 0, re.IGNORECASE
+    re := regexp.MustCompile(`^[^a-zA-Z_]|[^a-zA-Z0-9_]`)
+    v = re.ReplaceAllString(elem, "_")
 
     return v, nil
 }
@@ -380,7 +420,7 @@ func main() {
     // create our Docopts struct
     d := &Docopts{
         Global_prefix: "",
-        Mangle_key: true,
+        Key_output: Mangled,
         Output_declare: true,
         // Exit_function is experimental
         Exit_function: false,
@@ -393,7 +433,12 @@ func main() {
     options_first := arguments["--options-first"].(bool)
     no_help :=  arguments["--no-help"].(bool)
     separator := arguments["--separator"].(string)
-    d.Mangle_key = ! arguments["--no-mangle"].(bool)
+    if (arguments["--no-mangle"].(bool)) {
+        d.Key_output = Verbatim
+    }
+    if (arguments["--docopt_sh"].(bool)) {
+        d.Key_output = Docopt_sh
+    }
     d.Output_declare = ! arguments["--no-declare"].(bool)
     global_prefix, err := arguments.String("-G")
     if err == nil {

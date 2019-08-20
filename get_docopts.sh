@@ -12,7 +12,7 @@ GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 
 #RELEASE=v0.6.3-rc1
-RELEASE=v0.6.3-alpha2
+RELEASE=v0.6.4-alpha1
 BINARY=docopts
 ISSUE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/issues/
 
