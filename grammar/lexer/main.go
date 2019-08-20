@@ -14,9 +14,11 @@ var doctop_Lexer = lexer.Must(lexer.Regexp(
   // skip single blank
 		`|(\s)` +
     `|(?P<Section>^(Usage|Options):)` +
-    `|(?P<Keyword>default:)` +
-  // single letter incluging -? and --
+  // Default also match default: Keyword
+    `|(?P<Default>default:\s*[^\]]+)` +
+  // single letter incluging -?
   // also describe long option
+  // also --
     `|(?P<Option>-[A-Za-z0-9?]|--[A-Za-z][A-Za-z0-9_-]+|^--$)` +
 		`|(?P<Argument><[a-z][a-z-]+>|[A-Z_]{2,})` +
 		`|(?P<Punct>[\][=,()|]|\.{3})` +
