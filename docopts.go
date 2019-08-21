@@ -42,6 +42,7 @@ Usage:
   docopts [options] -G <prefix> [--docopt_sh] -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
   docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
+  docopts [options] --print-ast -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -417,6 +418,7 @@ func main() {
         print_args(arguments, "golang")
     }
 
+
     // create our Docopts struct
     d := &Docopts{
         Global_prefix: "",
@@ -480,7 +482,15 @@ func main() {
       OptionsFirst: options_first,
       SkipHelpFlags: no_help,
     }
-    bash_args, err := parser.ParseArgs(doc, argv, bash_version)
+
+    var bash_args docopt.Opts
+    if arguments["--print-ast"].(bool) {
+        docopt.PRINT_AST = true
+        bash_args, err = parser.ParseArgs(doc, argv, bash_version)
+        return
+    } else {
+        bash_args, err = parser.ParseArgs(doc, argv, bash_version)
+    }
     if err == nil {
         if debug {
             print_args(bash_args, "bash")
