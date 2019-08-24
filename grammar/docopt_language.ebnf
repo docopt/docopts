@@ -1,0 +1,26 @@
+Docopt = [ Prologue ]  Usage  [ Options ] .
+Prologue = Line_of_text EOL | EOL | Prologue* .
+EOL = "\n" | "\r\n" | "\r" .
+Line_of_text = [^\n]+.
+Usage   = "Usage:"  ( Program_Usage |  EOL* Program_Usage ).
+Program_Usage = Indent IDENTIFIER  Expr   EOL.
+Indent = ^ Long_space.
+Long_space = "  " " "*| "\t" "\t"*.
+Expr  = Seq  ( "|" Seq )* .
+Seq  = ( Atom [ "..." ] )* .
+Atom = '(' Expr ')' | '[' Expr ']' | 'options' | Long_def | Shorts_option | Argument | Command .
+Shorts_option = Short | Short Argument.
+Long_def = Long | Long Argument | Long '=' Argument.
+Long = '--' Chars Chars ( '_' | '-' | Chars)* .
+Short = '-' Chars .
+Chars = Lowercase | Capital | Digit.
+Argument = Angle_Argument |  Capital_Argument.
+Angle_Argument = '<' Lowercase ( Lowercase | '_'  | '-' | Digit )* '>'.
+Capital_Argument =  Capital ( Capital | '_' | Digit )*.
+Options = "Options:" Options_Help Options_Help*  .
+Options_Help = Indent Option_Flag Option_description.
+Option_Flag  = ( Short_def | Long_def ) [ ( " " | "," )  Option_Flag ].
+Short_def = Short | Short Argument.
+Option_description = Long_space Free_text Default_value?.
+Free_text = [^\n[\]]+.
+Default_value = '[' "default:" Free_text ']'.
