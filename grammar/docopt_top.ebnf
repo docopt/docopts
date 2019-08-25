@@ -1,0 +1,17 @@
+# docopt top level parser 3 sections.
+Docopt         = [ Prologue ] Usage  [ Options ] .
+
+Prologue       = Line_of_text EOL | EOL | { Prologue } .
+EOL            = "\n" | "\r\n" | "\r" .
+Line_of_text   = non_EOL { non_EOL } EOL .
+non_EOL        = "\u0000"…"\u0009" | "\u000B"…"\uffff" .
+
+Usage          = "Usage:"  Usage_content .
+Usage_content  = [ EOL ] | Usage_line .
+Usage_line     = Program_Usage | Indent Program_Usage .
+Program_Usage  = Line_of_text .
+Indent         = "  " { " " } | "\t" { "\t" } .
+
+Options        = "Options:" EOL Options_lines .
+Options_lines  = Options_line { Options_line } .
+Options_line   = Indent Line_of_text .

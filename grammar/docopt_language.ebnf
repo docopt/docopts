@@ -1,5 +1,5 @@
 Docopt = [ Prologue ]  Usage  [ Options ] .
-Prologue = Line_of_text EOL | EOL | Prologue* .
+Prologue = Line_of_text EOL | EOL | { Prologue } .
 EOL = "\n" | "\r\n" | "\r" .
 Line_of_text = [^\n]+.
 Usage   = "Usage:"  ( Program_Usage |  EOL* Program_Usage ).

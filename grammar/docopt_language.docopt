@@ -1,0 +1,44 @@
+Docopt language may start with a free text Prologue, which describes the program goal,
+and that prologue will be ignored for parsing, but is part of the documentation.
+
+Some free text starting in first column may be considered as comment, but it is not
+actually true in the code. And putting 
+are not Section Token, which are also positioned in first column.
+
+This comment definition is not actually true. Extracted Section cannot start with such comment.
+
+Usage: Program_string [--optional-long-argument] ( required-action | or-this-required-action) <argument-for-the-action> [<etc>...]
+       Program_string another-action [--which-support=<argument>] WITH_OTHER_SYNTAX_ARGUMENT
+
+This section can be a single line or multi-line, the token Usage must start the section.
+Repeating program's usage serve to produce different parse usage of the program.
+Content of a section must be indented with two or more space.
+
+
+The next section is parsed.
+Lines without indent are still discarded, the Options: section is optional, and starts a new syntax parsing.
+
+Options:
+   -h, --help                 Indent is important before options, and between option and help message.
+  --optional-long-argument    The parser, recognize option, based on indent, followed by the option
+                              the help message can continue on the next line.
+  --which-support=<argument>  The <argument> for this option has a [default: value_here_is_parsed]
+
+Actions:
+
+This section is not part of the language currently, and is discarded by the parser.
+Action are matched by the parser in the Usage section. This text is only helpful
+for the user.
+
+  required-action           As for option, the message can continue on next line.
+  or-this-required-action   Use the argument <argument-for-the-action>
+  another-action            This show both argument supported syntax: <argument>
+                            or WITH_OTHER_SYNTAX_ARGUMENT.
+Arguments:
+
+This section is not part of the language currently, and is discarded by the parser.
+Arguments are also matched by the parser in the Usage section. This text is only helpful
+for the user, or describe some default program behavior, currently not part of the CLI parser.
+
+  WITH_OTHER_SYNTAX_ARGUMENT   A folder that must exists for example.
+  <argument>                   Will be created by Program_string.

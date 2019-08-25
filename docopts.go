@@ -88,19 +88,29 @@ Options:
 var out io.Writer = os.Stdout
 
 // debug helper
-func print_args(args docopt.Opts, message string) {
+func print_args(args docopt.Opts, message string) string {
     // sort keys
     mk := make([]string, len(args))
     i := 0
+    max := 0
     for k, _ := range args {
         mk[i] = k
         i++
+        l := len(k)
+        if l > max {
+            max = l
+        }
     }
     sort.Strings(mk)
     fmt.Printf("################## %s ##################\n", message)
+    // use max length argument for alignment output
+    format := fmt.Sprintf("%%%ds : %%v\n", max+2)
     for _, key := range mk {
-        fmt.Printf("%20s : %v\n", key, args[key])
+        fmt.Printf(format, key, args[key])
     }
+
+    // the format is returned so it can be reused
+    return format
 }
 
 type Key_Generator int
@@ -414,8 +424,9 @@ func main() {
     }
 
     debug := arguments["--debug"].(bool)
+    var debug_print_format string
     if debug {
-        print_args(arguments, "golang")
+        debug_print_format = print_args(arguments, "golang")
     }
 
 
@@ -472,8 +483,8 @@ func main() {
     doc = strings.TrimSpace(doc)
     bash_version = strings.TrimSpace(bash_version)
     if debug {
-        fmt.Printf("%20s : %v\n", "doc", doc)
-        fmt.Printf("%20s : %v\n", "bash_version", bash_version)
+        fmt.Printf(debug_print_format, "doc", doc)
+        fmt.Printf(debug_print_format, "bash_version", bash_version)
     }
 
     // now parses bash program's arguments
