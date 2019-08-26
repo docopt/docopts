@@ -29,35 +29,36 @@ import (
 // Options_line   = Indent Line_of_text .
 
 type Docopt struct {
-  Prologue *Prologue  `@@?`
+  Prologue *Free_text  `@@?`
   Usage *Usage `@@`
 	Options *Options `@@?`
+  Free_text *Free_text  `@@?`
 }
 
-type Prologue struct {
+type Free_text struct {
 	Pos lexer.Position
 
-  Description []string `( @Line_of_text "\n" | @"\n" )*`
+  Description []string `( @Indent? @Line_of_text "\n" | @"\n" )*`
 }
 
 type Usage struct {
 	Pos lexer.Position
 
-  Usage_content *string      `( "Usage:" @Line_of_text? "\n"`
-  Usage_lines  []*Usage_line `           ( @@  "\n" )*        )`
+  Usage_first   *string         `  "Usage:" ( @Line_of_text "\n" )?`
+  Usage_lines   []*Usage_line   `           @@+`
 }
 
 type Usage_line struct {
 	Pos lexer.Position
 
-  Usage_content  *string   `  Indent @Line_of_text`
-  Comment        *string   `| ( @Line_of_text | "\n" )`
+  Usage_content  *string   `  Indent @Line_of_text "\n"`
+  Comment        *string   `| ( @Line_of_text "\n" | @"\n"+ )`
 }
 
 type Options struct {
   Pos lexer.Position
 
-  Options_lines []string `"Options:" "\n" ( Indent @Line_of_text "\n" )+`
+  Options_lines []string `"Options:" "\n" ( Indent @Line_of_text "\n" | "\n" )+`
 }
 
 var (
@@ -91,10 +92,13 @@ func main() {
   }
 
   ast := &Docopt{}
-  if err = parser.Parse(f, ast) ; err != nil {
+  if err = parser.Parse(f, ast) ; err == nil {
     fmt.Println("no error")
     repr.Println(ast)
   } else {
+    fmt.Println("Parse error")
     fmt.Println(err)
+    fmt.Println("======================= partial AST ==========================")
+    repr.Println(ast)
   }
 }
