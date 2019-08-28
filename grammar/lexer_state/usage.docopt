@@ -1,0 +1,5 @@
+Usage: program [--arg] [-A | -V] [--long=<args>] FICHIER
+       program action [--verbose] PARAM
+       program help
+       program ici ( --par-la | --la-bas )
+       program do_something_strange [--very]
