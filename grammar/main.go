@@ -10,24 +10,26 @@ import (
   "github.com/alecthomas/participle/lexer"
 )
 
-// # docopt top level parser 3 sections.
-// Docopt         = [ Prologue ] Usage  [ Options ] .
-//
-// Prologue       = Line_of_text EOL | EOL | { Prologue } .
-// EOL            = "\n" | "\r\n" | "\r" .
-// Line_of_text   = non_EOL { non_EOL } EOL .
-// non_EOL        = "\u0000"…"\u0009" | "\u000B"…"\uffff" .
-//
-// Usage          = "Usage:"  Usage_content .
-// Usage_content  = [ EOL ] | Usage_line .
-// Usage_line     = Program_Usage | Indent Program_Usage .
-// Program_Usage  = Line_of_text .
-// Indent         = "  " { " " } | "\t" { "\t" } .
-//
-// Options        = "Options:" EOL Options_lines .
-// Options_lines  = Options_line { Options_line } .
-// Options_line   = Indent Line_of_text .
+/*  grammar participle syntax ~ ebnf
+Docopt =
+  Prologue?
+  Usage
+	Options?
+  Free_text?
 
+Prologue       =  Free_text+
+Free_text      =  INDENT? LINE_OF_TEXT "\n" | "\n"
+INDENT         =  \s{2,}
+LINE_OF_TEXT   =  [^\n]+
+Usage          =  "Usage:" ( LINE_OF_TEXT "\n" )? Usage_line+
+Usage_line     =  Usage_content | Comment
+Usage_content  =  INDENT LINE_OF_TEXT "\n"
+Comment        =  LINE_OF_TEXT "\n" | "\n"+
+Options        =  "Options:" "\n" Options_line+
+Options_line   =  INDENT LINE_OF_TEXT "\n" | "\n"
+*/
+
+// ================================ grammar ===============================
 type Docopt struct {
   Prologue *Free_text  `@@?`
   Usage *Usage `@@`
@@ -93,8 +95,8 @@ func main() {
 
   ast := &Docopt{}
   if err = parser.Parse(f, ast) ; err == nil {
-    fmt.Println("no error")
     repr.Println(ast)
+    fmt.Println("Parse Success")
   } else {
     fmt.Println("Parse error")
     fmt.Println(err)

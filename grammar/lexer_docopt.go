@@ -3,7 +3,8 @@ package main
 import (
 	"github.com/docopt/docopts/grammar/lexer_state"
   "fmt"
-  // "os"
+  "os"
+  "github.com/alecthomas/participle/lexer"
 )
 
 var state_Prologue = `
@@ -55,26 +56,30 @@ var all_states = map[string]string{
 }
 
 func main() {
-  stateDef, err := lexer_state.Parse_lexer_state("state_Prologue", state_Prologue)
+  //stateDef, err := lexer_state.Parse_lexer_state("state_Prologue", state_Prologue)
+  states, err := lexer_state.StateLexer(all_states, "state_Prologue")
 
   if err == nil {
-    fmt.Println(stateDef)
+    fmt.Println(states)
   } else {
     fmt.Println(err)
   }
 
-  //sl := lexer_state.StateLexer(all_states, "state_Prologue")
-  //fmt.Println(sl)
+  filename := os.Args[1]
+	f, err := os.Open(filename)
+  if err != nil {
+    fmt.Printf("error: fail to open %s\n", filename)
+    return
+  } else {
+    fmt.Printf("parsing: %s\n", filename)
+  }
 
-  //doctop_Lexer := lexer.Must(lexer.Regexp(lexer_Usage.pattern))
-  //// extract symbols from the Lexer
-  //sym := lexer.SymbolsByRune(doctop_Lexer)
-  //// initialize the Lexer with a string
-	//lex, _ := doctop_Lexer.Lex(os.Stdin)
-  //// extract all token
-  //tok, _ := lexer.ConsumeAll(lex)
-  //// display all tokens with their type
-  //for _, v := range tok {
-  //  fmt.Printf("Token{%s, %q}\n", sym[v.Type], v.Value)
-  //}
+  // initialize the Lexer with a string
+	lex, _ := states.Lex(f)
+  // extract all token
+  tokens, _ := lexer.ConsumeAll(lex)
+  // display all tokens with their type
+  for _, v := range tokens {
+    fmt.Printf("Token{%s, %q}\n", states.Symbol(v.Type), v.Value)
+  }
 }

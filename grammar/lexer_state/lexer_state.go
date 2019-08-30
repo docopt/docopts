@@ -1,25 +1,26 @@
 package lexer_state
 
 import (
-	"bytes"
+  "bytes"
   "fmt"
-	"github.com/alecthomas/participle/lexer"
-	"io"
-	"io/ioutil"
+  "github.com/alecthomas/participle/lexer"
+  "io"
+  "io/ioutil"
   "regexp"
   "strings"
-	"unicode/utf8"
+  "unicode/utf8"
 )
 
 type stateRegexpDefinition struct {
   State_name   string
   Re           *regexp.Regexp
   Leave_token  map[string]string
-	Symbols map[string]rune
+  Symbols      map[string]rune
+  ReNames      []string
 }
 
 func (def stateRegexpDefinition) String() string {
-  return fmt.Sprintf("{ State_name: %s, Re: %v, Leave_token: %v, Symbols: %v",
+  return fmt.Sprintf("{ State_name: %s, Re: %v, Leave_token: %v, Symbols: %v }",
     def.State_name,
     def.Re,
     def.Leave_token,
@@ -28,14 +29,14 @@ func (def stateRegexpDefinition) String() string {
 }
 
 type stateLexer struct {
-	pos   lexer.Position
-	b     []byte
-	re    *regexp.Regexp
-	names []string
+  pos   lexer.Position
+  b     []byte
+  re    *regexp.Regexp
+  names []string
 
   s []*stateRegexpDefinition
   current_state string
-	symbols map[string]rune
+  symbols map[string]rune
 }
 
 func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
@@ -87,20 +88,20 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
     final_pat = append(final_pat, regexp)
   }
 
-	// assign result
+  // assign result
   re, err := regexp.Compile(strings.Join(final_pat, ""))
   if err != nil {
-    return nil, err
+    return nil, fmt.Errorf("Parse_lexer_state: %v", err)
   }
 
-	symbols := map[string]rune{
-		"EOF": lexer.EOF,
-	}
-	for i, sym := range re.SubexpNames()[1:] {
-		if sym != "" {
-			symbols[sym] = lexer.EOF - 1 - rune(i)
-		}
-	}
+  symbols := map[string]rune{
+    "EOF": lexer.EOF,
+  }
+  for i, sym := range re.SubexpNames()[1:] {
+    if sym != "" {
+      symbols[sym] = lexer.EOF - 1 - rune(i)
+    }
+  }
 
   if len(symbols) < 2 {
     return nil, fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", pattern)
@@ -136,11 +137,11 @@ var eolBytes = []byte("\n")
 //  "s3" : s3_def_string,
 // }
 //
-//     	def, err := StateLexer(states_all, "s1")
-func StateLexer(states_all map[string]string, start_state string) (lexer.Definition, error) {
+//      def, err := StateLexer(states_all, "s1")
+func StateLexer(states_all map[string]string, start_state string) (*stateLexer, error) {
   states := stateLexer{
     current_state: start_state,
-    s: make([]*stateRegexpDefinition, len(states_all)),
+    s: []*stateRegexpDefinition{},
   }
   for s, p := range states_all {
     lex, err := Parse_lexer_state(s, p)
@@ -157,7 +158,7 @@ func StateLexer(states_all map[string]string, start_state string) (lexer.Definit
 
   states.Make_symbols()
 
-	return &states, nil
+  return &states, nil
 }
 
 //func (sl *stateLexer) String() string {
@@ -170,17 +171,16 @@ func StateLexer(states_all map[string]string, start_state string) (lexer.Definit
 
 func (sl *stateLexer) Make_symbols() error {
   // create symbol map
-	symbols := map[string]rune{
-		"EOF": lexer.EOF,
-	}
+  symbols := map[string]rune{
+    "EOF": lexer.EOF,
+  }
 
-  i := 0
-  for _, s := range sl.s {
-    for _, sym := range s.Re.SubexpNames()[1:] {
-      if sym != "" {
-        symbols[sym] = lexer.EOF - 1 - rune(i)
-        i ++
+  for _, sdef := range sl.s {
+    for sym, r := range sdef.Symbols {
+      if _, ok := symbols[sym] ; ok {
+        continue
       }
+      symbols[sdef.State_name + ":" + sym] = r
     }
   }
 
@@ -203,67 +203,83 @@ func (sl *stateLexer) ChangeState(new_state string) error {
 }
 
 func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
-	b, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
+  b, err := ioutil.ReadAll(r)
+  if err != nil {
+    return nil, err
+  }
 
-	s.pos = lexer.Position{
-			Filename: lexer.NameOfReader(r),
-			Line:     1,
-			Column:   1,
-		}
+  s.pos = lexer.Position{
+      Filename: lexer.NameOfReader(r),
+      Line:     1,
+      Column:   1,
+    }
   s.b = b
-	s.names = s.re.SubexpNames()
+  s.names = s.re.SubexpNames()
 
   return s, nil
 }
 
 func (s *stateLexer) Symbols() map[string]rune {
-	return s.symbols
+  return s.symbols
 }
 
 
 func (r *stateLexer) Next() (lexer.Token, error) {
 nextToken:
-	for len(r.b) != 0 {
-		matches := r.re.FindSubmatchIndex(r.b)
-		if matches == nil || matches[0] != 0 {
-			rn, _ := utf8.DecodeRune(r.b)
-			return lexer.Token{}, lexer.Errorf(r.pos, "invalid token %q", rn)
-		}
-		match := r.b[:matches[1]]
-		token := lexer.Token{
-			Pos:   r.pos,
-			Value: string(match),
-		}
+  for len(r.b) != 0 {
+    matches := r.re.FindSubmatchIndex(r.b)
+    if matches == nil || matches[0] != 0 {
+      rn, _ := utf8.DecodeRune(r.b)
+      return lexer.Token{}, lexer.Errorf(r.pos, "invalid token %q", rn)
+    }
+    match := r.b[:matches[1]]
+    token := lexer.Token{
+      Pos:   r.pos,
+      Value: string(match),
+    }
 
-		// Update lexer state.
-		r.pos.Offset += matches[1]
-		lines := bytes.Count(match, eolBytes)
-		r.pos.Line += lines
-		// Update column.
-		if lines == 0 {
-			r.pos.Column += utf8.RuneCount(match)
-		} else {
-			r.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
-		}
-		// Move slice along.
-		r.b = r.b[matches[1]:]
+    // Update lexer state.
+    r.pos.Offset += matches[1]
+    lines := bytes.Count(match, eolBytes)
+    r.pos.Line += lines
+    // Update column.
+    if lines == 0 {
+      r.pos.Column += utf8.RuneCount(match)
+    } else {
+      r.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
+    }
+    // Move slice along.
+    r.b = r.b[matches[1]:]
 
-		// Finally, assign token type. If it is not a named group, we continue to the next token.
-		for i := 2; i < len(matches); i += 2 {
-			if matches[i] != -1 {
-				if r.names[i/2] == "" {
-					continue nextToken
-				}
-				token.Type = lexer.EOF - rune(i/2)
-				break
-			}
-		}
+    // Finally, assign token type. If it is not a named group, we continue to the next token.
+    for i := 2; i < len(matches); i += 2 {
+      if matches[i] != -1 {
+        if r.names[i/2] == "" {
+          continue nextToken
+        }
+        token.Type = r.get_Token_type(i/2)
+        break
+      }
+    }
 
-		return token, nil
-	}
+    return token, nil
+  }
 
-	return lexer.EOFToken(r.pos), nil
+  return lexer.EOFToken(r.pos), nil
 }
+
+func (sl *stateLexer) get_Token_type(token_index int) rune {
+  return sl.symbols[sl.current_state + ":" + sl.names[token_index]]
+}
+
+
+func (sl *stateLexer) Symbol(token rune) string {
+	for s, r := range sl.symbols {
+    if token == r {
+      return s
+    }
+	}
+  return "no found"
+}
+
+
