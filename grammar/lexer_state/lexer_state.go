@@ -14,9 +14,9 @@ import (
 type stateRegexpDefinition struct {
   State_name   string
   Re           *regexp.Regexp
-  Leave_token  map[string]string
+  // our symbols rune that will leave to another state
+  Leave_token  map[rune]string
   Symbols      map[string]rune
-  ReNames      []string
 }
 
 func (def stateRegexpDefinition) String() string {
@@ -35,8 +35,8 @@ type stateLexer struct {
   names []string
 
   s []*stateRegexpDefinition
-  current_state string
-  symbols map[string]rune
+  current_state *stateRegexpDefinition
+  symbols map[string][]rune
 }
 
 func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
@@ -55,7 +55,7 @@ func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
 // Comment are introduced with # at column 1, whole line is discarded
 func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinition, error) {
   var final_pat  []string
-  leave_token := make(map[string]string)
+  leave_token := map[string]string{}
   re_extract_rename, _ := regexp.Compile(`\(\?P<([^>]+)`)
   leave_str := " => "
   for i, l := range strings.Split(pattern, "\n") {
@@ -97,9 +97,13 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
   symbols := map[string]rune{
     "EOF": lexer.EOF,
   }
+  leave_token_runes := map[rune]string{}
   for i, sym := range re.SubexpNames()[1:] {
     if sym != "" {
       symbols[sym] = lexer.EOF - 1 - rune(i)
+      if new_state, ok := leave_token[sym] ; ok {
+        leave_token_runes[symbols[sym]] = new_state
+      }
     }
   }
 
@@ -110,7 +114,7 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
   s := stateRegexpDefinition {
     State_name: state_name,
     Re: re,
-    Leave_token: leave_token,
+    Leave_token: leave_token_runes,
     Symbols: symbols,
   }
   return &s, nil
@@ -140,19 +144,19 @@ var eolBytes = []byte("\n")
 //      def, err := StateLexer(states_all, "s1")
 func StateLexer(states_all map[string]string, start_state string) (*stateLexer, error) {
   states := stateLexer{
-    current_state: start_state,
     s: []*stateRegexpDefinition{},
   }
   for s, p := range states_all {
-    lex, err := Parse_lexer_state(s, p)
+    def, err := Parse_lexer_state(s, p)
     if err != nil {
       return nil, fmt.Errorf("StateLexer: '%s': %v", s, err)
     }
 
-    states.s = append(states.s, lex)
+    states.s = append(states.s, def)
     // initialize state
     if s == start_state {
-      states.re = lex.Re
+      states.re = def.Re
+      states.current_state = def
     }
   }
 
@@ -171,16 +175,18 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
 
 func (sl *stateLexer) Make_symbols() error {
   // create symbol map
-  symbols := map[string]rune{
-    "EOF": lexer.EOF,
+  symbols := map[string][]rune{
+    "EOF": []rune{lexer.EOF, lexer.EOF},
   }
 
+  var tok_sym rune = lexer.EOF -1
   for _, sdef := range sl.s {
     for sym, r := range sdef.Symbols {
       if _, ok := symbols[sym] ; ok {
         continue
       }
-      symbols[sdef.State_name + ":" + sym] = r
+      symbols[sdef.State_name + ":" + sym] = []rune{tok_sym, r}
+      tok_sym--
     }
   }
 
@@ -192,7 +198,7 @@ func (sl *stateLexer) ChangeState(new_state string) error {
   for _, def := range sl.s {
     if def.State_name == new_state {
       sl.re = def.Re
-      sl.current_state = new_state
+      sl.current_state = def
       sl.names = def.Re.SubexpNames()
 
       return nil
@@ -219,8 +225,11 @@ func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
   return s, nil
 }
 
-func (s *stateLexer) Symbols() map[string]rune {
-  return s.symbols
+func (s *stateLexer) Symbols() (symbols map[string]rune) {
+  for s, v := range s.symbols {
+    symbols[s] = v[0]
+  }
+  return
 }
 
 
@@ -257,7 +266,14 @@ nextToken:
         if r.names[i/2] == "" {
           continue nextToken
         }
-        token.Type = r.get_Token_type(i/2)
+
+        runes := r.get_Token_runes(i/2)
+        token.Type = runes[0]
+
+        // if we encounter as leave_token we change our lexer state
+        if new_state, ok := r.current_state.Leave_token[runes[1]] ; ok {
+          r.ChangeState(new_state)
+        }
         break
       }
     }
@@ -268,14 +284,14 @@ nextToken:
   return lexer.EOFToken(r.pos), nil
 }
 
-func (sl *stateLexer) get_Token_type(token_index int) rune {
-  return sl.symbols[sl.current_state + ":" + sl.names[token_index]]
+func (sl *stateLexer) get_Token_runes(token_index int) []rune {
+  return sl.symbols[sl.current_state.State_name + ":" + sl.names[token_index]]
 }
 
 
 func (sl *stateLexer) Symbol(token rune) string {
 	for s, r := range sl.symbols {
-    if token == r {
+    if token == r[0] {
       return s
     }
 	}
