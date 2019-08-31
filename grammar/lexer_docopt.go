@@ -52,6 +52,7 @@ var state_Options = `
 `
 var state_Free = `
 (?P<NewLine>\n)
+|(?P<SECTION>^[A-Z][A-Za-z _-]+:)
 |(?P<Line_of_text>[^\n]+)
 `
 

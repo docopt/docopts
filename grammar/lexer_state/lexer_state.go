@@ -59,8 +59,20 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
   re_extract_rename, _ := regexp.Compile(`\(\?P<([^>]+)`)
   leave_str := " => "
   for i, l := range strings.Split(pattern, "\n") {
-    // skip comment and blank
-    if l == "" || l[0] == "#"[0] {
+    // skip empty line
+    if l == "" {
+      continue
+    }
+
+    l = strings.TrimLeft(l, "\t ")
+
+    // skip empty line after trim
+    if l == "" {
+      continue
+    }
+
+    // skip comment
+    if l[0] == '#' {
       continue
     }
 
@@ -225,9 +237,10 @@ func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
   return s, nil
 }
 
-func (s *stateLexer) Symbols() (symbols map[string]rune) {
-  for s, v := range s.symbols {
-    symbols[s] = v[0]
+func (sl *stateLexer) Symbols() (symbols map[string]rune) {
+  symbols = make(map[string]rune)
+  for sym, v := range sl.symbols {
+    symbols[sym] = v[0]
   }
   return
 }
