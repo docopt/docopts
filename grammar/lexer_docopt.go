@@ -88,7 +88,8 @@ func main() {
   // extract all token
   tokens, _ := lexer.ConsumeAll(lex)
   // display all tokens with their type
+  symbols := lexer.SymbolsByRune(states)
   for _, v := range tokens {
-    fmt.Printf("Token{%s, %q}\n", states.Symbol(v.Type), v.Value)
+    fmt.Printf("Token{%s, %q}\n", symbols[v.Type], v.Value)
   }
 }

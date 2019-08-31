@@ -14,9 +14,8 @@ import (
 type stateRegexpDefinition struct {
   State_name   string
   Re           *regexp.Regexp
-  // our symbols rune that will leave to another state
-  Leave_token  map[rune]string
-  Symbols      map[string]rune
+  Leave_token  map[string]string
+  Symbols      []string
 }
 
 func (def stateRegexpDefinition) String() string {
@@ -32,11 +31,12 @@ type stateLexer struct {
   pos   lexer.Position
   b     []byte
   re    *regexp.Regexp
+  // TODO: optimize names change
   names []string
 
   s []*stateRegexpDefinition
   current_state *stateRegexpDefinition
-  symbols map[string][]rune
+  symbols map[string]rune
 }
 
 func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
@@ -106,27 +106,22 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
     return nil, fmt.Errorf("Parse_lexer_state: %v", err)
   }
 
-  symbols := map[string]rune{
-    "EOF": lexer.EOF,
-  }
-  leave_token_runes := map[rune]string{}
-  for i, sym := range re.SubexpNames()[1:] {
+  // retrieve symbols (token names) from regxep names
+  symbols := []string{}
+  for _, sym := range re.SubexpNames()[1:] {
     if sym != "" {
-      symbols[sym] = lexer.EOF - 1 - rune(i)
-      if new_state, ok := leave_token[sym] ; ok {
-        leave_token_runes[symbols[sym]] = new_state
-      }
+      symbols = append(symbols, sym)
     }
   }
 
-  if len(symbols) < 2 {
+  if len(symbols) < 1 {
     return nil, fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", pattern)
   }
 
   s := stateRegexpDefinition {
     State_name: state_name,
     Re: re,
-    Leave_token: leave_token_runes,
+    Leave_token: leave_token,
     Symbols: symbols,
   }
   return &s, nil
@@ -186,19 +181,21 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
 //}
 
 func (sl *stateLexer) Make_symbols() error {
-  // create symbol map
-  symbols := map[string][]rune{
-    "EOF": []rune{lexer.EOF, lexer.EOF},
+  // create symbol map common for all state
+  symbols := map[string]rune{
+    "EOF": lexer.EOF,
   }
 
-  var tok_sym rune = lexer.EOF -1
+  // renumber all symbol
+  var tok rune = lexer.EOF -1
   for _, sdef := range sl.s {
-    for sym, r := range sdef.Symbols {
+    for _, sym := range sdef.Symbols {
+      // skip symbol already known
       if _, ok := symbols[sym] ; ok {
         continue
       }
-      symbols[sdef.State_name + ":" + sym] = []rune{tok_sym, r}
-      tok_sym--
+      symbols[sym] = tok
+      tok--
     }
   }
 
@@ -237,12 +234,8 @@ func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
   return s, nil
 }
 
-func (sl *stateLexer) Symbols() (symbols map[string]rune) {
-  symbols = make(map[string]rune)
-  for sym, v := range sl.symbols {
-    symbols[sym] = v[0]
-  }
-  return
+func (sl *stateLexer) Symbols() (map[string]rune) {
+  return sl.symbols
 }
 
 
@@ -276,15 +269,16 @@ nextToken:
     // Finally, assign token type. If it is not a named group, we continue to the next token.
     for i := 2; i < len(matches); i += 2 {
       if matches[i] != -1 {
-        if r.names[i/2] == "" {
+        tok_name := r.names[i/2]
+        // discard unnamed token
+        if tok_name == "" {
           continue nextToken
         }
 
-        runes := r.get_Token_runes(i/2)
-        token.Type = runes[0]
+        token.Type = r.symbols[tok_name]
 
-        // if we encounter as leave_token we change our lexer state
-        if new_state, ok := r.current_state.Leave_token[runes[1]] ; ok {
+        // if we encounter a leave_token we change our lexer state
+        if new_state, ok := r.current_state.Leave_token[tok_name] ; ok {
           r.ChangeState(new_state)
         }
         break
@@ -296,19 +290,3 @@ nextToken:
 
   return lexer.EOFToken(r.pos), nil
 }
-
-func (sl *stateLexer) get_Token_runes(token_index int) []rune {
-  return sl.symbols[sl.current_state.State_name + ":" + sl.names[token_index]]
-}
-
-
-func (sl *stateLexer) Symbol(token rune) string {
-	for s, r := range sl.symbols {
-    if token == r[0] {
-      return s
-    }
-	}
-  return "no found"
-}
-
-
