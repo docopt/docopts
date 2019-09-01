@@ -68,7 +68,7 @@ type Free_Section struct {
 type Usage struct {
 	Pos lexer.Position
 
-  Usage_first       *Usage_expr     `( "Usage:" @@ "\n"`
+  Usage_first       *Usage_def      `( "Usage:" @@ "\n"`
   Usage_next_lines  []*Usage_line   `           @@*`
   Usage_lines       []*Usage_line   `| "Usage:" "\n"  @@+ )`
 }
@@ -76,15 +76,51 @@ type Usage struct {
 type Usage_line struct {
 	Pos lexer.Position
 
-  Usage_expr  *Usage_expr  `   LONG_BLANK @@ "\n"`
-  Comment     *string      `| @( LINE_OF_TEXT "\n" | "\n"+ )`
+  Usage_def  *Usage_def   `   LONG_BLANK @@ "\n"`
+  Comment    *string      `| @( LINE_OF_TEXT "\n" | "\n"+ )`
 }
 
-type Usage_expr struct {
+type Usage_def struct {
 	Pos lexer.Position
 
-  Atom  []string     `@(IDENT|ARGUMENT|LONG|SHORT|PUNCT)+`
+  Prog_name string    `@IDENT`
+  Expr      []Expr    `   @@*`
 }
+
+type Expr struct {
+	Pos lexer.Position
+
+  Optional_Expr  []Expr  `   "[" @@+ "]"`
+  Required_Expr  *Seq    `|      @@ `
+  // don't distinct with group
+  Exclusiv_Expr  []Expr  `|  "(" @@+ ("|" @@+)* ")"`
+}
+
+type Seq struct {
+	Pos lexer.Position
+
+  Atom            []Atom   `@@ ("|" @@)*`
+}
+
+type Atom struct {
+	Pos lexer.Position
+
+  Option          *Option     `  (  @@`
+  Argument        *string     `   | @ARGUMENT`
+  Options_shorcut *string     `   | "options"`
+  Command         *string     `   | @IDENT`
+  Repetable       *string     `  )  @"..."?`
+}
+
+type Option struct {
+	Pos lexer.Position
+
+  Short      *string    `( @SHORT`
+  Short_arg  *string    `  @ARGUMENT?`
+  Long       *string    `| @LONG`
+  Argument   *string    `  "="? @ARGUMENT? )`
+}
+
 
 type Options struct {
   Pos lexer.Position
@@ -116,19 +152,21 @@ func main() {
   }
 
   parser := participle.MustBuild(&Docopt{},
-    participle.UseLookahead(2),
+    participle.UseLookahead(1),
     participle.Lexer(doctop_Lexer),
     //participle.Elide("Comment", "Whitespace"),
     )
 
   ast := &Docopt{}
   if err = parser.Parse(f, ast) ; err == nil {
-    repr.Println(ast)
+    //repr.Println(ast)
+		repr.Println(ast, repr.Hide(&lexer.Position{}))
     fmt.Println("Parse Success")
   } else {
     fmt.Println("Parse error")
-    fmt.Println(err)
     fmt.Println("======================= partial AST ==========================")
     repr.Println(ast)
+    fmt.Println("================ end of partial AST ==========================")
+    fmt.Println(err)
   }
 }
