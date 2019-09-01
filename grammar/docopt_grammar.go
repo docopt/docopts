@@ -9,6 +9,7 @@ import (
   "github.com/alecthomas/participle/lexer"
 
 	"github.com/docopt/docopts/grammar/lexer_state"
+	"github.com/docopt/docopts/grammar/token_docopt"
 )
 
 /*  grammar participle syntax ~ ebnf
@@ -19,13 +20,11 @@ Docopt =
   Free_Section*
 
 Prologue            =  Free_text+
-Free_text           =  INDENT? LINE_OF_TEXT "\n" | "\n"
-INDENT              =  \s{2,}
-LINE_OF_TEXT        =  [^\n]+
-Usage_section       =  "Usage:" ( Usage_content "\n" )? Usage_line+
-Usage_line          =  Usage_content | Comment
-Usage_content       =  INDENT Usage_expr "\n"
-Comment             =  LINE_OF_TEXT "\n" | "\n"+
+Free_text           =  LONG_BLANK? LINE_OF_TEXT "\n" | "\n"
+Usage_section       =    "Usage:" Usage_expr "\n" Usage_line*
+                       | "Usage:" "\n" Usage_line+
+Usage_line          =  ( LONG_BLANK Usage_expr | Comment ) "\n"
+Comment             =  LINE_OF_TEXT | "\n"+
 Usage_expr          =  Seq  ( "|" Seq )*
 Seq                 =  ( Atom "..."? )*
 Atom                =    "(" Expr ")"
@@ -38,74 +37,12 @@ Atom                =    "(" Expr ")"
 Shorts_option       =  SHORT | SHORT ARGUMENT
 Long_def            =  LONG | LONG "="? ARGUMENT
 Options_section     =  "Options:" "\n" Options_line+
-Options_line        =  INDENT Options_flag INDENT Option_description
-Option_description  =  (INDENT LINE_OF_TEXT "\n")*
-                       (INDENT LINE_OF_TEXT Defaulf_value "\n")?
+Options_line        =  LONG_BLANK Options_flag LONG_BLANK Option_description
+Option_description  =  (LONG_BLANK LINE_OF_TEXT "\n")*
+                       (LONG_BLANK LINE_OF_TEXT Defaulf_value "\n")?
 Defaulf_value       =  "[" DEFAULT LINE_OF_TEXT "]"
 Free_Section        = SECTION "\n" Free_text*
 */
-
-// ================================ lexer ===============================
-var (
-  state_Prologue = `
-  (?P<NEWLINE>\n)
-  |(?P<SECTION>^Usage:) => state_Usage_Line
-  |(?P<LINE_OF_TEXT>[^\n]+)
-  `
-
-  state_Usage = `
-  (?P<NEWLINE>\n)
-  |(?P<USAGE>^Usage:)
-  |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Options
-  |(?P<INDENT>\s{2,}) => state_Usage_Line
-  # skip single blank
-  |(\s)
-  # Match some kind of comment when not preceded by LongBlank
-  |(?P<LINE_OF_TEXT>[^\n]+)
-  `
-
-  state_Usage_Line = `
-  (?P<NEWLINE>\n) => state_Usage
-  |(\s+)
-  |(?P<SHORT>-[A-Za-z0-9?])
-  |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
-  |(?P<ARGUMENT><[A-Za-z][A-Za-z0-9_-]+>|[A-Z_][A-Z0-9_-]+)
-  # Punctuation doesn't accept comma but elipsis ...
-  |(?P<PUNCT>[\][=()|]|\.{3})
-  |(?P<IDENT>[A-Za-z][A-Za-z0-9_-]+)
-  `
-
-  state_Options = `
-  (?P<NEWLINE>\n)
-  # Options: is matched by state_Usage
-  |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Free
-  |(?P<DEFAULT>^default:\s)
-  |(?P<INDENT>\s{2,})
-  # skip single blank
-  |(\s)
-  |(?P<SHORT>-[A-Za-z0-9?])
-  |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
-  |(?P<ARGUMENT><[A-Za-z][A-Za-z0-9_-]+>|[A-Z_][A-Z0-9_-]+)
-  # Punctuation differe from state_Usage accepts comma
-  |(?P<PUNCT>[\][=,()|])
-  # LINE_OF_TEXT not matching []
-  |(?P<LINE_OF_TEXT>[^\n[\]]+)
-  `
-
-  state_Free = `
-  (?P<NEWLINE>\n)
-  |(?P<SECTION>^[A-Z][A-Za-z _-]+:)
-  |(?P<LINE_OF_TEXT>[^\n]+)
-  `
-
-  all_states = map[string]string{
-    "state_Prologue" : state_Prologue,
-    "state_Usage" : state_Usage,
-    "state_Usage_Line" : state_Usage_Line,
-    "state_Options" : state_Options,
-    "state_Free" : state_Free,
-  }
-)
 
 // ================================ grammar ===============================
 type Docopt struct {
@@ -118,34 +55,47 @@ type Docopt struct {
 type Free_text struct {
 	Pos lexer.Position
 
-  Description []string `( @LINE_OF_TEXT "\n" | @"\n" )*`
+  Description []string `@( LINE_OF_TEXT "\n" | "\n" )*`
 }
 
 type Free_Section struct {
   Pos lexer.Position
 
-  Section_name string   `@SECTION`
-  Free_text *Free_text  `@@*`
+  Section_name string   `@SECTION "\n"`
+  Free_text *Free_text  `@@`
 }
 
 type Usage struct {
 	Pos lexer.Position
 
-  Usage_first   *string         `  "Usage:" ( @LINE_OF_TEXT "\n" )?`
-  Usage_lines   []*Usage_line   `           @@+`
+  Usage_first       *Usage_expr     `( "Usage:" @@ "\n"`
+  Usage_next_lines  []*Usage_line   `           @@*`
+  Usage_lines       []*Usage_line   `| "Usage:" "\n"  @@+ )`
 }
 
 type Usage_line struct {
 	Pos lexer.Position
 
-  Usage_content  *string   `  INDENT @LINE_OF_TEXT "\n"`
-  Comment        *string   `| ( @LINE_OF_TEXT "\n" | @"\n"+ )`
+  Usage_expr  *Usage_expr  `   LONG_BLANK @@ "\n"`
+  Comment     *string      `| @( LINE_OF_TEXT "\n" | "\n"+ )`
+}
+
+type Usage_expr struct {
+	Pos lexer.Position
+
+  Atom  []string     `@(IDENT|ARGUMENT|LONG|SHORT|PUNCT)+`
 }
 
 type Options struct {
   Pos lexer.Position
 
-  Options_lines []string `"Options:" "\n" ( INDENT @LINE_OF_TEXT "\n" | "\n" )+`
+  Options_lines []Options_line `"Options:" "\n" @@+`
+}
+
+type Options_line struct {
+  Pos lexer.Position
+
+  Text []string `@("\n"|LONG_BLANK|DEFAULT|PUNCT|SHORT|LONG|ARGUMENT|LINE_OF_TEXT)`
 }
 
 func main() {
@@ -159,7 +109,7 @@ func main() {
   }
 
   // A custom lexer for docopt input
-  doctop_Lexer, err := lexer_state.StateLexer(all_states, "state_Prologue")
+  doctop_Lexer, err := lexer_state.StateLexer(token_docopt.All_states, "state_Prologue")
   if err != nil {
     fmt.Println(err)
     return
