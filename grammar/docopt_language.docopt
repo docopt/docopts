@@ -9,6 +9,7 @@ This comment definition is not actually true. Extracted Section cannot start wit
 
 Usage: Program_string [--optional-long-argument] ( required-action | or-this-required-action) <argument-for-the-action> [<etc>...]
        Program_string another-action [--which-support=<argument>] WITH_OTHER_SYNTAX_ARGUMENT
+       Program_string action [-A ARG_HERE | -B ARG_FOR_B ]  <extra-argument1> <extra-argument2>...
 
 This section can be a single line or multi-line, the token Usage must start the section.
 Repeating program's usage serve to produce different parse usage of the program.

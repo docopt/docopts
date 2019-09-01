@@ -35,7 +35,7 @@ type stateLexer struct {
   names []string
 
   s []*stateRegexpDefinition
-  current_state *stateRegexpDefinition
+  Current_state *stateRegexpDefinition
   symbols map[string]rune
 }
 
@@ -163,7 +163,7 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
     // initialize state
     if s == start_state {
       states.re = def.Re
-      states.current_state = def
+      states.Current_state = def
     }
   }
 
@@ -174,7 +174,7 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
 
 //func (sl *stateLexer) String() string {
 //  var out string
-//  out += fmt.Sprintf("current_state: %s\n", s.current_state)
+//  out += fmt.Sprintf("Current_state: %s\n", s.Current_state)
 //  for n, s := range sl.s {
 //    out += fmt.Sprintf("%s: %v\n", n, s.Re)
 //  }
@@ -207,7 +207,7 @@ func (sl *stateLexer) ChangeState(new_state string) error {
   for _, def := range sl.s {
     if def.State_name == new_state {
       sl.re = def.Re
-      sl.current_state = def
+      sl.Current_state = def
       sl.names = def.Re.SubexpNames()
 
       return nil
@@ -278,7 +278,7 @@ nextToken:
         token.Type = r.symbols[tok_name]
 
         // if we encounter a leave_token we change our lexer state
-        if new_state, ok := r.current_state.Leave_token[tok_name] ; ok {
+        if new_state, ok := r.Current_state.Leave_token[tok_name] ; ok {
           r.ChangeState(new_state)
         }
         break
