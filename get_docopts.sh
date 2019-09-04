@@ -7,7 +7,7 @@
 # bash strict mode
 set -euo pipefail
 
-: {GIT_USER:=docopt}
+: ${GIT_USER:=docopt}
 GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 
