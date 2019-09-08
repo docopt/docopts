@@ -1,0 +1,51 @@
+lower_arg_char  = ? any Unicode code point except ">" ? ;
+lower_arg       = "<" , lower_arg_char , { lower_arg_char } , ">" ;
+upper_letter    = ? Unicode category Lu ? ;
+decimal_digit   = ? Unicode category Nd ? ;
+upper_arg_start = upper_letter | decimal_digit ;
+upper_arg_cont  = upper_arg_start | "-" ;
+upper_arg       = upper_arg_start , { upper_arg_cont } ;
+argument        = lower_arg | upper_arg ;
+
+short_option_char = "a"..."z" | "A"..."Z" | "0"..."9" | "?" ;
+short_option      = "-" , short_option_char , { short_option_char } ;
+long_option_char  = short_option_char | "-" ;
+long_option       = "-" , "-" , long_option_char , { long_option_char } ;
+
+long_option_arg  = ( "=" | " " ) , argument ;
+short_option_arg = [ " " ] , argument ;
+option           = long_option , [ long_option_arg ]
+                 | short_option , [ short_option_arg ]
+                 ;
+
+brackets = "[" , WHITESPACE , pattern , "]" ;
+parens = "(" , WHITESPACE , pattern , ")" ;
+pipe = pattern , "|" , WHITESPACE , pattern ;
+ellipsis = pattern , "..." ;
+
+OPTIONS = "[options]" ;
+
+SINGLE_HYPHEN = [ "[" ] , "-" , [ "]" ] ;
+DOUBLE_HYPHEN = [ "[" ] , "--" , [ "]" ] ;
+
+COMMAND = ? any group of characters surrounded by WHITESPACE ? ;
+
+WHITESPACE   = " " | ? tabulation ? ;
+NEWLINE      = ? newline or eof ? ;
+pattern_base = argument
+             | option
+             | brackets
+             | parens
+             | pipe
+             | ellipsis
+             | OPTIONS
+             | SINGLE_HYPHEN
+             | DOUBLE_HYPHEN
+             | COMMAND
+             ;
+pattern      = pattern_base , WHITESPACE ;
+program_name = COMMAND ;
+usage_part   = ? case-insensitive "usage:" ? ;
+usage_line   = [ usage_part ] , program_name , { pattern } ;
+usage        = { usage_line , NEWLINE } ;
+grammar      = usage .
