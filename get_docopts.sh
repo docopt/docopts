@@ -1,20 +1,25 @@
 #!/usr/bin/env bash
 #
 # You can fetch some binary directly from releases on github
-# So don't have to build it from source.
+# So don't have to build it from source:
 #
+# https://github.com/docopt/docopts/releases
+#
+# This script try to guess it for you and download it.
 
 # bash strict mode
 set -euo pipefail
 
-: ${GIT_USER:=docopt}
+# default value, can be overridden via env var
+GIT_USER=${GIT_USER:-docopt}
 GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 
-#RELEASE=v0.6.3-rc1
-RELEASE=v0.6.3-alpha2
+# default value comes from VERSION file, can be overridden via env var
+RELEASE=${RELEASE:-VERSION}
 BINARY=docopts
-ISSUE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/issues/
+# ISSUE_URL is fixed for this project
+ISSUE_URL=https://github.com/docopt/docopts/issues/
 
 report_issue()
 {
@@ -32,8 +37,16 @@ OSTYPE=$OSTYPE
 ARCH=$ARCH
 ARCH_BIN=$ARCH_BIN
 getconf LONG_BIT $(getconf LONG_BIT)
+RELEASE=$RELEASE
 EOT
 }
+
+# ======================================== main
+
+if [[ $RELEASE == 'VERSION' ]]
+then
+  RELEASE=$(cat VERSION)
+fi
 
 if [[ -e $BINARY ]]
 then
@@ -41,6 +54,7 @@ then
   exit 1
 fi
 
+# try to detect CPU architecture
 ARCH=$(arch)
 case $ARCH in
   x86_64)
