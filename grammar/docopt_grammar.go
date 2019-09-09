@@ -83,33 +83,33 @@ type Usage_line struct {
 type Usage_def struct {
 	Pos lexer.Position
 
-  Prog_name string    `@IDENT`
-  Expr      []Expr    `   @@*`
+  Prog_name    string     `@IDENT`
+  Pattern      *Pattern   `   @@?`
 }
 
-type Expr struct {
+type Pattern struct {
 	Pos lexer.Position
 
-  Optional_Expr  []Expr  `   "[" @@+ "]"`
-  Required_Expr  *Seq    `|      @@ `
-  // don't distinct with group
-  Exclusiv_Expr  []Expr  `|  "(" @@+ ("|" @@+)* ")"`
+  Seq           *Seq  `@@ `
+  Exlusiv_Seq  []Seq  ` ("|" @@)*`
 }
 
 type Seq struct {
 	Pos lexer.Position
 
-  Atom            []Atom   `@@ ("|" @@)*`
+  Atom           []Atom   ` (  @@`
+  One_or_more    *string  `    @"..."? )*`
 }
 
 type Atom struct {
 	Pos lexer.Position
 
-  Option          *Option     `  (  @@`
-  Argument        *string     `   | @ARGUMENT`
-  Options_shorcut *string     `   | "options"`
-  Command         *string     `   | @IDENT`
-  Repetable       *string     `  )  @"..."?`
+	Group            *Pattern   `  "(" @@ ")"`
+	Optional         *Pattern		`| "[" @@ "]"`
+  Options_shortcut *string    `| "options"`
+  Option           *Option    `| @@`
+  Argument         *string    `| @ARGUMENT`
+  Command          *string    `| @IDENT`
 }
 
 type Option struct {

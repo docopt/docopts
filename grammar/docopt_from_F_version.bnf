@@ -5,15 +5,15 @@ decimal_digit   = ? Unicode category Nd ? ;
 upper_arg_start = upper_letter | decimal_digit ;
 upper_arg_cont  = upper_arg_start | "-" ;
 upper_arg       = upper_arg_start , { upper_arg_cont } ;
-argument        = lower_arg | upper_arg ;
+ARGUMENT        = lower_arg | upper_arg ;
 
 short_option_char = "a"..."z" | "A"..."Z" | "0"..."9" | "?" ;
 short_option      = "-" , short_option_char , { short_option_char } ;
 long_option_char  = short_option_char | "-" ;
 long_option       = "-" , "-" , long_option_char , { long_option_char } ;
 
-long_option_arg  = ( "=" | " " ) , argument ;
-short_option_arg = [ " " ] , argument ;
+long_option_arg  = ( "=" | " " ) , ARGUMENT ;
+short_option_arg = [ " " ] , ARGUMENT ;
 option           = long_option , [ long_option_arg ]
                  | short_option , [ short_option_arg ]
                  ;
@@ -32,7 +32,7 @@ COMMAND = ? any group of characters surrounded by WHITESPACE ? ;
 
 WHITESPACE   = " " | ? tabulation ? ;
 NEWLINE      = ? newline or eof ? ;
-pattern_base = argument
+pattern_base = ARGUMENT
              | option
              | brackets
              | parens
