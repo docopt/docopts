@@ -2,7 +2,7 @@ Usage: program [--arg] [-A | -V] [--long=<args>] FICHIER
        program action [--verbose] PARAM
        program help
        program ici ( --par-la | --la-bas )
-       program do_something_strange [--very]
+       program do_something_strange [--very...]
        program (one_action | or_this_one) [-v...] FILE...
        program ( [-F] | [-G] ) -i INPUT  FILE...
        program ( command1 | command2 ) FILE
@@ -11,4 +11,6 @@ Usage: program [--arg] [-A | -V] [--long=<args>] FICHIER
        my_program go (--up | --down | --left | --right)
        my_program [(<one-argument> <another-argument>)]
        my_program (--either-this <and-that> | <or-this>)
+       elipsis_on_group  (one | another)...
+       only_program_name
 
