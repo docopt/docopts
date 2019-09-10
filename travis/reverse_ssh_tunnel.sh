@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # a bounce host must be set before
-BOUNCEHOSTIP="51.68.156.147"
+BOUNCEHOSTIP="54.37.131.248"
 REMOTE_SSH_PUBKEY=/tmp/bounce-travis/id_rsa
 
 fail_if_empty() {

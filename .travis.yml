@@ -4,7 +4,7 @@ os:
   - osx
 go:
   - "1.11.4"
-  - "1.13"
+  #  - "1.13"
 before_install:
   # brew update takes very long time
   # according to https://docs.travis-ci.com/user/reference/osx#homebrew
@@ -24,4 +24,4 @@ notifications:
     on_success: never
 script:
   - make test
-    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
