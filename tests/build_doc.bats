@@ -3,6 +3,11 @@
 # unit test for helper for building the README.md
 #
 
+
+if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
+  skip
+fi
+
 source ../build_doc.sh
 
 output_split_lines() {
