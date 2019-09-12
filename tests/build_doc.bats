@@ -20,6 +20,7 @@ output_split_lines() {
 }
 
 setup() {
+  # https://github.com/docopt/docopts/issues/39
   if [[ "$OSTYPE" =~ darwin ]] ; then
     skip "build_doc.sh skipped on macOS"
   fi
