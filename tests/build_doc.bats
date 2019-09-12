@@ -3,9 +3,8 @@
 # unit test for helper for building the README.md
 #
 
-
-if [[ "$TRAVIS_OS_NAME" == "osx" ]] ; then
-  skip
+if [[ "$OSTYPE" =~ darwin ]] ; then
+  skip "build_doc.sh skipped on macOS"
 fi
 
 source ../build_doc.sh

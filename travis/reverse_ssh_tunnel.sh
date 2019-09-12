@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # a bounce host must be set before
-BOUNCEHOSTIP="54.37.131.248"
+# ansible playbook not provided yet
+# The IP here is a temporay public cloud VM
+BOUNCEHOSTIP="51.83.248.111"
 REMOTE_SSH_PUBKEY=/tmp/bounce-travis/id_rsa
 
 fail_if_empty() {
@@ -43,5 +45,7 @@ chmod 600 $HOME/.ssh/authorized_keys
 
 # for 10 min without output Success
 # https://travis-ci.org/Sylvain303/docopts/builds/540455090#L1295
+# NOOP_DELAY=30
 ssh -R 9999:localhost:22 \
-  -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP
+  -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP \
+  "while true ; do sleep $NOOP_DELAY; echo noop; done"
