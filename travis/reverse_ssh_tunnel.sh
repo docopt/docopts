@@ -3,13 +3,17 @@
 set -euo pipefail
 
 # Usage: a bounce host must be set before
-# ansible playbook not provided yet
+# ansible playbook not provided yet.
 
 # The IP here is a temporay public cloud VM
+# You need to edit that IP
 BOUNCEHOSTIP="51.83.248.111"
-REMOTE_SSH_PUBKEY=/tmp/bounce-travis/id_rsa
 
-fail_if_empty() {
+# Where to store localy the remote bounce host ssh key
+TEMP_SSH_KEYS=/tmp/$USER-bounce-travis/id_rsa
+
+fail_if_empty()
+{
   local varname
   local v
   # allow multiple check on the same line
@@ -23,27 +27,36 @@ fail_if_empty() {
   done
 }
 
-fail_if_empty BOUNCEHOSTIP REMOTE_SSH_PUBKEY
-
-fetch_ssh_keys() {
-  local ssh_dir=$(dirname $REMOTE_SSH_PUBKEY)
-  mkdir -p $ssh_dir
-  wget -O $REMOTE_SSH_PUBKEY http://$BOUNCEHOSTIP/id_rsa
-  wget -O ${REMOTE_SSH_PUBKEY}.pub http://$BOUNCEHOSTIP/id_rsa.pub
-  chmod 600 $ssh_dir/*
+fetch_ssh_keys()
+{
+  local tmp_ssh_dir=$(dirname $TEMP_SSH_KEYS)
+  mkdir -p $tmp_ssh_dir
+  wget -O $TEMP_SSH_KEYS http://$BOUNCEHOSTIP/id_rsa
+  wget -O ${TEMP_SSH_KEYS}.pub http://$BOUNCEHOSTIP/id_rsa.pub
+  chmod 600 $tmp_ssh_dir/*
 }
 
+cleanup()
+{
+  local tmp_ssh_dir=$(dirname $TEMP_SSH_KEYS)
+  rm -rf $tmp_ssh_dir
+  kill $SSH_AGENT_PID
+}
+
+################################################ main
+
+fail_if_empty BOUNCEHOSTIP TEMP_SSH_KEYS
 fetch_ssh_keys
 
 # start ssh agent and add the private key
 eval $(ssh-agent)
-trap "kill $SSH_AGENT_PID" QUIT TERM EXIT
-ssh-add $REMOTE_SSH_PUBKEY
+trap "cleanup" QUIT TERM EXIT
+ssh-add $TEMP_SSH_KEYS
 
 # allow ssh back to us with the same key
-mkdir $HOME/.ssh
+mkdir -p $HOME/.ssh
 chmod 700 $HOME/.ssh
-cp $REMOTE_SSH_PUBKEY.pub $HOME/.ssh/authorized_keys
+cp $TEMP_SSH_KEYS.pub $HOME/.ssh/authorized_keys
 chmod 600 $HOME/.ssh/authorized_keys
 
 # for 10 min without output Success
@@ -51,4 +64,4 @@ chmod 600 $HOME/.ssh/authorized_keys
 NOOP_DELAY=30
 ssh -R 9999:localhost:22 \
   -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP \
-  "while true ; do sleep $NOOP_DELAY; echo noop; done"
+  "echo 'bounce host connected'; while true ; do sleep $NOOP_DELAY; echo noop; done"
