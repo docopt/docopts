@@ -3,9 +3,6 @@
 # unit test for helper for building the README.md
 #
 
-if [[ "$OSTYPE" =~ darwin ]] ; then
-  skip "build_doc.sh skipped on macOS"
-fi
 
 source ../build_doc.sh
 
@@ -20,6 +17,12 @@ output_split_lines() {
     i=$((i+1))
   done
   IFS=$oldIFS
+}
+
+setup() {
+  if [[ "$OSTYPE" =~ darwin ]] ; then
+    skip "build_doc.sh skipped on macOS"
+  fi
 }
 
 @test "extract_markup" {

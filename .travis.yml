@@ -1,6 +1,6 @@
 language: go
 os:
-  #  - linux
+  - linux
   - osx
 go:
   - "1.11.4"
@@ -23,5 +23,5 @@ notifications:
   email:
     on_success: never
 script:
-  - make
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+  - make test
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi

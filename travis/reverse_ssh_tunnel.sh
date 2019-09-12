@@ -43,6 +43,35 @@ cleanup()
   kill $SSH_AGENT_PID
 }
 
+bounce_host_remote_exec()
+{
+  NOOP_DELAY=30
+  # 30 minutes
+  MAX=$((30*60))
+  echo 'bounce host connected'
+
+  # generate the stop command
+  echo 'pkill -f bounce_host_remote_exec; pkill -f sleep' > disconnect
+  chmod a+x disconnect
+
+  # message when disconnect kill is sent
+  trap "echo 'bounce_host existing'; kill -9 $$" QUIT TERM EXIT
+
+  local start=$SECONDS
+  local elapsed
+  while true
+  do
+      sleep $NOOP_DELAY
+      elapsed=$(($SECONDS-$start))
+      echo "noop ${elapsed}s"
+      if [[ $elapsed -gt $MAX ]] ; then
+        echo "timeout reached ${MAX}s"
+        break
+      fi
+  done
+  echo "bounce_host connection closed"
+}
+
 ################################################ main
 
 fail_if_empty BOUNCEHOSTIP TEMP_SSH_KEYS
@@ -61,7 +90,6 @@ chmod 600 $HOME/.ssh/authorized_keys
 
 # for 10 min without output Success
 # https://travis-ci.org/Sylvain303/docopts/builds/540455090#L1295
-NOOP_DELAY=30
 ssh -R 9999:localhost:22 \
   -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP \
-  "echo 'bounce host connected'; while true ; do sleep $NOOP_DELAY; echo noop; done"
+  "$(typeset -f bounce_host_remote_exec); bounce_host_remote_exec"

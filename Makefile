@@ -53,7 +53,6 @@ test: docopts
 	./docopts --version
 	go test -v
 	python language_agnostic_tester.py ./testee.sh
-	echo "TRAVIS_OS_NAME='$$TRAVIS_OS_NAME'"
 	cd tests/ && ./bats/bin/bats .
 
 # README.md is composed with external source too
