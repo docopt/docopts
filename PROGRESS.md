@@ -1,13 +1,10 @@
 # current work in PROGRRESS
 
-## release and binary
+## grammar programming
 
-https://github.com/docopt/docopts/issues/32
+Testing https://github.com/alecthomas/participle
 
-publish release and pre-build binaries
 
-* travis deploy? https://docs.travis-ci.com/user/deployment/releases/
-* https://blog.questionable.services/article/build-go-binaries-travis-ci-github/
 
 ## provide test on old environment
 

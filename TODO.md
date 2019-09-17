@@ -1,10 +1,5 @@
 # docopts (docopt for bash) TODO list
 
-## build and publish binary
-
-Reuse `build.sh` to build golang binary and pubilsh it as a new release too.
-See also PROGRESS.md pre-built binaries.
-
 ## better error handling
 
 https://github.com/docopt/docopts/issues/17
@@ -13,7 +8,7 @@ See also:
 
 PR: https://github.com/docopt/docopt.go/pull/65
 
-## --json output 
+## --json output
 
 same as `--no-mangle` but json formated
 
