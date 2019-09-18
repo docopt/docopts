@@ -1,0 +1,7 @@
+From: https://github.com/docopt/docopt/issues/445
+
+Usage:
+  cmd [(ARG [-o OPT])...]
+
+Options:
+  -o OPT      Description

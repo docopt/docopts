@@ -1,0 +1,5 @@
+From: https://github.com/docopt/docopt/issues/429
++ https://github.com/docopt/docopt/issues/428
+
+Usage: code_sanity [-h] [-i ID] [-z] [-v] database
+

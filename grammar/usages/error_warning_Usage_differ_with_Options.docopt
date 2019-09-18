@@ -1,0 +1,24 @@
+Instance Manager
+Comes from: https://github.com/docopt/docopt/issues/455
+
+Usage:
+  instance_manager cluster create <name> <manager> <worker>... [--google|--virtualbox]
+  instance_manager cluster delete <name>
+  instance_manager cluster <name> add <worker> [--size=<size>]
+  instance_manager cluster <name> remove <worker>
+  instance_manager cluster <name> service add <service> [--replicas=<replicas>]
+  instance_manager cluster <name> service remove <service>
+  instance_manager cluster <name> service remove <service>
+  instance_manager instance (add|remove) <x> <y> [--moored|--drifting]
+  instance_manager -h | --help
+  instance_manager --version
+
+Options:
+  -h --help     Show this screen.
+  --version     Show version.
+  --size=<size> Size of the container.
+  --moored      Moored (anchored) instance.
+  --drifting    Drifting instance.
+  --google  Google Cloud.
+  --virtualbox  VirtualBox.
+  --replicas    Service Replication.

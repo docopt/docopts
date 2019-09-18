@@ -131,6 +131,7 @@ type Options struct {
 type Options_line struct {
   Pos lexer.Position
 
+	// eat all, not yet parsed
   Text []string `@("\n"|LONG_BLANK|DEFAULT|PUNCT|SHORT|LONG|ARGUMENT|LINE_OF_TEXT)`
 }
 
