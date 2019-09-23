@@ -167,7 +167,7 @@ func main() {
 	}
 
 	parser := participle.MustBuild(&Docopt{},
-		participle.UseLookahead(1),
+		participle.UseLookahead(2),
 		participle.Lexer(doctop_Lexer),
 	//participle.Elide("Comment", "Whitespace"),
 	)
