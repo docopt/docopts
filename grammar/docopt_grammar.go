@@ -141,12 +141,12 @@ type Option struct {
 }
 
 type Option_doc struct {
-	Option_doc       string   `    LONG_BLANK @LINE_OF_TEXT`
-	Option_doc_lines []string `  ( "\n" LONG_BLANK @LINE_OF_TEXT )*`
+	Option_doc       string   `    LONG_BLANK @LINE_OF_TEXT "."? `
+	Option_doc_lines []string `  ( "\n" LONG_BLANK @LINE_OF_TEXT "."? )*`
 }
 
 type Option_default struct {
-	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]"`
+	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]" "."?`
 }
 
 func main() {
@@ -158,6 +158,7 @@ func main() {
 	} else {
 		fmt.Printf("parsing: %s\n", filename)
 	}
+	defer f.Close()
 
 	// A custom lexer for docopt input
 	doctop_Lexer, err := lexer_state.StateLexer(token_docopt.All_states, "state_Prologue")

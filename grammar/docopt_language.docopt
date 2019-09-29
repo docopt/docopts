@@ -23,7 +23,7 @@ Options:
    -h, --help                 Indent is important before options, and between option and help message.
   --optional-long-argument    The parser, recognize option, based on indent, followed by the option
                               the help message can continue on the next line.
-  --which-support=<argument>  The <argument> for this option has a [default: value_here_is_parsed]
+  --which-support=<argument>  The <argument> for this option has a [default: value_here_is_parsed].
 
 Actions:
 

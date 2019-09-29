@@ -45,3 +45,20 @@ docopt_language.docopt:24:3: unexpected "--optional-long-argument" (expected <li
 ```
 
 
+## Lexer get all token first
+
+All token are eaten first which report some invalid token at this phase (develpement phase only?)
+
+
+```
+sylvain@lap42:~/code/go/src/github.com/docopt/docopts/grammar$ go run docopt_grammar.go docopt_language.docopt
+parsing: docopt_language.docopt
+Parse error
+======================= partial AST ==========================
+&main.Docopt{
+}
+================ end of partial AST ==========================
+docopt_language.docopt:26:68: invalid token '['
+```
+
+
