@@ -121,14 +121,37 @@ type Options struct {
 type Options_line struct {
 	Pos lexer.Position
 
-	Option_def     Option_def     `(   LONG_BLANK @@`
-	Option_doc     Option_doc     `    @@`
-	Option_default Option_default `    @@? "\n"`
-	Comment        []string       `|   @( LINE_OF_TEXT "\n" | "\n"+ ) )`
+	Option_def     Option_def      `( LONG_BLANK @@`
+	Option_doc     Option_doc      `  @@`
+	Option_default *Option_default `  @@?`
+	Option_dot     *string         `  @"."? "\n"`
+	Comment        []string        `| @( LINE_OF_TEXT "\n" | "\n"+ ) )`
 }
 
 type Option_def struct {
 	Options []Option `@@ ("," @@)*`
+}
+
+func (odef *Option_def) String() string {
+	var out string
+	for i, o := range odef.Options {
+		if i > 0 {
+			out += ", "
+		}
+		if o.Short != nil {
+			out += *o.Short
+		}
+		if o.Short_arg != nil {
+			out += " " + *o.Short_arg
+		}
+		if o.Long != nil {
+			out += *o.Long
+		}
+		if o.Argument != nil {
+			out += "=" + *o.Argument
+		}
+	}
+	return out
 }
 
 type Option struct {
@@ -141,12 +164,35 @@ type Option struct {
 }
 
 type Option_doc struct {
-	Option_doc       string   `    LONG_BLANK @LINE_OF_TEXT "."? `
-	Option_doc_lines []string `  ( "\n" LONG_BLANK @LINE_OF_TEXT "."? )*`
+	Option_doc       string   `    LONG_BLANK @LINE_OF_TEXT`
+	Option_doc_lines []string `  ( "\n" LONG_BLANK @LINE_OF_TEXT )*`
 }
 
 type Option_default struct {
-	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]" "."?`
+	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]"`
+}
+
+func (op *Options) String() string {
+	out := "Options:\n"
+	for _, o := range op.Options_lines {
+		out += "  "
+		out += o.Option_def.String()
+		out += "  "
+		out += o.Option_doc.Option_doc
+		for _, l := range o.Option_doc.Option_doc_lines {
+			out += "\n" + l
+		}
+
+		if o.Option_default != nil {
+			out += "[" + o.Option_default.Option_default + "]"
+		}
+		if o.Option_dot != nil {
+			out += "."
+		}
+
+		out += "\n"
+	}
+	return out
 }
 
 func main() {
@@ -177,6 +223,7 @@ func main() {
 	if err = parser.Parse(f, ast); err == nil {
 		//repr.Println(ast)
 		repr.Println(ast, repr.Hide(&lexer.Position{}))
+		fmt.Println(ast.Options)
 		fmt.Println("Parse Success")
 	} else {
 		fmt.Println("Parse error")
