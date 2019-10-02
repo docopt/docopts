@@ -10,6 +10,7 @@ import (
 
 	"github.com/docopt/docopts/grammar/lexer_state"
 	"github.com/docopt/docopts/grammar/token_docopt"
+	"regexp"
 )
 
 /*  grammar participle syntax ~ ebnf
@@ -121,11 +122,10 @@ type Options struct {
 type Options_line struct {
 	Pos lexer.Position
 
-	Option_def     Option_def      `( LONG_BLANK @@`
-	Option_doc     Option_doc      `  @@`
-	Option_default *Option_default `  @@?`
-	Option_dot     *string         `  @"."? "\n"`
-	Comment        []string        `| @( LINE_OF_TEXT "\n" | "\n"+ ) )`
+	Option_def     Option_def `( LONG_BLANK @@`
+	Option_doc     Option_doc `  @@`
+	Option_default *string
+	Comment        []string `| @( LINE_OF_TEXT "\n" | "\n"+ ) )`
 }
 
 type Option_def struct {
@@ -168,9 +168,9 @@ type Option_doc struct {
 	Option_doc_lines []string `  ( "\n" LONG_BLANK @LINE_OF_TEXT )*`
 }
 
-type Option_default struct {
-	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]"`
-}
+// type Option_default struct {
+// 	Option_default string `"[" DEFAULT @LINE_OF_TEXT "]"`
+// }
 
 func (op *Options) String() string {
 	out := "Options:\n"
@@ -178,21 +178,37 @@ func (op *Options) String() string {
 		out += "  "
 		out += o.Option_def.String()
 		out += "  "
-		out += o.Option_doc.Option_doc
-		for _, l := range o.Option_doc.Option_doc_lines {
-			out += "\n" + l
-		}
-
-		if o.Option_default != nil {
-			out += "[" + o.Option_default.Option_default + "]"
-		}
-		if o.Option_dot != nil {
-			out += "."
-		}
+		out += o.Option_doc.String()
 
 		out += "\n"
 	}
 	return out
+}
+
+func (od *Option_doc) String() string {
+	out := od.Option_doc
+	for _, l := range od.Option_doc_lines {
+		out += "\n  " + l
+	}
+	return out
+}
+
+func (op *Options) Post_parsing_Options_extract_default() int {
+	found_count := 0
+	reDefault := regexp.MustCompile(`(?i)\[default: (.*)\]`)
+
+	for i := range op.Options_lines {
+		doc := op.Options_lines[i].Option_doc.String()
+
+		matched := reDefault.FindAllStringSubmatch(doc, -1)
+		if len(matched) > 0 {
+			value := matched[0][1]
+			op.Options_lines[i].Option_default = &value
+			found_count++
+		}
+	}
+
+	return found_count
 }
 
 func main() {
@@ -222,6 +238,7 @@ func main() {
 	ast := &Docopt{}
 	if err = parser.Parse(f, ast); err == nil {
 		//repr.Println(ast)
+		ast.Options.Post_parsing_Options_extract_default()
 		repr.Println(ast, repr.Hide(&lexer.Position{}))
 		fmt.Println(ast.Options)
 		fmt.Println("Parse Success")

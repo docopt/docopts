@@ -35,16 +35,15 @@ var (
   # Options: is matched by state_Usage
   |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Free
   |(?P<LONG_BLANK>[\t ]{2,})
-	|(?P<DEFAULT>^default: )
   # skip single blank
   |([\t ])
   |(?P<SHORT>-[A-Za-z0-9?])
   |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
   |(?P<ARGUMENT><[A-Za-z][A-Za-z0-9_-]+>|[A-Z_][A-Z0-9_-]+)
-  # Punctuation differe from state_Usage accepts comma and dot
-  |(?P<PUNCT>[=,()|.[\]])
+  # Punctuation differe from state_Usage
+  |(?P<PUNCT>[=,])
 	 # LINE_OF_TEXT not some PUNCT []
-  |(?P<LINE_OF_TEXT>[^\n[\]]+)
+  |(?P<LINE_OF_TEXT>[^\n]+)
   `
 
 	State_Free = `
