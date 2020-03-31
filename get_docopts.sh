@@ -56,6 +56,7 @@ fi
 
 # try to detect CPU architecture
 ARCH=$(arch)
+[[ $OSTYPE == 'darwin'* ]] && ARCH=$(uname -m)
 case $ARCH in
   x86_64)
     echo "I'm 64-bits"
