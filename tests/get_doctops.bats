@@ -7,6 +7,8 @@
   # go to repository basepath
   cd ..
   [[ -x docopts ]] && rm docopts
+  unset GIT_USER
+  unset RELEASE
   run ./get_docopts.sh
   echo "$output"
   [[ $status -eq 0 ]]
@@ -22,7 +24,6 @@
   version=$(cat VERSION)
   [[ $output =~ $version ]]
 }
-
 
 @test "get_docopts.sh use another repository" {
   # go to repository basepath
@@ -43,4 +44,14 @@
   # test version match
   version='v0.6.4-alpha1'
   [[ $output =~ $version ]]
+}
+
+@test "arch 64bits detection on macos" {
+  if [[ $OSTYPE =~ ^darwin.* ]] ; then
+    echo "checking"
+
+
+  else
+    skip "only on macos, this OS is: $OSTYPE"
+  fi
 }

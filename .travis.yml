@@ -2,9 +2,17 @@ language: go
 os:
   - linux
   - osx
+
 go:
-  - "1.11.4"
-  #  - "1.13"
+  #- "1.11.4"
+  - "1.14"
+
+# speed up macos brew
+# https://stackoverflow.com/questions/39930171/cache-brew-builds-with-travis-ci
+cache:
+  directories:
+    - $HOME/Library/Caches/Homebrew
+
 before_install:
   # brew update takes very long time
   # according to https://docs.travis-ci.com/user/reference/osx#homebrew
@@ -15,13 +23,16 @@ before_install:
   - go get github.com/docopt/docopt-go
   # get our official repos too
   - go get github.com/docopt/docopts
+
 branches:
   only:
     - docopts-go
     - master
+
 notifications:
   email:
     on_success: never
+
 script:
   - make test
-    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi

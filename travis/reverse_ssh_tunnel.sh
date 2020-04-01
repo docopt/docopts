@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
+#
+# Usage: a bounce host MUST be set before!
+# ansible playbook not provided yet.
 
 set -euo pipefail
 
-# Usage: a bounce host must be set before
-# ansible playbook not provided yet.
+###################################################################### Config
 
 # The IP here is a temporay public cloud VM
-# You need to edit that IP
-BOUNCEHOSTIP="51.83.248.111"
+# You MUST to edit that IP:
+BOUNCEHOSTIP="51.83.254.145"
+
+###################################################################### Code
 
 # Where to store localy the remote bounce host ssh key
 TEMP_SSH_KEYS=/tmp/$USER-bounce-travis/id_rsa
