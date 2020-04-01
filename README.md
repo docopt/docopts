@@ -292,7 +292,7 @@ We provide a download helper:
 
 ```bash
 git clone https://github.com/docopt/docopts.git
-cd doctops
+cd docopts
 ./get_docopts.sh
 ```
 
