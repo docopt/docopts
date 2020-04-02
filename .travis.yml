@@ -20,7 +20,7 @@ before_install:
   #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
   - bash --version ; type bash
-  - type bats ; bats --version
+  - ./travis/get_bats-core.sh
   - go get github.com/docopt/docopt-go
   # get our official repos too
   - go get github.com/docopt/docopts
@@ -36,4 +36,8 @@ notifications:
 
 script:
   - make test
+
+# according to https://blog.travis-ci.com/after_script_behavior_changes/
+# run at the end even on failure
+after_script:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
