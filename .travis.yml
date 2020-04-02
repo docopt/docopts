@@ -14,16 +14,16 @@ cache:
     - $HOME/Library/Caches/Homebrew
 
 before_install:
-  # brew update takes very long time
-  # according to https://docs.travis-ci.com/user/reference/osx#homebrew
-  # homebrew is already updated, but it's still really slow
-  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
   - bash --version ; type bash
   - bash -x ./travis/get_bats-core.sh
   - go get github.com/docopt/docopt-go
   # get our official repos too
   - go get github.com/docopt/docopts
+  # brew update takes very long time
+  # according to https://docs.travis-ci.com/user/reference/osx#homebrew
+  # homebrew is already updated, but it's still really slow
+  #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
 
 branches:
   only:
@@ -37,7 +37,9 @@ notifications:
 script:
   - make test
 
-# according to https://blog.travis-ci.com/after_script_behavior_changes/
-# run at the end even on failure
 after_script:
+  # using reverse_ssh_tunnel in after_script:
+  # according to https://blog.travis-ci.com/after_script_behavior_changes/
+  # this should be run failure too
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+
