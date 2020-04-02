@@ -2,6 +2,8 @@
 
 All python related stuff has been removed, excepted `language_agnostic_tester.py`.
 
+## Hacking docopts
+
 If you want to clone this repository and hack `docopts`:
 
 Use `git clone --recursive`, to get submodules - these are only required for testing with `bats`.

@@ -54,6 +54,8 @@ then
   exit 1
 fi
 
+###################################################################### detection
+
 case $OSTYPE in
   darwin*)
     echo "I'm on macos"

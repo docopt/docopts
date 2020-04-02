@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 #
-# Usage: a bounce host MUST be set before!
-# ansible playbook not provided yet.
+# Usage: add this line to .travis.yml at the end of the script: section
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+# required: a bounce host MUST be set before!
+# NOTE: ansible playbook to build the bounce_host not provided yet.
 
 set -euo pipefail
 
 ###################################################################### Config
 
 # The IP here is a temporay public cloud VM
-# You MUST to edit that IP:
-BOUNCEHOSTIP="51.83.254.145"
+# You MUST set the good IP on BOUNCEHOST or a valid IP.
+# This will be the ssh machine that this script will connect too from travis instance
+BOUNCEHOST="travis.opensource-expert.com"
 
 ###################################################################### Code
 
@@ -35,8 +38,8 @@ fetch_ssh_keys()
 {
   local tmp_ssh_dir=$(dirname $TEMP_SSH_KEYS)
   mkdir -p $tmp_ssh_dir
-  wget -O $TEMP_SSH_KEYS http://$BOUNCEHOSTIP/id_rsa
-  wget -O ${TEMP_SSH_KEYS}.pub http://$BOUNCEHOSTIP/id_rsa.pub
+  wget -O $TEMP_SSH_KEYS http://$BOUNCEHOST/id_rsa
+  wget -O ${TEMP_SSH_KEYS}.pub http://$BOUNCEHOST/id_rsa.pub
   chmod 600 $tmp_ssh_dir/*
 }
 
@@ -50,7 +53,7 @@ cleanup()
 bounce_host_remote_exec()
 {
   NOOP_DELAY=30
-  # 30 minutes
+  # our 30 minutes timeout
   MAX=$((30*60))
   echo 'bounce host connected'
 
@@ -78,7 +81,7 @@ bounce_host_remote_exec()
 
 ################################################ main
 
-fail_if_empty BOUNCEHOSTIP TEMP_SSH_KEYS
+fail_if_empty BOUNCEHOST TEMP_SSH_KEYS
 fetch_ssh_keys
 
 # start ssh agent and add the private key
@@ -95,5 +98,5 @@ chmod 600 $HOME/.ssh/authorized_keys
 # for 10 min without output Success
 # https://travis-ci.org/Sylvain303/docopts/builds/540455090#L1295
 ssh -R 9999:localhost:22 \
-  -o StrictHostKeyChecking=no travis@$BOUNCEHOSTIP \
+  -o StrictHostKeyChecking=no travis@$BOUNCEHOST \
   "$(typeset -f bounce_host_remote_exec); bounce_host_remote_exec"

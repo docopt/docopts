@@ -1,5 +1,17 @@
 # docopts (docopt for bash) TODO list
 
+## install bats as a travis dependancies
+
+actually bats is a submodule.
+and it's run from `make test`
+
+```
+cd tests/ && ./bats/bin/bats .
+```
+
+it could be installed as a depenancy and fetched from github
+
+
 ## better error handling
 
 https://github.com/docopt/docopts/issues/17
