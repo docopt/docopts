@@ -22,7 +22,9 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     # We could also store the image in the repository too.
     pwd
     ls -l
-    gzip -dc ./bash-5.0.16_x86_64-apple-darwin17.7.0.gz | sudo tee /usr/local/bin/bash > /dev/null
+    bash_bin=/usr/local/bin/bash
+    gzip -dc ./bash-5.0.16_x86_64-apple-darwin17.7.0.gz | \
+      sudo bash -c "cat > $bash_bin && chmod a+x $bash_bin"
   fi
 fi
 
@@ -35,7 +37,7 @@ hash -r bash
 bash --version
 type bash
 
-MY_BASH_VERSINFO=$(bash --version | sed -n -e '1 s/^.*version \([0-9.]\+\).*/\1/p')
+MY_BASH_VERSINFO=$(bash --version | sed -n -e '1 s/^.*version \([0-9.]\{1,\}\).*/\1/ p')
 if [[ ! $MY_BASH_VERSINFO =~ ^[4-9] ]] ; then
   echo "install bash5 failed"
   ./travis/reverse_ssh_tunnel.sh
