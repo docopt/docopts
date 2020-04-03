@@ -14,8 +14,15 @@ _run_get_docopts() {
 }
 
 @test "download binary with get_docopts.sh" {
+  # cleanup
   unset GIT_USER
   unset RELEASE
+
+  # we are in ./tests for now
+  [[ ${PWD##*/} == 'tests' ]]
+  # force an existing released version
+  version=$(cat ./VERSION)
+  export RELEASE=$version
   _run_get_docopts
 
   # ensure main repository URL
@@ -23,10 +30,9 @@ _run_get_docopts() {
   [[ $output =~ $match_url ]]
 
   [[ -x docopts ]]
+  # test version match
   run ./docopts --version
   [[ $status -eq 0 ]]
-  # test version match
-  version=$(cat VERSION)
   [[ $output =~ $version ]]
 }
 

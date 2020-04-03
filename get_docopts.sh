@@ -15,8 +15,9 @@ GIT_USER=${GIT_USER:-docopt}
 GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 
-# default value comes from VERSION file, can be overridden via env var
-RELEASE=${RELEASE:-VERSION}
+# default value comes from VERSION file
+# can be overridden via env var $RELEASE
+RELEASE=${RELEASE:-get_VERSION}
 BINARY=docopts
 # ISSUE_URL is fixed for this project
 ISSUE_URL=https://github.com/docopt/docopts/issues/
@@ -43,7 +44,7 @@ EOT
 
 # ======================================== main
 
-if [[ $RELEASE == 'VERSION' ]]
+if [[ $RELEASE == 'get_VERSION' ]]
 then
   RELEASE=$(cat VERSION)
 fi
@@ -56,17 +57,16 @@ fi
 
 ###################################################################### detection
 
+# fix bug https://github.com/docopt/docopts/issues/44
+ARCH=$(uname -m)
 case $OSTYPE in
   darwin*)
     echo "I'm on macos"
-    # fix bug https://github.com/docopt/docopts/issues/44
-    ARCH=$(uname -m)
     OS_URL=darwin
     ;;
   linux*)
     echo "I'm on linux"
     OS_URL=linux
-    ARCH=$(arch)
     ;;
   *)
     report_issue
@@ -101,7 +101,7 @@ URL="$BASE_URL/$RELEASE/$BINARY_DOWNLOAD"
 echo "Fetching from: $URL"
 
 # verification
-if wget "$URL" ; then
+if wget -O $BINARY_DOWNLOAD "$URL" ; then
   file $BINARY_DOWNLOAD
   chmod a+x $BINARY_DOWNLOAD
 

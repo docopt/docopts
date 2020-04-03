@@ -14,7 +14,7 @@ GNU/Linux OS.
 [make README.md]: # (./docopts --version | get_version "This is a transitional release:")
 
 ```
-This is a transitional release: v0.6.3-rc1
+This is a transitional release: v0.6.3-rc2
 ```
 
 This release will be maintained for compatibility, only fixes will be provided. The 0.6.3 version is fully compatible with
@@ -344,7 +344,7 @@ Tested builds are built on:
 [make README.md]: # (go version)
 
 ```
-go version go1.11.4 linux/amd64
+go version go1.14.1 linux/amd64
 ```
 
 ## Features
