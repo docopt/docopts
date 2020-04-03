@@ -10,10 +10,8 @@ pathshow ()
     eval "echo \$$var | tr : $'\n'"
 }
 
-
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-  if ((BASH_VERSINFO[0] <= 3))
-  then
+  if ((BASH_VERSINFO[0] <= 3)) ; then
     # brew update takes very long time
     # according to https://docs.travis-ci.com/user/reference/osx#homebrew
     # homebrew is already updated, but it's still really slow
@@ -22,7 +20,9 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 
     # the following hack kept a bash5 binary online for our speedup pupose.
     # We could also store the image in the repository too.
-    sudo bash -c "zcat  ./bash-5.0.16_x86_64-apple-darwin17.7.0.gz > /usr/local/bin/bash"
+    pwd
+    ls -l
+    sudo bash -c "zcat  $TRAVIS_BUILD_DIR/bash-5.0.16_x86_64-apple-darwin17.7.0.gz > /usr/local/bin/bash"
   fi
 fi
 
@@ -34,3 +34,9 @@ echo "======================= new bash version"
 hash -r bash
 bash --version
 type bash
+
+MY_BASH_VERSINFO=$(bash --version | sed -n -e '1 s/^.*version \([0-9.]\+\).*/\1/p')
+if [[ ! $MY_BASH_VERSINFO =~ ^[4-9] ]] ; then
+  echo "install bash5 failed"
+  exit 1
+fi
