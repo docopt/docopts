@@ -1,3 +1,0 @@
-#!/bin/bash
-alias bats="$PWD/bats/bin/bats"
-source exit_handler.sh

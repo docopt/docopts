@@ -26,7 +26,7 @@
 
 DEPLOYMENT_FILE=deployment.yml
 # change GITHUB_USER + GITHUB_REPO to change repository, it is for building API URL
-GITHUB_USER=sylvain303
+GITHUB_USER=docopt
 GITHUB_REPO=docopts
 TAG="v0.6.3-alpha2"
 BUILD_DEST_DIR=build

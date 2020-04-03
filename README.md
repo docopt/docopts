@@ -286,7 +286,7 @@ cp docopts docopts.sh /usr/local/bin
 
 ### Pre-built binaries
 
-Pre-built Go binaries for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/docopt/docopts/releases).
+Pre-built Go binaries for some OS (32 and 64 bits) are attached to [releases](https://github.com/docopt/docopts/releases).
 
 We provide a download helper:
 
@@ -296,14 +296,14 @@ cd docopts
 ./get_docopts.sh
 ```
 
-Rename to `docopts` and put it in your `PATH`:
+You should get a renamed `docopts` in the current folder.
+Put it in your `PATH`:
 
 ```bash
-mv docopts_linux_amd64 docopts
-cp docopts docopts.sh /usr/local/bin
+sudo cp docopts docopts.sh /usr/local/bin
 ```
 
-The cloned repository is no more used at this stage. 
+The cloned repository is no more used at this stage, but still contains a lot of bash examples.
 
 Learn more about [pre-built binaries](docs/pre_built_binaries.md).
 
@@ -339,7 +339,7 @@ make all
 make test
 ```
 
-Tested builds are built on: 
+Tested builds are built on:
 
 [make README.md]: # (go version)
 
@@ -362,7 +362,7 @@ As of 2019-05-18
 * `docopts` is able to reproduce 100% of the python version.
 * unit tests for Go are provided, so hack as you wish.
 * 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits).
-* `bats-core` unittests and fonctional testing are provided too. 
+* `bats-core` unittests and fonctional testing are provided too.
 
 ## Developers
 

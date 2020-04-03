@@ -6,8 +6,9 @@ All python related stuff has been removed, excepted `language_agnostic_tester.py
 
 If you want to clone this repository and hack `docopts`:
 
-Use `git clone --recursive`, to get submodules - these are only required for testing with `bats`.
-If [`bats-core`](https://github.com/bats-core/bats-core) installed in your PATH should work too.
+You will need to install [`bats-core`](https://github.com/bats-core/bats-core) in your PATH.
+These are only required for testing with `bats`, you may omit it if you dont plan to use
+`make test`
 
 Fetch the extra golang version of `docopt-go` (required for building `docopts`)
 
@@ -15,30 +16,23 @@ Fetch the extra golang version of `docopt-go` (required for building `docopts`)
 go get github.com/docopt/docopt-go
 ```
 
-If you forgot `--recursive`, you can also run it afterwards:
+Current folder structure looks like:
 
-~~~bash
-git submodule init
-git submodule update
-~~~
-
-Current folder structure:
-
-~~~
+```
 .
-├── docopts.go - main source code
-├── docopts_test.go - go unit tests
-├── docopts.sh - library wrapper and helpers
-├── examples - many ported examples in bash, all must be working
-├── language_agnostic_tester.py - old python JSON tester still used with testee.sh
-├── LICENSE-MIT
-├── PROGRESS.md - what I'm working on
-├── README.md
-├── testcases.docopt - agnostic testcases copied from python's docopt
-├── testee.sh - bash wrapper to convert docopts output to JSON (now uses docopts.sh)
-├── tests - unit and functional testing written in bats (requires submodule)
-└── TODO.md - Some todo list on this golang version of docopts
-~~~
+├── docopts.go                   - main source code
+├── docopts_test.go              - go unit tests
+├── docopts.sh                   - library wrapper and helpers
+├── examples                     - many ported examples in bash, all must be working
+├── language_agnostic_tester.py  - old python JSON tester still used with testee.sh
+├── LICENSE-MIT                  - original docopts license
+├── README.md                    - our main documentation
+├── testcases.docopt             - agnostic testcases copied from python's docopt
+├── testee.sh                    - bash wrapper to convert docopts output to JSON (now uses docopts.sh)
+├── tests                        - unit and functional testing written in bats
+└── TODO.md                      - Some todo list on this golang version of docopts
+[...]                            - other file are helpers or current hack, not documented
+```
 
 ## Tests
 
@@ -57,18 +51,20 @@ make test
 
 #### bats
 
-`bats.alias` modify your current environment to define a alias on the submodule of `bats` installed (if you did it).
+Bats is a unittest / functional testing framework for bash.
+
+All our tests expect to run from `./tests/` directory and the `docopts` binary in `../docopts`.
+Ensure bats is in your PATH.
 
 ```bash
 cd ./tests
-. bats.alias
 bats .
 ```
 
 #### `language_agnostic_tester`
 
 This script was provided with the original `docopts`. I fixed number/string output parsing failure with an extra function
-for bash in [docopts.sh](https://github.com/docopt/docopts/blob/docopts-go/docopts.sh#L108)
+for bash in [docopts.sh](https://github.com/docopt/docopts/blob/13f0bbcaba5c92deba909139b92fbbf3d768ea1b/docopts.sh#L144-L151)
 `docopt_get_raw_value()`. This is a hack to get 100% pass, and it is not very efficient.
 
 Run these tests from top of repo:
