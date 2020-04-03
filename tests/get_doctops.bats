@@ -59,11 +59,12 @@ _run_get_docopts() {
     ARCH=$(uname -m)
     [[ $ARCH == x86_64 ]]
 
+    version=$(cat ./VERSION)
+    export RELEASE=$version
     _run_get_docopts
     expect="I'm on macos"
     [[ $output =~ $expect ]]
 
-    version=$(cat VERSION)
     os=darwin
     match_url="Fetching from: https://github.com/docopt/docopts/releases/download/$version/docopts_${os}_amd64"
     [[ $output =~ $match_url ]]
