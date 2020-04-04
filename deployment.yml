@@ -29,12 +29,13 @@ releases:
 
       changes:
         - fixed #44 get_docopts.sh for MACOS + tesing
-        - use [bats-core](https://github.com/bats-core/bats-core) as testing framework from travis
         - removed bats git submodule
+        - use [bats-core](https://github.com/bats-core/bats-core) as testing framework from travis
         - more pre-built binaries, removed darwin/386
         - fixed `docopts.sh` docopt_get_help_string could return more than one `Usage:`
         - `deploy.sh` removed, now use its [own repository](https://github.com/opensource-expert/deploy.sh)
-        - travis hack to get faster build on macos with our embedded bash5 binary
+        - updaed Makefile to use `get_ldflags.sh` from `deploy.sh`
+        - [travis hack](travis/get_bash5_macos.sh) to get faster build on macos with our embedded bash5 binary
 
   v0.6.3-rc1:
     name: "docopts binary transitional v0.6.3-rc1"

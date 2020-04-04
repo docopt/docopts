@@ -3,6 +3,7 @@
 ## releasing v0.6.3-rc2
 
 - finish release in docs/release.md
+- tests/get_doctops.bats DRY previous VERSION
 
 ## grammar programming
 

@@ -9,11 +9,12 @@ PREFIX ?= /usr/local
 GOVVV=${GOPATH}/bin/govvv
 DOCTOP_LIB=${GOPATH}/src/github.com/docopt/docopt-go/docopt.go
 
-# keep this as first target for development
-# build 64 bits version
+# keep docopts: as first target for development
+
+# govvv define main.Version with the contents of ./VERSION file, if exists
+BUILD_FLAGS=$(shell ./get_ldflags.sh)
 docopts: docopts.go Makefile ${GOVVV} ${DOCTOP_LIB}
-	# ldflags need to be synchronised with deploy.sh
-	go build -ldflags "$$(govvv -flags) -X 'main.GoBuildVersion=$$(go version)'" docopts.go
+	go build -o $@ -ldflags "${BUILD_FLAGS} ${LDFLAGS}"
 
 install_builddep: ${GOVVV} ${DOCTOP_LIB}
 	go get github.com/mitchellh/gox
@@ -47,7 +48,8 @@ all: install_builddep docopts README.md
 
 # requires write access to $PREFIX
 install: all
-	cp docopts docopts.sh $(PREFIX)/bin
+	install -m 755 docopts    $(PREFIX)/bin
+	install -m 755 docopts.sh $(PREFIX)/bin
 
 test: docopts
 	./docopts --version

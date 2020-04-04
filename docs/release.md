@@ -35,7 +35,6 @@ make README.md
 
 ## 4. commit all the code in master
 
-
 ```
 git commit -a
 ```
@@ -48,10 +47,30 @@ git push origin master
 
 ## 6. tag the new release
 
+```
+git tag -a $(cat ./VERSION) -m "docopts $(cat ./VERSION)"
+```
+
 ## 7. push on docopts for a travis build
 
-## 8. deploy the release
+```
+git push docopts master
+```
 
+## 8. build the release
 
+With [deploy.sh](https://github.com/opensource-expert/deploy.sh) installed in our PATH
+
+```
+deploy.sh build
+```
+
+## 9. deploy the release
+
+load github env
+
+```
+deploy.sh deploy
+```
 
 
