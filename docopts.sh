@@ -33,18 +33,11 @@
 # usually $0 in the main level script
 docopt_get_help_string() {
     local myfname=$1
-    # filter the block (/!\ ALL blocks) starting at a "# Usage:" and ending
-    # at an empty line, one level of comment markup is removed.
-    #
-    # sed gory details:
-    # -n : no print output
-    # -e : pass sed code inline
-    #   /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line (start+end included)
-    #   s/^# \{0,1\}//   : substitute comment marker and an optional space (POSIX regex)
-    #   p                : print
-    #   q                : quit, stop a first match
-    awk -e '
+    # filter the first block starting at a "# Usage:" and ending at an empty line
+    # one level of comment markup is removed.
+    awk '
         BEGIN { u=0; l=0 }
+        # we catch the first Usage: match
         /^# Usage:/ {
             if(u == 0)
             {
@@ -52,9 +45,10 @@ docopt_get_help_string() {
             }
         }
 
-        # Usage is also matched here + other lines
+        # match all lines. (Usage: is also matched)
         {
             if(u == 1) {
+                # append to an array
                 usage[l]=$0
                 l++
             }
@@ -68,8 +62,11 @@ docopt_get_help_string() {
                 u=2
             }
         }
+
+        # display result and format output
         END {
             for(i in usage) {
+                # remove comment
                 sub("^# {0,1}", "", usage[i])
                 print usage[i]
             }
