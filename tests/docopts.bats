@@ -67,6 +67,44 @@ EOF
     rm -f $tmp
 }
 
+@test "docopt_get_help_string with with 2 Usage:" {
+    tmp=./tmp_docopt_get_help_string_with_2_Usage
+    cat <<EOF > $tmp
+#!/usr/bin/env bash
+# rock
+#
+# Usage: rock [options] <argv>...
+#
+# Options:
+#       --verbose  Generate verbose messages.
+#       --help     Show help options.
+#       --version  Print program version.
+
+# an empty line above
+
+# Some more code [...]
+
+afunction() {
+    cat << END
+# Usage: here is the second usage
+# bla bla
+#
+
+# empty line above
+
+some code
+END
+
+}
+EOF
+    [[ -f $tmp ]]
+    run docopt_get_help_string $tmp
+    c=$(grep -c '^Usage:' <<< "$output")
+    echo "Usage count: $c"
+    [[ $c -eq 1 ]]
+    rm -f $tmp
+}
+
 @test "docopt_get_values" {
     declare -A args
     args['FILE,#']=3

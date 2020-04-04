@@ -39,10 +39,42 @@ docopt_get_help_string() {
     # sed gory details:
     # -n : no print output
     # -e : pass sed code inline
-    #   /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
+    #   /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line (start+end included)
     #   s/^# \{0,1\}//   : substitute comment marker and an optional space (POSIX regex)
     #   p                : print
-    sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < "$myfname"
+    #   q                : quit, stop a first match
+    awk -e '
+        BEGIN { u=0; l=0 }
+        /^# Usage:/ {
+            if(u == 0)
+            {
+                u=1
+            }
+        }
+
+        # Usage is also matched here + other lines
+        {
+            if(u == 1) {
+                usage[l]=$0
+                l++
+            }
+        }
+
+        # empty line
+        /^$/ {
+            if(u == 1)
+            {
+                # stop parsing when empty line found
+                u=2
+            }
+        }
+        END {
+            for(i in usage) {
+                sub("^# {0,1}", "", usage[i])
+                print usage[i]
+            }
+        }
+        ' < "$myfname"
 }
 
 # Doc:
