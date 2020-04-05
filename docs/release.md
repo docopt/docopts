@@ -74,14 +74,7 @@ git tag -a $(cat ./VERSION) -m "docopts $(cat ./VERSION)"
 git tag
 ```
 
-
-## 9. push the tag on docopts
-
-```
-git push docopts $(cat ./VERSION)
-```
-
-## 10. build the release
+## 9. build the release
 
 With [deploy.sh](https://github.com/opensource-expert/deploy.sh) installed in our PATH
 
@@ -90,11 +83,18 @@ With [deploy.sh](https://github.com/opensource-expert/deploy.sh) installed in ou
 deploy.sh build
 ```
 
+## 10. push the tag on docopts
+
+```
+git push docopts $(cat ./VERSION)
+```
+
 ## 11. deploy the release
 
 load github env
 
 ```
+. ./env
 export GITHUB_USER=docopt
 export GITHUB_REPO=docopts
 deploy.sh deploy

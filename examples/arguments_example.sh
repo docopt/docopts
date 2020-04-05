@@ -25,7 +25,7 @@ PATH=..:$PATH
 # auto parse the header above, See: docopt_get_help_string
 source docopts.sh --auto "$@"
 
-# docopt_auto_parse use ARGS bash 4 globla assoc array
+# docopt_auto_parse use ARGS bash 4 global assoc array
 # main code
 # on bash assoc array a '!' before name gives hash keys list
 for a in ${!ARGS[@]} ; do
