@@ -45,23 +45,35 @@ git commit -a
 git push origin master
 ```
 
-## 6. tag the new release
+## 6. remove travis hack macos if any
 
 ```
-git tag -a $(cat ./VERSION) -m "docopts $(cat ./VERSION)"
+sed -i -e '/travis.reverse_ssh_tunnel.sh/ s/^\([^#]\)/#\1/' .travis.yml
 ```
 
 ## 7. push on docopts for a travis build
 
 ```
+git commit -a
 git push docopts master
 ```
 
-## 8. remove travis hack macos if any
+## 8. tag the new release
+
+remove previous tag test if any
 
 ```
-sed -i -e '/travis.reverse_ssh_tunnel.sh/ s/^\([^#]\)/#\1/' .travis.yml
+git push --delete origin  $(cat ./VERSION)
+git tag -d $(cat ./VERSION)
 ```
+
+create the tag
+
+```
+git tag -a $(cat ./VERSION) -m "docopts $(cat ./VERSION)"
+git tag
+```
+
 
 ## 9. push the tag on docopts
 

@@ -33,4 +33,4 @@ after_script:
   # according to https://blog.travis-ci.com/after_script_behavior_changes/
   # not called if before_install: fails.
   # this should be run failure too
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
