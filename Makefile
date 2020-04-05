@@ -5,26 +5,20 @@
 
 PREFIX ?= /usr/local
 
-# dependancies
-GOVVV=${GOPATH}/bin/govvv
-DOCTOP_LIB=${GOPATH}/src/github.com/docopt/docopt-go/docopt.go
-
 # keep docopts: as first target for development
 
 # govvv define main.Version with the contents of ./VERSION file, if exists
 BUILD_FLAGS=$(shell ./get_ldflags.sh)
-docopts: docopts.go Makefile ${GOVVV} ${DOCTOP_LIB}
+docopts: docopts.go Makefile
 	go build -o $@ -ldflags "${BUILD_FLAGS} ${LDFLAGS}"
 
-install_builddep: ${GOVVV} ${DOCTOP_LIB}
+# dependancies
+install_builddep:
+	go get github.com/docopt/docopts
+	go get github.com/docopt/docopt-go
 	go get github.com/mitchellh/gox
 	go get github.com/itchio/gothub
-	go get gopkg.in/mikefarah/yq.v2
-
-${DOCTOP_LIB}:
-	go get github.com/docopt/docopt-go
-
-${GOVVV}:
+	go get gopkg.in/yaml.v2
 	go get github.com/ahmetb/govvv
 
 all: install_builddep docopts README.md

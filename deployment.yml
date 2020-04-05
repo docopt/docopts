@@ -31,12 +31,13 @@ releases:
         - `docopts.sh` function `docopt_get_help_string()` now uses awk to extract only first `Usage:`
 
       internal changes:
+        - use Go 1.14 for compiling
         - more pre-built binaries, removed darwin/386
         - fixed #44 `get_docopts.sh` for MACOS + functionnal tests
         - removed bats git submodule
         - use [bats-core 1.2-dev](https://github.com/bats-core/bats-core) as testing framework from travis
         - `deploy.sh` removed, now use its [own repository](https://github.com/opensource-expert/deploy.sh)
-        - updaed Makefile to use `get_ldflags.sh` from `deploy.sh`
+        - updated Makefile to use `get_ldflags.sh` from `deploy.sh`
         - [travis hack](travis/get_bash5_macos.sh) to get faster build on macos with our embedded bash5 binary
 
   v0.6.3-rc1:

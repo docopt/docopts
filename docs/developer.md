@@ -4,19 +4,21 @@ All python related stuff has been removed, excepted `language_agnostic_tester.py
 
 ## Hacking docopts
 
-If you want to clone this repository and hack `docopts`:
+In order to  hack `docopts` you will need:
 
-You will need to install [`bats-core`](https://github.com/bats-core/bats-core) in your PATH.
-These are only required for testing with `bats`, you may omit it if you dont plan to use
-`make test`
+- A working [Go developper environment](https://golang.org/doc/code.html#Organization)
+- [`bats-core`](https://github.com/bats-core/bats-core) in your PATH. (optional: for testing with `make test`)
+- GNU awk (for `build_doc.sh`)
 
-Fetch the extra golang version of `docopt-go` (required for building `docopts`)
+Fetch all dependancies:
 
 ```
-go get github.com/docopt/docopt-go
+make install_builddep
 ```
 
-Current folder structure looks like:
+## Current folder structure
+
+It should looks like:
 
 ```
 .
@@ -77,13 +79,13 @@ python language_agnostic_tester.py ./testee.sh
 This lib is outside this project, but it is the base of the `docopt` language parsing for this wrapper.
 
 ```
-cd PATH/to/go/src/github.com/docopt/docopt-go/
+cd $GOPATH/src/github.com/docopt/docopt-go
 go test -v .
 ```
 
 #### golang docopts (our bash wrapper)
 
 ```
-cd PATH/to/go/src/github.com/docopt/docopts
+cd $GOPATH/src/github.com/docopt/docopts
 go test -v
 ```
