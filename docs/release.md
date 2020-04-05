@@ -15,7 +15,7 @@ Increment the ./VERSION number
 
 edit ./deployment.yml
 
-- add the new tagget release by copying ./VERSION
+- add the new tag name release matching ./VERSION
 - the description you want, changes etc.
 
 ## 2. rebuild all
@@ -57,20 +57,33 @@ git tag -a $(cat ./VERSION) -m "docopts $(cat ./VERSION)"
 git push docopts master
 ```
 
-## 8. build the release
+## 8. remove travis hack macos if any
+
+```
+sed -i -e '/travis.reverse_ssh_tunnel.sh/ s/^\([^#]\)/#\1/' .travis.yml
+```
+
+## 9. push the tag on docopts
+
+```
+git push docopts $(cat ./VERSION)
+```
+
+## 10. build the release
 
 With [deploy.sh](https://github.com/opensource-expert/deploy.sh) installed in our PATH
+
 
 ```
 deploy.sh build
 ```
 
-## 9. deploy the release
+## 11. deploy the release
 
 load github env
 
 ```
+export GITHUB_USER=docopt
+export GITHUB_REPO=docopts
 deploy.sh deploy
 ```
-
-
