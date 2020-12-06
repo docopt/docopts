@@ -116,6 +116,7 @@ EOF
     [[ ${#lines[@]} -eq 1 ]]
     [[ "$output" == "somefile1 somefile2 somefile3" ]]
     array=( $output )
+    echo "array count: ${#array[@]}"
     [[ ${#array[@]} -eq 3 ]]
     [[ ${array[2]} == 'somefile3' ]]
 }
