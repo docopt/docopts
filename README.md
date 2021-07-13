@@ -362,7 +362,7 @@ As of 2019-05-18
 * `docopts` is able to reproduce 100% of the python version.
 * unit tests for Go are provided, so hack as you wish.
 * 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits).
-* `bats-core` unittests and fonctional testing are provided too.
+* `bats-core` unittests and functional testing are provided too.
 
 ## Developers
 
