@@ -1,0 +1,56 @@
+/* ================================ lexer for docopt language ===========
+ * in nex input format for golang: https://github.com/blynn/nex
+ */
+
+
+/* ===== State_Prologue */
+/\n/                    { return NEWLINE }
+/^Usage:/               { state = state_Usage_Line; return USAGE }
+/[^\n]+/                { lval.text = yylex.Text(); return LINE_OF_TEXT }
+
+/* ===== State_Usage */
+/\n/                    { return NEWLINE }
+/^Usage:/               { return USAGE }
+/^[A-Z][A-Za-z _-]+:/   { state = state_Options; lval.text = yylex.Text(); return SECTION }
+/[\t ]{2,}/             { state = state_Usage_Line; lval.text = yylex.Text();  return LONG_BLANK }
+//  skip single blank
+/[\t ]/
+//   Match some kind of comment in state_Usage_Line when not preceded by LongBlank ignored
+/[^\n]+/                { lval.text = yylex.Text(); return LINE_OF_TEXT }
+
+/* ===== State_Usage_Line */
+/\n/                                          { state = state_Usage }
+/[\t ]+/                                      { /* skip blanks */ }
+/-[A-Za-z0-9?]/                               { lval.text = yylex.Text(); return SHORT }
+/--[A-Za-z][A-Za-z0-9_-]+|^--$/               { lval.text = yylex.Text(); return LONG }
+/<[A-Za-z][A-Za-z0-9_-]*>|[A-Z_][A-Z0-9_-]+/  { lval.text = yylex.Text(); return ARGUMENT }
+/[\][=()|]|\.{3}/                             {
+                                                /*  Punctuation doesn't accept comma but elipsis ... */
+                                                lval.text = yylex.Text(); return PUNCT
+                                              }
+/[A-Za-z][A-Za-z0-9_-]+/                      { lval.text = yylex.Text(); return IDENT }
+
+/* ======== State_Options */
+/\n/                    { return NEWLINE }
+/default:/              { return DEFAULT }
+  /*  Options: is matched by state_Usage */
+/^[A-Z][A-Za-z _-]+:/   { state = state_Free; lval.text = yylex.Text(); return SECTION }
+/[\t ]{2,}/             { lval.text = yylex.Text();  return LONG_BLANK }
+/[\t ]/                 { /*   skip single blank */ }
+/-[A-Za-z0-9?]/                               { lval.text = yylex.Text(); return SHORT }
+/--[A-Za-z][A-Za-z0-9_-]+|^--$/               { lval.text = yylex.Text(); return LONG }
+/<[A-Za-z][A-Za-z0-9_-]*>|[A-Z_][A-Z0-9_-]+/  { lval.text = yylex.Text(); return ARGUMENT }
+  /* Punctuation differe from state_Usage accepts comma and dot */
+/[=,()|.[\]]/                                 {
+                                                lval.text = yylex.Text(); return PUNCT
+                                              }
+/[^\n[\]]+/                                   {
+                                                /* LINE_OF_TEXT not some PUNCT [] */
+                                                lval.text = yylex.Text()
+                                                return PUNCT
+                                              }
+
+/* ===== State_Free  */
+/\n/                    { return NEWLINE }
+/^[A-Z][A-Za-z _-]+:/   { lval.text = yylex.Text(); return SECTION }
+/[^\n]+/                { lval.text = yylex.Text(); return LINE_OF_TEXT }
