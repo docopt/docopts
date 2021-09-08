@@ -206,7 +206,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
     // docopt.Opts is of type map[string]interface{}
     // so value is an interface{}
     for key, value := range args {
-        if elem != "--" {
+        if key != "--" {
             if d.Mangle_key {
                 new_name, err = d.Name_mangle(key)
                 if err != nil {
