@@ -8,6 +8,7 @@ require (
 	github.com/alecthomas/repr v0.0.0-20181024024818-d37bc2a10ba1
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
+	github.com/blynn/nex v0.0.0-20200222124853-f06fb288caba // indirect
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 )
