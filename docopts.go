@@ -206,24 +206,26 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
     // docopt.Opts is of type map[string]interface{}
     // so value is an interface{}
     for key, value := range args {
-        if d.Mangle_key {
-            new_name, err = d.Name_mangle(key)
-            if err != nil {
-                return err
+        if key != "--" {
+            if d.Mangle_key {
+                new_name, err = d.Name_mangle(key)
+                if err != nil {
+                    return err
+                }
+            } else {
+                new_name = key
             }
-        } else {
-            new_name = key
-        }
 
-        // test if already present in the map
-        prev_key, seen := varmap[new_name]
-        if seen {
-            return fmt.Errorf("%s: two or more elements have identically mangled names", prev_key)
-        } else {
-          varmap[new_name] = key
-        }
+            // test if already present in the map
+            prev_key, seen := varmap[new_name]
+            if seen {
+                return fmt.Errorf("%s: two or more elements have identically mangled names", prev_key)
+            } else {
+              varmap[new_name] = key
+            }
 
-        out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(value))
+            out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(value))
+        }
     }
 
     // final output
@@ -238,7 +240,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) (error) {
 func (d *Docopts) Name_mangle(elem string) (string, error) {
     var v string
 
-    if elem == "-" || elem == "--" {
+    if elem == "-" {
         return "", fmt.Errorf("not supported")
     }
 
