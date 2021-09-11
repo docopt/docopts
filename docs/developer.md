@@ -1,4 +1,4 @@
-## Developers
+# Developers documenation
 
 All python related stuff has been removed, excepted `language_agnostic_tester.py`.
 
@@ -65,13 +65,27 @@ bats .
 
 #### `language_agnostic_tester`
 
+I rewrote some part of the script so it's now compatible with python3.
+
+This script goal is to parse `testcases.docopt` input format and to send to `testee.sh` to run against our `docopts`
+version. The result of `testee.sh` is JSON output of the test case ran with `docopts`.
+
 This script was provided with the original `docopts`. I fixed number/string output parsing failure with an extra function
 for bash in [docopts.sh](https://github.com/docopt/docopts/blob/13f0bbcaba5c92deba909139b92fbbf3d768ea1b/docopts.sh#L144-L151)
 `docopt_get_raw_value()`. This is a hack to get 100% pass, and it is not very efficient.
 
+This could have been a python's only code without `testee.sh` piping result.
+
 Run these tests from top of repo:
 ```
-python language_agnostic_tester.py ./testee.sh
+time python3 language_agnostic_tester.py ./testee.sh
+real  0m3,711s
+```
+
+Or a single test by its number (See: [testee.sh top comment documentation](../testee.sh).
+
+```
+python3 language_agnostic_tester.py ./testee.sh 176
 ```
 
 #### golang docopt.go (golang parser lib)
@@ -89,3 +103,33 @@ go test -v .
 cd $GOPATH/src/github.com/docopt/docopts
 go test -v
 ```
+
+## Add more test to docopts use-case
+
+### bats (functionnal testing) (bash)
+
+### `docopts_test.go` (unit testing) (golang + JSON)
+
+Option loop test JSON: [common_input_test.json](../common_input_test.json)
+
+
+
+
+### testcases.docopt (agnostic test universal to docopt parsing language)
+
+This the input file used by `language_agnostic_tester.py`
+
+File format is historically as follow:
+
+* Support comment `#`
+* single test definition:
+  * `r"""` introduce a new test
+  * a docopt definition including `Usage:` can be multiline or single line
+  * `"""` finish the docopt definition
+  * one or more call introduced with `$` + keyword `prog` followed by argument to pass to the program
+```
+$ prog -a
+{"-a": true}
+```
+  * followed with the exptected output in JSON format (single ligne) (no empty line between call and expected JSON)
+  * `\n` newline separator

@@ -87,18 +87,21 @@ var out io.Writer = os.Stdout
 
 // debug helper
 func print_args(args docopt.Opts, message string) {
-	// sort keys
-	mk := make([]string, len(args))
-	i := 0
-	for k, _ := range args {
-		mk[i] = k
-		i++
-	}
-	sort.Strings(mk)
 	fmt.Printf("################## %s ##################\n", message)
-	for _, key := range mk {
+	for _, key := range Sort_args_keys(args) {
 		fmt.Printf("%20s : %v\n", key, args[key])
 	}
+}
+
+func Sort_args_keys(args docopt.Opts) []string {
+	keys_list := make([]string, len(args))
+	i := 0
+	for k, _ := range args {
+		keys_list[i] = k
+		i++
+	}
+	sort.Strings(keys_list)
+	return keys_list
 }
 
 // Store global behavior to avoid passing many optional arguments to methods.
@@ -122,7 +125,8 @@ func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
 		fmt.Fprintf(out, "declare -A %s\n", bash_assoc)
 	}
 
-	for key, value := range args {
+	for _, key := range Sort_args_keys(args) {
+		value := args[key]
 		// some golang tricks here using reflection to loop over the map[]
 		rt := reflect.TypeOf(value)
 		if IsArray(rt) {
@@ -206,7 +210,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 
 	// docopt.Opts is of type map[string]interface{}
 	// so value is an interface{}
-	for key, value := range args {
+	for _, key := range Sort_args_keys(args) {
 		if d.Mangle_key {
 			if key == "--" {
 				// skip double-dash that can't be mangled #52
@@ -232,7 +236,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 			varmap[new_name] = key
 		}
 
-		out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(value))
+		out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(args[key]))
 	}
 
 	// final output
@@ -247,7 +251,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 func (d *Docopts) Name_mangle(elem string) (string, error) {
 	var v string
 
-	if elem == "-" {
+	if elem == "-" || elem == "--" {
 		return "", fmt.Errorf("Mangling not supported for: '%s'", elem)
 	}
 

@@ -27,8 +27,6 @@
 # To get ID_OF_THE_TEST:
 #  grep -E '^\{|"user' testcases.docopt | cat -n | less
 #
-# Note that `language_agnostic_tester.py` is only compatible with
-# Python 2.7.
 
 source ./docopts.sh
 script=$(./docopts -A args -h - : "$@" < /dev/stdin)

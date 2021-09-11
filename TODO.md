@@ -1,6 +1,22 @@
-# docopts (docopt for bash) TODO list
+# docopts (docopt for bash) TODO list or questions
+
+## PR52
 
 
+* add unit test for corner case
+```
+$ ./docopts -h 'Usage: prog double-dash [-p] [-o] [--] <unparsed_option>...' : double-dash -- one -p -auto-approve two
+o=false
+unparsed_option=('one' '-p' '-auto-approve' 'two')
+double_dash=true
+p=false
+```
+* document how to add unittest in Go
+* add functionnal test
+* ~~add `language_agnostic_tester.py` input test~~
+* better error message from `docopts`
+* document behavior parsing `--` `[--]` in global mode
+* also document `delv` debugger usage in delevopper's doc
 
 ## better error handling
 
@@ -10,7 +26,7 @@ See also:
 
 PR: https://github.com/docopt/docopt.go/pull/65
 
-## --json output
+## --json output ?
 
 same as `--no-mangle` but json formated
 
@@ -24,7 +40,7 @@ Somewhat discussed here: https://github.com/docopt/docopt/issues/174
 
 Add a parameter to handle return or kill instead of exit so it can be launched inside a function.
 
-## embeded JSON
+## embeded JSON?
 
 See [API_proposal.md](API_proposal.md)
 
@@ -34,7 +50,7 @@ See [API_proposal.md](API_proposal.md)
 docopts -h "$help" --generate-completion
 ```
 
-## embed test routine (validation)?
+## embed test routine (argument validation)?
 
 May we can interract with the caller to eval some validation…
 It is needed? Is it our goal?
