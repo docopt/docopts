@@ -62,7 +62,7 @@
     ]
   },
   {
-    "description" : "PR52 - ensure double-dash is skipped in globla mode, not in assoc mode",
+    "description" : "PR52 - ensure double-dash is skipped in global mode, not in assoc mode",
     "Notes" : [
       "input argument keys will be sorted by docopts, so expected must match the same order",
       "result are compared a string",

@@ -82,7 +82,7 @@ time python3 language_agnostic_tester.py ./testee.sh
 real  0m3,711s
 ```
 
-Or a single test by its number (See: [testee.sh top comment documentation](../testee.sh).
+Or a single test by its number (See: [testee.sh top comment documentation](../testee.sh)).
 
 ```
 python3 language_agnostic_tester.py ./testee.sh 176
@@ -110,26 +110,78 @@ go test -v
 
 ### `docopts_test.go` (unit testing) (golang + JSON)
 
-Option loop test JSON: [common_input_test.json](../common_input_test.json)
+It uses standard `go test`. Some method are "exposed" with Capital name only for testing purpose.
 
+JSON is not that easy to handle nor really human redable/editable and will probably be dropped.
 
+Options loop test JSON: [`common_input_test.json`](../common_input_test.json)
+
+This is our input file for testing options parsed recieved from docopt lib. We emulate docopt parsed options and give
+them as input to our method.
+
+JSON tests are read as a list of test: (others json keys should be ignored and are used as comment)
+Our parser JSON parser / loader [`test_json_load.go`](../test_json_load/test_json_load.go), only used for testing.
+
+```go
+type TestString struct {
+    Input map[string]interface{}
+    Expect_args []string
+    Expect_global  []string
+}
+```
+
+So adding new test case:
+
+add a new bloc of JSON object (dict / hash / map):
+```json
+  {
+    "description" : "convert array into fake nested array",
+    "input": {
+      "FILE": [
+        "pipo",
+        "molo",
+        "toto"
+      ]
+    },
+    "expect_args": [
+      "declare -A args",
+      "args['FILE,0']='pipo'",
+      "args['FILE,1']='molo'",
+      "args['FILE,2']='toto'",
+      "args['FILE,#']=3"
+    ],
+    "expect_global": [
+      "FILE=('pipo' 'molo' 'toto')"
+    ]
+  },
+```
+
+* `description` a comment which is ignored
+* other extra JSON key that are not the 3 following will be ignored too.
+* `input` correspond to the `map[string]interface{}` of docopt parsed options.
+* `expect_args` the text rows of the associative array code for bash4 that is outputed by `Print_bash_args()` matched in order.
+* `expect_global` the text definition of the bash global vars that is outputed by `Print_bash_global()` matched in order.
 
 
 ### testcases.docopt (agnostic test universal to docopt parsing language)
 
-This the input file used by `language_agnostic_tester.py`
+This file is still avaible from python docopt original repository too [testcases.docopt](https://github.com/docopt/docopt/blob/511d1c57b59cd2ed663a9f9e181b5160ce97e728/testcases.docopt)
 
-File format is historically as follow:
+This is the input file used by `language_agnostic_tester.py`, which is a middleware originaly written to read
+`testcases.docopt` and to send it to ~> `testee.sh` ~> `docopts` ~> JSON ~> the result is the validated against the
+embedded JSON expected result.
+
+Input file format is historically as follow:
 
 * Support comment `#`
 * single test definition:
   * `r"""` introduce a new test
-  * a docopt definition including `Usage:` can be multiline or single line
+  * a docopt definition including `Usage:` (can be multiline or single line)
   * `"""` finish the docopt definition
   * one or more call introduced with `$` + keyword `prog` followed by argument to pass to the program
 ```
 $ prog -a
 {"-a": true}
 ```
-  * followed with the exptected output in JSON format (single ligne) (no empty line between call and expected JSON)
-  * `\n` newline separator
+  * followed with the exptected output in JSON format (single ligne) (no empty line between `prog` call and expected JSON)
+  * `\n` newline separator if some other call are added for the same `Usage:` definition

@@ -9,6 +9,7 @@ def compare_json(expect, result):
     except:
         return "BAD_JSON"
 
+    # string compare
     if type(py_expect) is str:
         if type(py_result) is str:
             if py_expect == py_result:
@@ -18,19 +19,25 @@ def compare_json(expect, result):
         else:
             return "ERROR_TYPE_DIFFER: string expected got %s" % type(py_result)
 
+    #print(sorted(py_expect.keys()))
+    #print(sorted(py_result.keys()))
 
     # compare json key by key
     return_val = "OK"
     for k in py_expect.keys():
         if k in py_result:
             if py_result[k] == py_expect[k]:
+                del py_result[k]
                 continue
             else:
-                return_val = "ERROR_KEY_DIFFER: %s" % k
+                return_val = "ERROR_VALUE_DIFFER: for key %s" % k
                 break
         else:
             return_val = "ERROR_KEY_MISSING: %s" % k
             break
+
+    if return_val == "OK" and len(py_result) > 0:
+        return_val = "ERROR_TOO_MANY_KEYS: %s" % ",".join(py_result.keys())
 
     return return_val
 

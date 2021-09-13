@@ -1,4 +1,4 @@
-// vim: set ts=4 sw=4 sts=4 et:
+// vim: set ts=4 sw=4 sts=4 noet:
 //
 // unit test for docopts.go
 //
@@ -330,6 +330,18 @@ func TestName_mangle(t *testing.T) {
 		{
 			"-9",
 			Expected{s: "", e: errors.New("fail")},
+		},
+		{
+			"CamelCase",
+			Expected{s: "CamelCase", e: nil},
+		},
+		{
+			"SCREAMING_SNAKE_CASE",
+			Expected{s: "SCREAMING_SNAKE_CASE", e: nil},
+		},
+		{
+			"l-i-s-p",
+			Expected{s: "l_i_s_p", e: nil},
 		},
 	}
 

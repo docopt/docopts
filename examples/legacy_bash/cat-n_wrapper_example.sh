@@ -26,18 +26,28 @@ parsed=$(docopts -G args -h "$help" -V $version : "$@")
 eval "$parsed"
 
 cat_limit() {
-    if [[ -z "${args[--count]}" ]] ; then
-        cat -n "$1"
-    else
-        cat -n "$1" | head -"${args[--count]}"
-    fi
+  local filename=$1
+
+  if [[ -z "$args_count" ]] ; then
+      cat -n "$filename"
+  else
+      cat -n "$filename" | head -"$args_count"
+  fi
 }
 
-# current docopts multiple argument wrapper
-n=${args[FILE,#]}
+# array len in bash
+n=${#args_FILE[@]}
 for i in $(seq 0 $(($n - 1)))
 do
-    f="${args[FILE,$i]}"
-    echo "----- $f -------"
-    cat_limit  "$f"
+    f="${args_FILE[$i]}"
+    echo "----- $f ------- $((i+1)) / $n"
+    if [[ $f == '-' ]] ; then
+      f=/dev/stdin
+    fi
+    if [[ -f $f ]]
+    then
+      cat_limit  "$f"
+    else
+      echo "file not found: $f"
+    fi
 done
