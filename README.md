@@ -39,6 +39,11 @@ output as a snippet of Bash source code.  Passing this snippet as an argument to
 [`eval(1)`](http://man.cx/eval(1)) is sufficient for handling the CLI needs of
 most scripts.
 
+### Global mode
+
+Global mode, is the default historical output of `docopts`. It will output
+globals variable for storing parsed result.
+
 If `<argv>` matches one of the usage patterns defined in `<msg>`, `docopts`
 generates code for storing the parsed arguments as Bash variables. As most
 command line argument names are not valid Bash identifiers, some name mangling
@@ -48,16 +53,28 @@ will take place:
 * `UPPER-CASE` ==> `UPPER_CASE`
 * `--Long-Option` ==> `Long_Option`
 * `-S` ==> `S`
-* `-4` ==> **INVALID** (without -G)
+* `-4` ==> **INVALID** (without `-G`)
 
 If one of the argument names cannot be mangled into a valid Bash identifier,
 or two argument names map to the same variable name, `docopts` will exit with
 an error, and you should really rethink your CLI, or use `-A` or `-G`.
-The `--` and `-` commands will not be stored.
+If the double-dash is part of the `<msg>` the matched item `--` will be skiped.
 
 Note: You can use `--no-mangle` if you still want full input, this wont
 produce output suitable for bash `eval(1)` but can be parsed by your own
-code.
+code. Double-dash `--` will be kept.
+
+`-G` is a variant of Global mode, which prefixes the globals mangled named with
+`<prefix>` + `_` + `Mangled_name`.
+
+* `--Long-Option` ==> `prefix_Long_Option`
+
+Which makes it easy to filter variable with `grep` or such or to avoid globals
+name collision.
+
+
+### Associative Array mode
+
 
 Alternatively, `docopts` can be invoked with the `-A <name>` option, which
 stores the parsed arguments as fields of a Bash 4 associative array called
@@ -71,9 +88,16 @@ they are faked for repeatable arguments with the following access syntax:
     ${args[ARG,1]} # the second argument to ARG, etc.
 ```
 
+Associative mode don't skipp double-dash `--` it is part of the keys.
+
+### How arguments are associated to variables
+
+What ever output mode hase been selected.
+
 The arguments are stored as follows:
 
-* Non-repeatable, valueless arguments: `true` if found, `false` if not
+* Non-repeatable, valueless arguments: `true` if found, `false` if not.
+  This include double-dash `--` which must be specified as docopt syntax.
 * Repeatable valueless arguments: the count of their instances in `<argv>`
 * Non-repeatable arguments with values: the value as a string if found,
   the empty string if not
@@ -144,13 +168,13 @@ Options:
 
 Bash 4.x and higher is the main target.
 
-In order to use `docopts` with bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash 4.x associative arrays,
+In order to use `docopts` with bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash >4.x associative arrays,
 you can:
 
 * don't use the `-A` option
 * use GLOBAL generated mangled variables
 * use `-G` `<prefix>` option to generate GLOBAL with `prefix_`
-* use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
+* use `-G` switch with `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
 
 The [`docopts.sh`](docopts.sh) helper allows the use of `set -u`, which
 [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin)
@@ -165,9 +189,10 @@ The helper has its own documentation here [docs/README.md](docs/README.md).
 
 ## EXAMPLES
 
-Find more examples in [examples/ folder](examples/).
+Find more examples in [examples/ folder](examples/). Please report any
+non working example by creating an [issue](https://github.com/docopt/docopts/issues) with examples.
 
-This example reads the help and version messages from standard input (`docopts` found in `$PATH`):
+The following example reads the help and version messages from standard input (`docopts` found in `$PATH`):
 
 [make README.md]: # (include examples/legacy_bash/rock_hello_world.sh)
 
@@ -257,7 +282,7 @@ while [[ $i -lt ${args[<argument-with-multiple-values>,#]} ]] ; do
 done
 ```
 
-## History
+## Docopts History
 
 `docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the
 [docopt Python parser](https://github.com/docopt/docopt).
