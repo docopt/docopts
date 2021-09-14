@@ -11,14 +11,14 @@ Most concepts are documented in the `docopt` (without S) manual - see [docopt.or
 Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OS X) or legacy
 GNU/Linux OS.
 
-[make README.md]: # (./docopts --version | get_version "This is a transitional release:")
+[make README.md]: # (./docopts --version | get_version "This is a bug fix release:")
 
 ```
-This is a transitional release: v0.6.3-rc2
+This is a bug fix release: v0.6.4-with-no-mangle-double-dash
 ```
 
-This release will be maintained for compatibility, only fixes will be provided. The 0.6.3 version is fully compatible with
-the previous version of `docopts`.
+This release will be maintained for compatibility, only fixes will be provided. The 0.6.4 version is fully compatible with
+the previous version of `docopts`. Except for `-` handling in global mode, which produces an error.
 
 ## SYNOPSIS
 
@@ -72,9 +72,31 @@ code. Double-dash `--` will be kept.
 Which makes it easy to filter variable with `grep` or such or to avoid globals
 name collision.
 
+Handling `[-]` in global mode is not supported and raises an error when trying to mangle `-`.
+But works for any other modes including `-G`.
+```
+./docopts -h 'Usage: dump [-]' : -
+docopts:error: Print_bash_global:Mangling not supported for: '-'
+```
+
+Single-dash can be catch easily by reading it in `FILENAME` parameter:
+
+```bash
+./docopts  -h 'Usage: prog parse FILENAME' : parse -
+parse=true
+FILENAME='-'
+```
+
+then in your code:
+
+```bash
+f="$FILENAME"
+if [[ $f == '-' ]] ; then
+	f=/dev/stdin
+fi
+```
 
 ### Associative Array mode
-
 
 Alternatively, `docopts` can be invoked with the `-A <name>` option, which
 stores the parsed arguments as fields of a Bash 4 associative array called
@@ -88,7 +110,8 @@ they are faked for repeatable arguments with the following access syntax:
     ${args[ARG,1]} # the second argument to ARG, etc.
 ```
 
-Associative mode don't skipp double-dash `--` it is part of the keys.
+Associative mode don't skipp double-dash `--` it will be part of the keys
+as boolean value present or not.
 
 ### How arguments are associated to variables
 

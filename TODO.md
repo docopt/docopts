@@ -5,21 +5,15 @@
 
 * ~~add unit test for corner case (`mangle_name` removes option `[--]`)~~
 * ~~document how to add unittest in Go~~
-* document behavior parsing `--` `[--]` in global mode
-* add examples of `[--]` usage
-```
-$ ./docopts -h 'Usage: prog double-dash [-p] [-o] [--] <unparsed_option>...' : double-dash -- one -p -auto-approve two
-o=false
-unparsed_option=('one' '-p' '-auto-approve' 'two')
-double_dash=true
-p=false
-```
+* ~~document behavior parsing `--` `[--]` in global mode~~
+* ~~add examples of `[--]` usage in global mode~~
 * ~~add `language_agnostic_tester.py` input test~~
-* better error message from `docopts`
+* ~~better error message from `docopts`~~ no so better
 * also document `delv` debugger usage in delevopper's doc
-* update comment about version 0.6.3 and python compatibility
+* ~~update comment about version 0.6.3 and python compatibility~~
 * test python've version behavior with our input
 * add example of usage for handling `-` (stdin argument)
+* add functional testcase in bats with corner case `--no-mangle` `-G` etc.
 
 ## better error handling
 

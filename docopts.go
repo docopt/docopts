@@ -212,7 +212,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 	// so value is an interface{}
 	for _, key := range Sort_args_keys(args) {
 		if d.Mangle_key {
-			if key == "--" {
+			if key == "--" && d.Global_prefix == "" {
 				// skip double-dash that can't be mangled #52
 				// so double-dash is not printed for bash
 				// but still parsed by docopts
@@ -251,7 +251,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 func (d *Docopts) Name_mangle(elem string) (string, error) {
 	var v string
 
-	if elem == "-" || elem == "--" {
+	if d.Global_prefix == "" && (elem == "-" || elem == "--") {
 		return "", fmt.Errorf("Mangling not supported for: '%s'", elem)
 	}
 
@@ -262,6 +262,7 @@ func (d *Docopts) Name_mangle(elem string) (string, error) {
 	} else if Match(`^--.+$`, elem) {
 		v = elem[2:]
 	} else {
+		// also this case for '-' when d.Global_prefix != ""
 		v = elem
 	}
 
