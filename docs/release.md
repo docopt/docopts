@@ -4,16 +4,16 @@ Step to produce a release.
 
 ## 1. prepare the release
 
-copy the previous ./VERSION to ./tests/VERSION
+copy the previous `./VERSION` to `./tests/VERSION`
 
 ```
 cp ./VERSION ./tests/VERSION
 git add ./tests/VERSION
 ```
 
-Increment the ./VERSION number
+Increment the `./VERSION` number
 
-edit ./deployment.yml
+edit `./deployment.yml`
 
 - add the new tag name release matching ./VERSION
 - the description you want, changes etc.
@@ -30,6 +30,7 @@ make test
 Ensure README.md is commited and rebuild it too
 
 ```
+touch build_doc.sh
 make README.md
 ```
 

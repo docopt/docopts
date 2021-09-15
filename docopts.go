@@ -26,14 +26,14 @@ var (
 )
 
 var copyleft = `
-Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 Copyleft (Ɔ)  2021 Sylvain Viart (golang version).
+Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
 There is NO WARRANTY, to the extent permitted by law.
 `
 
-// Version will be build by main
+// Version will be build by main() function
 var Docopts_Version string
 
 var Usage string = `Shell interface for docopt, the CLI description language.
@@ -65,7 +65,7 @@ Options:
                                 first one that does not begin with a dash will
                                 be treated as positional arguments.
   -H, --no-help                 Don't handle --help and --version specially.
-  -A <name>                     Export the arguments as a Bash 4.x associative
+  -A <name>                     Export the arguments as a Bash 4+ associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
                                 Bash 3.2 compatible GLOBAL variables assignment:
@@ -112,7 +112,7 @@ type Docopts struct {
 	Exit_function  bool
 }
 
-// output bash 4 compatible assoc array, suitable for eval.
+// output bash 4+ compatible assoc array, suitable for eval.
 func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
 	// Reuse python's fake nested Bash arrays for repeatable arguments with values.
 	// The structure is:
@@ -197,7 +197,7 @@ func To_bash(v interface{}) string {
 	return s
 }
 
-// Performs output for bash Globals (not bash 4 assoc) Names are mangled to become
+// Performs output for bash Globals (not bash 4+ assoc) Names are mangled to become
 // suitable for bash eval.
 // If Docopts.Mangle_key is false: simply print left-hand side assignment verbatim.
 // used for --no-mangle

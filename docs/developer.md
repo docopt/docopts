@@ -127,6 +127,7 @@ type TestString struct {
     Input map[string]interface{}
     Expect_args []string
     Expect_global  []string
+    Expect_global_prefix  []string // optional
 }
 ```
 
@@ -161,6 +162,8 @@ add a new bloc of JSON object (dict / hash / map):
 * `input` correspond to the `map[string]interface{}` of docopt parsed options.
 * `expect_args` the text rows of the associative array code for bash4 that is outputed by `Print_bash_args()` matched in order.
 * `expect_global` the text definition of the bash global vars that is outputed by `Print_bash_global()` matched in order.
+* `expect_global_prefix` [optional] if present will be used for testing `Mangle_key` + `Global_prefix` instead of [`rewrite_prefix("ARGS",)`](../docopts_test.go)
+  So in `expect_global_prefix` the prefix must be `ARGS` + `_`.
 
 
 ### testcases.docopt (agnostic test universal to docopt parsing language)
@@ -185,3 +188,33 @@ $ prog -a
 ```
   * followed with the exptected output in JSON format (single ligne) (no empty line between `prog` call and expected JSON)
   * `\n` newline separator if some other call are added for the same `Usage:` definition
+
+## Golang debugger
+
+Debugger is a must for any programming language. Go provide an extrenal debugger named [delve](https://github.com/go-delve/delve)
+
+https://github.com/go-delve/delve/tree/master/Documentation
+
+In order to debug `docopts` you obviously need to pass command line argument to our program:
+Our arguments start after the first `--` which is `delve` argument stopper.
+
+```
+cd path/to/docopts/source
+dlv debug -- -h 'Usage: prog dump [--] <unparsed_arguments>...' : dump -- -some -auto-approve FILENAME
+```
+
+The as usual in debugger:
+
+```
+# put break point in main function
+b main.main
+continue
+n
+s # for steping into the current function
+# printing some value
+p some_varialbles
+```
+
+The debugger will then magically bring you step after step to the bug!
+Enjoy! and promote dubugger in evrery programming language and every programming course. :wink:
+

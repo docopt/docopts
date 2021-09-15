@@ -23,17 +23,19 @@ releases:
 
       features changes:
         - fix error refusing mangling double dash in global mode [#52]
-        - still refuse to mangle single dash `[-]` in global mode
-        - now can mangle single dash in `-G` mode
+        - still refuse to mangle single dash `[-]` in global mode (not compatible with v0.6.1)
+        - now can mangle single-dash and double-dash in `-G` mode
 
       internal changes:
+        - use Go 1.17.1 for compiling
         - `language_agnostic_tester.py` re-write for python3
         - sort argument key in `Print_bash_args()` `Print_bash_global()`
         - sort input keys in `docopts_test.go`
-        - add PR52 test to `testcases.docopt`
+        - add PR #52 test to `testcases.docopt`
         - completed developper's documentation
         - #52 ignore `[--]` double-dash option in `Print_bash_global()`
         - reformat of Go code with gofmt indent change Space ==> Tab
+        - add `tests/functional_tests_docopts.bats`
 
   v0.6.3-rc2:
     name: "docopts binary transitional v0.6.3-rc2"

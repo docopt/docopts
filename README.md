@@ -8,7 +8,7 @@ Status: working.
 
 Most concepts are documented in the `docopt` (without S) manual - see [docopt.org](http://docopt.org/).
 
-Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OS X) or legacy
+Many examples use associative arrays in Bash 4+, but there is legacy support for Bash 3.2 on macOS (OS X) or legacy
 GNU/Linux OS.
 
 [make README.md]: # (./docopts --version | get_version "This is a bug fix release:")
@@ -68,18 +68,24 @@ code. Double-dash `--` will be kept.
 `<prefix>` + `_` + `Mangled_name`.
 
 * `--Long-Option` ==> `prefix_Long_Option`
+* etc.
 
-Which makes it easy to filter variable with `grep` or such or to avoid globals
-name collision.
+Note that prefixed invalid mangled names still raise an error, if they resolve to
+invalid bash identifier.
+
+Prefix gobals variable makes it easy to filter variable with `grep` or such or to
+avoid globals name collision.
 
 Handling `[-]` in global mode is not supported and raises an error when trying to mangle `-`.
-But works for any other modes including `-G`.
+But works for any other modes including `-G`. This behavior differs from python's version of
+`docopts` which would have skiped the positional `-` without error.
+
 ```
 ./docopts -h 'Usage: dump [-]' : -
 docopts:error: Print_bash_global:Mangling not supported for: '-'
 ```
 
-Single-dash can be catch easily by reading it in `FILENAME` parameter:
+Single-dash can be catch easily by reading it into a `FILENAME` parameter:
 
 ```bash
 ./docopts  -h 'Usage: prog parse FILENAME' : parse -
@@ -96,10 +102,12 @@ if [[ $f == '-' ]] ; then
 fi
 ```
 
+A working example is provided in [examples/legacy_bash/cat-n_wrapper_example.sh](examples/legacy_bash/cat-n_wrapper_example.sh)
+
 ### Associative Array mode
 
 Alternatively, `docopts` can be invoked with the `-A <name>` option, which
-stores the parsed arguments as fields of a Bash 4 associative array called
+stores the parsed arguments as fields of a Bash 4+ associative array called
 `<name>` instead.  However, as Bash does not natively support nested arrays,
 they are faked for repeatable arguments with the following access syntax:
 
@@ -171,7 +179,7 @@ Options:
                                 first one that does not begin with a dash will
                                 be treated as positional arguments.
   -H, --no-help                 Don't handle --help and --version specially.
-  -A <name>                     Export the arguments as a Bash 4.x associative
+  -A <name>                     Export the arguments as a Bash 4+ associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
                                 Bash 3.2 compatible GLOBAL variables assignment:
@@ -189,9 +197,9 @@ Options:
 
 ## COMPATIBILITY
 
-Bash 4.x and higher is the main target.
+Bash 4+ and higher is the main target.
 
-In order to use `docopts` with bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash >4.x associative arrays,
+In order to use `docopts` with Bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash >4.x associative arrays,
 you can:
 
 * don't use the `-A` option
@@ -280,7 +288,7 @@ for arg in "${argv[@]}"; do
 done
 ```
 
-The next example shows how using the Bash 4.x associative array with `-A`:
+The next example shows how using the Bash 4+ associative array with `-A`:
 
 ```bash
 help="
@@ -310,7 +318,9 @@ done
 `docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the
 [docopt Python parser](https://github.com/docopt/docopt).
 
-The current version is written in [go](https://golang.org/) and is 100% compatible with previous Python-based `docopts`.
+The current version is written in [go](https://golang.org/) and is almost 100% compatible with previous Python-based `docopts`.
+See section `Global mode` for incompatibly details and provided work around.
+
 Please report any non working code with [issue](https://github.com/docopt/docopts/issues) and examples.
 
 ## Roadmap: A new shell API is proposed
@@ -392,7 +402,7 @@ Tested builds are built on:
 [make README.md]: # (go version)
 
 ```
-go version go1.14.1 linux/amd64
+go version go1.17.1 linux/amd64
 ```
 
 ## Features
@@ -405,9 +415,9 @@ documentation](docs/README.md).
 
 `docopts` doesn't need a python interpreter anymore, so it works on any legacy system too.
 
-As of 2019-05-18
+As of 2021-09-15
 
-* `docopts` is able to reproduce 100% of the python version.
+* `docopts` is able to reproduce almost 100% of the python version.
 * unit tests for Go are provided, so hack as you wish.
 * 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits).
 * `bats-core` unittests and functional testing are provided too.

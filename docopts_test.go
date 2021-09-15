@@ -270,7 +270,14 @@ func TestPrint_bash_global(t *testing.T) {
 			t.Errorf("Print_bash_global doesn't return nil for err: %v\n", err)
 		}
 		res := out.(*bytes.Buffer).String()
-		expect := rewrite_prefix("ARGS", table.Expect_global)
+
+		var expect string
+		if len(table.Expect_global_prefix) > 0 {
+			// if special case was provided
+			expect = strings.Join(table.Expect_global_prefix[:], "\n") + "\n"
+		} else {
+			expect = rewrite_prefix("ARGS", table.Expect_global)
+		}
 		if res != expect {
 			t.Errorf("with prefix: Print_bash_global for '%v'\ngot: '%v'\nwant: '%v'\n", table.Input, res, expect)
 		}

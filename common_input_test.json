@@ -97,6 +97,13 @@
       "p=false",
       "unparsed_option=('one' '-p' '-auto-approve' 'two')",
       "double_dash=true"
+    ],
+    "expect_global_prefix": [
+      "ARGS___=true",
+      "ARGS_o=false",
+      "ARGS_p=false",
+      "ARGS_unparsed_option=('one' '-p' '-auto-approve' 'two')",
+      "ARGS_double_dash=true"
     ]
   }
 ]
