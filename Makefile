@@ -48,8 +48,8 @@ install: all
 test: docopts
 	./docopts --version
 	go test -v
-	python language_agnostic_tester.py ./testee.sh
-	cd tests/ && bats .
+	python3 language_agnostic_tester.py ./testee.sh
+	cd ./tests/ && bats .
 
 # README.md is composed with external source too
 # Markdown hidden markup are used to insert some text form the dependancies

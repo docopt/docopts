@@ -65,3 +65,20 @@ Usage: prog dump [-]
     [[ "$output" =~ $expected_regexp ]]
     [[ $(echo "$output" | wc -l) -eq 9 ]]
 }
+
+# bug #53 non empty array
+@test "multiple length argument returns a 0 sized array" {
+    # Global mode
+    run $DOCOPTS_BIN -h 'Usage: prog [NAME...]' :
+    [[ $status -eq 0 ]]
+    expected_regexp='NAME=\(\)'
+    [[ "$output" =~ $expected_regexp ]]
+    [[ ${#lines[@]} -eq 1 ]]
+
+    # also with -G
+    run $DOCOPTS_BIN -G ARGS -h 'Usage: prog [NAME...]' :
+    [[ $status -eq 0 ]]
+    expected_regexp='ARGS_NAME=\(\)'
+    [[ "$output" =~ $expected_regexp ]]
+    [[ ${#lines[@]} -eq 1 ]]
+}

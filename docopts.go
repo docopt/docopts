@@ -181,13 +181,18 @@ func To_bash(v interface{}) string {
 	case string:
 		s = fmt.Sprintf("'%s'", Shellquote(v.(string)))
 	case []string:
-		// escape all strings
 		arr := v.([]string)
-		arr_out := make([]string, len(arr))
-		for i, e := range arr {
-			arr_out[i] = Shellquote(e)
+		if len(arr) == 0 {
+			// bash emtpy array
+			s = "()"
+		} else {
+			// escape all strings
+			arr_out := make([]string, len(arr))
+			for i, e := range arr {
+				arr_out[i] = Shellquote(e)
+			}
+			s = fmt.Sprintf("('%s')", strings.Join(arr_out[:], "' '"))
 		}
-		s = fmt.Sprintf("('%s')", strings.Join(arr_out[:], "' '"))
 	case nil:
 		s = ""
 	default:

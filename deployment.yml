@@ -25,6 +25,7 @@ releases:
         - fix error refusing mangling double dash in global mode [#52]
         - still refuse to mangle single dash `[-]` in global mode (not compatible with v0.6.1)
         - now can mangle single-dash and double-dash in `-G` mode
+        - fix output bash empty array #53
 
       internal changes:
         - use Go 1.17.1 for compiling

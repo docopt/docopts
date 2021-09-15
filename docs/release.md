@@ -5,6 +5,8 @@ Step to produce a release.
 ## 1. prepare the release
 
 copy the previous `./VERSION` to `./tests/VERSION`
+This is for functional test `get_doctops.bats` so it can fetch a
+published release version.
 
 ```
 cp ./VERSION ./tests/VERSION

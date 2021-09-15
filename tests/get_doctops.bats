@@ -4,11 +4,10 @@
 #
 
 _run_get_docopts() {
-  # go to repository basepath
-  cd ..
-  [[ $(basename $PWD) == 'docopts' ]]
+  # ensure we are still in tests sub-folder
+  [[ $(basename $PWD) == 'tests' ]]
   [[ -x docopts ]] && rm docopts
-  run ./get_docopts.sh
+  run ../get_docopts.sh
   echo "$output"
   [[ $status -eq 0 ]]
 }

@@ -6,16 +6,19 @@
         "pipo",
         "molo",
         "toto"
-      ]
+      ],
+      "EMPTY_ARRAY" : []
     },
     "expect_args": [
       "declare -A args",
+      "args['EMPTY_ARRAY,#']=0",
       "args['FILE,0']='pipo'",
       "args['FILE,1']='molo'",
       "args['FILE,2']='toto'",
       "args['FILE,#']=3"
     ],
     "expect_global": [
+      "EMPTY_ARRAY=()",
       "FILE=('pipo' 'molo' 'toto')"
     ]
   },
