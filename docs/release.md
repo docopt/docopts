@@ -37,6 +37,8 @@ make README.md
 ## 4. commit all the code in master
 
 ```
+git checkout master
+# merge if needed
 git commit -a
 ```
 
