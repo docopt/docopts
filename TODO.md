@@ -1,21 +1,5 @@
 # docopts (docopt for bash) TODO list or questions
 
-## PR52
-
-* ~~add unit test for corner case (`mangle_name` removes option `[--]`)~~
-* ~~document how to add unittest in Go~~
-* ~~document behavior parsing `--` `[--]` in global mode~~
-* ~~add examples of `[--]` usage in global mode~~
-* ~~add `language_agnostic_tester.py` input test~~
-* ~~better error message from `docopts`~~ no so better
-* ~~also document `delve` debugger usage in delevopper's doc~~
-* ~~update comment about version 0.6.3 and python compatibility~~
-* ~~add functional testcase in bats with corner case `--no-mangle` `-G` etc.~~
-* ~~test python's version behavior with our input~~
-* ~~add example of usage for handling `-` (stdin argument)~~
-* ~~remove 100% compatible with python~~
-* ~~add documentation on how to add functional testing in bats~~
-
 ## better error handling
 
 https://github.com/docopt/docopts/issues/17
