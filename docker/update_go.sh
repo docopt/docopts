@@ -17,7 +17,7 @@ set -e
 
 # change this go version for updating
 # can be copy/paste from the email announcing the version
-GOVER=go1.14.1
+GOVER=go1.17.1
 
 if [[ $actual_gover == $GOVER ]] ; then
   echo "$gobin version: $actual_gover is the same as $GOVER"

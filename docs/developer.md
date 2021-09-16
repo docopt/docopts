@@ -108,6 +108,43 @@ go test -v
 
 ### bats (functionnal testing) (bash)
 
+Most `.bats` files in `tests/` folder are test for bash code `docopts.sh` functions,
+and are more internal stuff, hack as you wish but it may be more complicated to
+handle at first.
+
+Functional tests are in [`tests/functional_tests_docopts.bats`](tests/functional_tests_docopts.bats).
+
+This this `bats` syntax test, this means almost bash.
+
+Add a new functional test:
+
+```
+@test "your comment describing the test here" {
+    # run is a bats helper that run a command catching all
+    # use the $DOCOPTS_BIN to ensure to point to the good binary
+    # pass any docopts argument to test, good or wrong
+    run $DOCOPTS_BIN -G ARGS -h 'Usage: prog dump [-]' : dump -
+
+    # output is caught by bats (stdout + stderr)
+    # and wont be displayed, unless a test fail: any non-0 bash code
+    echo "$output"
+
+    # test docopts return value 0 on success
+    [[ $status -eq 0 ]]
+
+    regexp='some bash regexp'
+    [[ "$output" =~  $regexp ]]
+}
+```
+
+run only functional test (`bats` in `PATH`):
+
+``` bash
+# test are ran from test folder only
+cd tests
+bats functional_tests_docopts.bats
+```
+
 ### `docopts_test.go` (unit testing) (golang + JSON)
 
 It uses standard `go test`. Some method are "exposed" with Capital name only for testing purpose.
@@ -119,14 +156,14 @@ Options loop test JSON: [`common_input_test.json`](../common_input_test.json)
 This is our input file for testing options parsed recieved from docopt lib. We emulate docopt parsed options and give
 them as input to our method.
 
-JSON tests are read as a list of test: (others json keys should be ignored and are used as comment)
+JSON tests are read as a list of test: (others JSON keys should be ignored and are used as comment)
 Our parser JSON parser / loader [`test_json_load.go`](../test_json_load/test_json_load.go), only used for testing.
 
 ```go
 type TestString struct {
-    Input map[string]interface{}
-    Expect_args []string
-    Expect_global  []string
+    Input                 map[string]interface{}
+    Expect_args           []string
+    Expect_global         []string
     Expect_global_prefix  []string // optional
 }
 ```
@@ -153,25 +190,29 @@ add a new bloc of JSON object (dict / hash / map):
     ],
     "expect_global": [
       "FILE=('pipo' 'molo' 'toto')"
+    ],
+    "expect_global_prefix": [
+      "ARGS_FILE=('pipo' 'molo' 'toto')"
     ]
   },
 ```
 
 * `description` a comment which is ignored
-* other extra JSON key that are not the 3 following will be ignored too.
+* other extra JSON key that are not the 4 following will be ignored too.
 * `input` correspond to the `map[string]interface{}` of docopt parsed options.
 * `expect_args` the text rows of the associative array code for bash4 that is outputed by `Print_bash_args()` matched in order.
 * `expect_global` the text definition of the bash global vars that is outputed by `Print_bash_global()` matched in order.
 * `expect_global_prefix` [optional] if present will be used for testing `Mangle_key` + `Global_prefix` instead of [`rewrite_prefix("ARGS",)`](../docopts_test.go)
-  So in `expect_global_prefix` the prefix must be `ARGS` + `_`.
+  So left hand values in `expect_global_prefix` the prefix must be `ARGS` + `_`.
 
 
 ### testcases.docopt (agnostic test universal to docopt parsing language)
 
-This file is still avaible from python docopt original repository too [testcases.docopt](https://github.com/docopt/docopt/blob/511d1c57b59cd2ed663a9f9e181b5160ce97e728/testcases.docopt)
+This file is still avaible from python docopt lib original repository
+too [testcases.docopt](https://github.com/docopt/docopt/blob/511d1c57b59cd2ed663a9f9e181b5160ce97e728/testcases.docopt)
 
 This is the input file used by `language_agnostic_tester.py`, which is a middleware originaly written to read
-`testcases.docopt` and to send it to ~> `testee.sh` ~> `docopts` ~> JSON ~> the result is the validated against the
+`testcases.docopt` and to send it to ~> `testee.sh` ~> `docopts -A` ~> JSON ~> the result is the validated against the
 embedded JSON expected result.
 
 Input file format is historically as follow:
@@ -191,7 +232,7 @@ $ prog -a
 
 ## Golang debugger
 
-Debugger is a must for any programming language. Go provide an extrenal debugger named [delve](https://github.com/go-delve/delve)
+Debugger is a must for any programming language. Go provides an extrenal debugger named [delve](https://github.com/go-delve/delve)
 
 https://github.com/go-delve/delve/tree/master/Documentation
 
@@ -215,6 +256,6 @@ s # for steping into the current function
 p some_varialbles
 ```
 
-The debugger will then magically bring you step after step to the bug!
-Enjoy! and promote dubugger in evrery programming language and every programming course. :wink:
+The debugger will then magically bring you, step after step, to the bug!
+Enjoy! and promote dubugger in every programming language and every programming course. :wink:
 

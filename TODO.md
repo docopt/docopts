@@ -14,6 +14,7 @@
 * ~~test python's version behavior with our input~~
 * ~~add example of usage for handling `-` (stdin argument)~~
 * ~~remove 100% compatible with python~~
+* ~~add documentation on how to add functional testing in bats~~
 
 ## better error handling
 
@@ -23,28 +24,50 @@ See also:
 
 PR: https://github.com/docopt/docopt.go/pull/65
 
+It probably needs to rewrite the docopt parser.
+
 ## --json output ?
 
 same as `--no-mangle` but json formated
 
 Somewhat discussed here: https://github.com/docopt/docopt/issues/174
 
+Trivial, could be implemented, even without embbeding JSON lib.
+See branch `json-api` too.
+
 ## functional testing for all options
 
 `./docopts --help`
+* `tests/functional_tests_docopts.bats` was introduced in PR #52
 
 ## return or kill for function instead of exit
 
 Add a parameter to handle return or kill instead of exit so it can be launched inside a function.
 
+See also: https://github.com/docopt/docopts/issues/43
+
 ## embeded JSON?
 
 See [API_proposal.md](API_proposal.md)
 
+Drop JSON but keep new command line action arguments option style?
+
+```
+docopts parse "$usage" : [<args>...]
+```
+
 ## generate bash completion from usage
+
+Would probably need a new docopt parser too.
 
 ```
 docopts -h "$help" --generate-completion
+```
+
+```
+docopts -h "$help" --generate-completion
+# or
+docopts completion "$usage"
 ```
 
 ## embed test routine (argument validation)?

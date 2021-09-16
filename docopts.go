@@ -183,7 +183,7 @@ func To_bash(v interface{}) string {
 	case []string:
 		arr := v.([]string)
 		if len(arr) == 0 {
-			// bash emtpy array
+			// bash empty array
 			s = "()"
 		} else {
 			// escape all strings
