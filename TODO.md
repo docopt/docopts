@@ -10,7 +10,7 @@ PR: https://github.com/docopt/docopt.go/pull/65
 
 It probably needs to rewrite the docopt parser.
 
-## --json output ?
+## --json output
 
 same as `--no-mangle` but json formated
 
@@ -30,11 +30,7 @@ Add a parameter to handle return or kill instead of exit so it can be launched i
 
 See also: https://github.com/docopt/docopts/issues/43
 
-## embeded JSON?
-
-See [API_proposal.md](API_proposal.md)
-
-Drop JSON but keep new command line action arguments option style?
+## verb action
 
 ```
 docopts parse "$usage" : [<args>...]
@@ -45,42 +41,7 @@ docopts parse "$usage" : [<args>...]
 Would probably need a new docopt parser too.
 
 ```
-docopts -h "$help" --generate-completion
-```
-
-```
-docopts -h "$help" --generate-completion
-# or
 docopts completion "$usage"
-```
-
-## embed test routine (argument validation)?
-
-May we can interract with the caller to eval some validation…
-It is needed? Is it our goal?
-
-2019-06-07: I think it's ouside `docopts` goal to perform validation. It requires extra language to validate data and it
-will pollute bash own programming role.
-
-
-```bash
-# with tests
-# pass value to parent: JSON or some_thing_else
-eval $(docopts --eval --json --help="Usage: mystuff [--code] INFILE [--out=OUTFILE]" -- "$@")
-
-# docopts test would perform some check based on our own testing language
-if docopts test -- file_exists:INFILE !file_exists:OUTFILE
-then
-  # normal action INFILE exists and OUTFILE will not be ovrerwritten
-else
-  # some error
-fi
-
-eval $(docopts --eval --json --help="Usage: prog [--count=NUM] INFILE..."  -- "$@")
-if docopts test -- num:gt:1:NUM file_exists:INFILE
-then
-  # normal action can be performed
-fi
 ```
 
 ## config file parse config to option format
