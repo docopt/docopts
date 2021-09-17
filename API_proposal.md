@@ -9,7 +9,6 @@ It offer some API alternatives and allow to build external wrapper.
 
 ## new cli API proposal for 2021
 
-
 * use verb for action
 * stop using `-h` `<msg>` for reading help
 * keep compatibily with old syntax trough a new verb: `compat`
@@ -18,8 +17,7 @@ It offer some API alternatives and allow to build external wrapper.
 
 ### new verb
 
-replace `-h`
-
+### replace `-h`
 
 ```
 Usage:
@@ -29,6 +27,7 @@ Usage:
 ```
 
 Example:
+
 ```
 docopts parse "$USAGE" : <option passed here>
 ```
@@ -39,12 +38,31 @@ docopts parse "$USAGE" : <option passed here>
 docopts compat -h "$USAGE" : <option passed here>
 ```
 
+### generate usage completion
+
 generate usage completion (as `kubect completion` done by [cobra](https://github.com/spf13/cobra/blob/master/shell_completions.md))
+
 ```
 docopts completion "$usage"
+```
+
+### debug mode:
+
+```
+Usage:
+   docopts debug [--explain-parsed] USAGE : [<argv>...]
+   docopts debug [--show-argument-match] USAGE : [<argv>...]
+```
+
+### `docopt.sh` compatibile generator
+
+```
+Usage:
+   docopts generate USAGE
+   docopts generate -f FILENAME
 ```
 
 
 ## Dropped JSON API proposal
 
-old `API_proposal.md`
+old [API_proposal.md](https://github.com/docopt/docopts/blob/031ceb2f0700ac0e40303d72167b91586a6d60da/API_proposal.md)
