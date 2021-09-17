@@ -10,6 +10,16 @@ PR: https://github.com/docopt/docopt.go/pull/65
 
 It probably needs to rewrite the docopt parser.
 
+Example error handling:
+
+* https://github.com/docopt/docopt/issues/459 (-d at the endi handling `[options]`)
+  * > it means "any option not in usage-pattern".
+  * error could be: `-d` option not allowed in `generate` action it has conflict with follwing `Usage: mytool -d | --debug`
+* https://github.com/docopt/docopt/issues/466 (invalid option must be named)
+  * `myscript.py --junkoption` ==> `error: Invalid option '--junkoption'`
+* https://github.com/docopt/docopt/issues/460 (invalid option for selected action + debug parse)
+  * see my comment on issue
+
 ## --json output
 
 same as `--no-mangle` but json formated
