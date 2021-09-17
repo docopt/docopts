@@ -65,15 +65,17 @@ produce output suitable for bash `eval(1)` but can be parsed by your own
 code. Double-dash `--` will be kept.
 
 `-G` is a variant of Global mode, which prefixes the globals mangled named with
-`<prefix>` + `_` + `Mangled_name`.
+`<prefix>` + `_` + `Mangled_name`. In this mode double-dash `--` and single-dash
+`-` will be kept and will be mangled.
 
 * `--Long-Option` ==> `prefix_Long_Option`
-* etc.
+* `--`  ==> `prefix___`
+* `-`  ==> `prefix__`
 
 Note that prefixed invalid mangled names still raise an error, if they resolve to
 invalid bash identifier.
 
-Prefix gobals variable makes it easy to filter variable with `grep` or such or to
+Prefix gobals variable makes it easy to filter variable with `grep` or such, or to
 avoid globals name collision.
 
 Handling `[-]` in global mode is not supported and raises an error when trying to mangle `-`.
@@ -118,12 +120,12 @@ they are faked for repeatable arguments with the following access syntax:
     ${args[ARG,1]} # the second argument to ARG, etc.
 ```
 
-Associative mode don't skipp double-dash `--` it will be part of the keys
+Associative mode don't skip double-dash `--` it will be part of the keys
 as boolean value present or not.
 
 ### How arguments are associated to variables
 
-What ever output mode hase been selected.
+What ever output mode has been selected.
 
 The arguments are stored as follows:
 
