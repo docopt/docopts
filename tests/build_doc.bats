@@ -3,6 +3,7 @@
 # unit test for helper for building the README.md
 #
 
+
 source ../build_doc.sh
 
 output_split_lines() {
@@ -16,6 +17,13 @@ output_split_lines() {
     i=$((i+1))
   done
   IFS=$oldIFS
+}
+
+setup() {
+  # https://github.com/docopt/docopts/issues/39
+  if [[ "$OSTYPE" =~ darwin ]] ; then
+    skip "build_doc.sh skipped on macOS"
+  fi
 }
 
 @test "extract_markup" {

@@ -1,53 +1,112 @@
 [
   {
-    "input" : {
-           "FILE" : [ "pipo", "molo", "toto" ]
+    "description" : "convert array into fake nested array",
+    "input": {
+      "FILE": [
+        "pipo",
+        "molo",
+        "toto"
+      ],
+      "EMPTY_ARRAY" : []
     },
-    "expect_args" : [
-        "declare -A args",
-        "args['FILE,0']='pipo'",
-        "args['FILE,1']='molo'",
-        "args['FILE,2']='toto'",
-        "args['FILE,#']=3"
+    "expect_args": [
+      "declare -A args",
+      "args['EMPTY_ARRAY,#']=0",
+      "args['FILE,0']='pipo'",
+      "args['FILE,1']='molo'",
+      "args['FILE,2']='toto'",
+      "args['FILE,#']=3"
     ],
-    "expect_global" : [
-        "FILE=('pipo' 'molo' 'toto')"
+    "expect_global": [
+      "EMPTY_ARRAY=()",
+      "FILE=('pipo' 'molo' 'toto')"
     ]
   },
   {
-    "input" : {
-           "--counter" : 2
+    "description" : "handle number value and output them as number",
+    "input": {
+      "--counter": 2
     },
-    "expect_args" : [
-        "declare -A args",
-        "args['--counter']=2"
-      ],
-    "expect_global" : [
-        "counter=2"
-      ]
+    "expect_args": [
+      "declare -A args",
+      "args['--counter']=2"
+    ],
+    "expect_global": [
+      "counter=2"
+    ]
   },
   {
-    "input" : {
-           "--counter" : "2"
+    "description" : "handle number in string and output them as string",
+    "input": {
+      "--counter": "2"
     },
-    "expect_args" : [
-        "declare -A args",
-        "args['--counter']='2'"
-      ],
-    "expect_global" : [
-        "counter='2'"
-      ]
+    "expect_args": [
+      "declare -A args",
+      "args['--counter']='2'"
+    ],
+    "expect_global": [
+      "counter='2'"
+    ]
   },
   {
-    "input" : {
-           "bool" : true
+    "description" : "handle boolean, output as unquoted string (bash as no boolean type)",
+    "input": {
+      "bool": true,
+      "bool2": false
     },
-    "expect_args" : [
-        "declare -A args",
-        "args['bool']=true"
+    "expect_args": [
+      "declare -A args",
+      "args['bool']=true",
+      "args['bool2']=false"
+    ],
+    "expect_global": [
+      "bool=true",
+      "bool2=false"
+    ]
+  },
+  {
+    "description" : "PR52 - ensure double-dash is skipped in global mode, not in assoc mode",
+    "Notes" : [
+      "input argument keys will be sorted by docopts, so expected must match the same order",
+      "result are compared a string",
+      "get the keys order: jq '.[]|select(.description | test (\"PR52\"))|.input|keys|sort' < common_input_test.json"
+    ],
+    "input": {
+      "--": true,
+      "-o": false,
+      "<unparsed_option>": [
+        "one",
+        "-p",
+        "-auto-approve",
+        "two"
       ],
-    "expect_global" : [
-        "bool=true"
-      ]
+      "double-dash": true,
+      "-p": false
+    },
+    "expect_args": [
+      "declare -A args",
+      "args['--']=true",
+      "args['-o']=false",
+      "args['-p']=false",
+      "args['<unparsed_option>,0']='one'",
+      "args['<unparsed_option>,1']='-p'",
+      "args['<unparsed_option>,2']='-auto-approve'",
+      "args['<unparsed_option>,3']='two'",
+      "args['<unparsed_option>,#']=4",
+      "args['double-dash']=true"
+    ],
+    "expect_global": [
+      "o=false",
+      "p=false",
+      "unparsed_option=('one' '-p' '-auto-approve' 'two')",
+      "double_dash=true"
+    ],
+    "expect_global_prefix": [
+      "ARGS___=true",
+      "ARGS_o=false",
+      "ARGS_p=false",
+      "ARGS_unparsed_option=('one' '-p' '-auto-approve' 'two')",
+      "ARGS_double_dash=true"
+    ]
   }
 ]

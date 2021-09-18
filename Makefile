@@ -5,25 +5,20 @@
 
 PREFIX ?= /usr/local
 
+# keep docopts: as first target for development
+
+# govvv define main.Version with the contents of ./VERSION file, if exists
+BUILD_FLAGS=$(shell ./get_ldflags.sh)
+docopts: docopts.go Makefile
+	go build -o $@ -ldflags "${BUILD_FLAGS} ${LDFLAGS}"
+
 # dependancies
-GOVVV=${GOPATH}/bin/govvv
-DOCTOP_LIB=${GOPATH}/src/github.com/docopt/docopt-go/docopt.go
-
-# keep this as first target for development
-# build 64 bits version
-docopts: docopts.go Makefile ${GOVVV} ${DOCTOP_LIB}
-	# ldflags need to be synchronised with deploy.sh
-	go build -ldflags "$$(govvv -flags) -X 'main.GoBuildVersion=$$(go version)'" docopts.go
-
-install_builddep: ${GOVVV} ${DOCTOP_LIB}
+install_builddep:
+	go get github.com/docopt/docopts
+	go get github.com/docopt/docopt-go
 	go get github.com/mitchellh/gox
 	go get github.com/itchio/gothub
-	go get gopkg.in/mikefarah/yq.v2
-
-${DOCTOP_LIB}:
-	go get github.com/docopt/docopt-go
-
-${GOVVV}:
+	go get gopkg.in/yaml.v2
 	go get github.com/ahmetb/govvv
 
 all: install_builddep docopts README.md
@@ -47,12 +42,14 @@ all: install_builddep docopts README.md
 
 # requires write access to $PREFIX
 install: all
-	cp docopts docopts.sh $(PREFIX)/bin
+	install -m 755 docopts    $(PREFIX)/bin
+	install -m 755 docopts.sh $(PREFIX)/bin
 
 test: docopts
+	./docopts --version
 	go test -v
-	python language_agnostic_tester.py ./testee.sh
-	cd tests/ && ./bats/bin/bats .
+	python3 language_agnostic_tester.py ./testee.sh
+	cd ./tests/ && bats .
 
 # README.md is composed with external source too
 # Markdown hidden markup are used to insert some text form the dependancies

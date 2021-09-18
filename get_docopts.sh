@@ -15,8 +15,9 @@ GIT_USER=${GIT_USER:-docopt}
 GIT_PROJECT=docopts
 BASE_URL=https://github.com/$GIT_USER/$GIT_PROJECT/releases/download
 
-# default value comes from VERSION file, can be overridden via env var
-RELEASE=${RELEASE:-VERSION}
+# default value comes from VERSION file
+# can be overridden via env var $RELEASE
+RELEASE=${RELEASE:-get_VERSION}
 BINARY=docopts
 # ISSUE_URL is fixed for this project
 ISSUE_URL=https://github.com/docopt/docopts/issues/
@@ -43,7 +44,7 @@ EOT
 
 # ======================================== main
 
-if [[ $RELEASE == 'VERSION' ]]
+if [[ $RELEASE == 'get_VERSION' ]]
 then
   RELEASE=$(cat VERSION)
 fi
@@ -54,8 +55,26 @@ then
   exit 1
 fi
 
+###################################################################### detection
+
+# fix bug https://github.com/docopt/docopts/issues/44
+ARCH=$(uname -m)
+case $OSTYPE in
+  darwin*)
+    echo "I'm on macos"
+    OS_URL=darwin
+    ;;
+  linux*)
+    echo "I'm on linux"
+    OS_URL=linux
+    ;;
+  *)
+    report_issue
+    exit 1
+    ;;
+esac
+
 # try to detect CPU architecture
-ARCH=$(arch)
 case $ARCH in
   x86_64)
     echo "I'm 64-bits"
@@ -75,29 +94,29 @@ case $ARCH in
     ;;
 esac
 
-
-case $OSTYPE in
-  darwin*)
-    echo "I'm on macos"
-    URL="$BASE_URL/$RELEASE/${BINARY}_darwin_${ARCH_BIN}"
-    ;;
-  linux*)
-    echo "I'm on linux"
-    URL="$BASE_URL/$RELEASE/${BINARY}_linux_${ARCH_BIN}"
-    ;;
-  *)
-    report_issue
-    exit 1
-    ;;
-esac
+# result
+BINARY_DOWNLOAD=${BINARY}_${OS_URL}_${ARCH_BIN}
+URL="$BASE_URL/$RELEASE/$BINARY_DOWNLOAD"
 
 echo "Fetching from: $URL"
-if wget -O $BINARY "$URL" ; then
-  file $BINARY
-  chmod a+x $BINARY
+
+# verification
+if wget -O $BINARY_DOWNLOAD "$URL" ; then
+  file $BINARY_DOWNLOAD
+  chmod a+x $BINARY_DOWNLOAD
+
+  URL_SHA="$BASE_URL/$RELEASE/sha256sum.txt"
+  sha_file=$(mktemp)
+  echo "verifying sha256sum signature from $URL_SHA ..."
+  wget -O $sha_file --quiet "$URL_SHA"
+  sha256sum --ignore-missing  -c $sha_file
+  rm $sha_file
+
+  echo "renaming $BINARY_DOWNLOAD to $BINARY"
+  mv $BINARY_DOWNLOAD $BINARY
 else
   echo "download failure"
-  rm $BINARY
+  rm $BINARY_DOWNLOAD
   report_issue
   exit 1
 fi

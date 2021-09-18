@@ -1,13 +1,12 @@
 # current work in PROGRRESS
 
-## Alternative #35 docopt.sh
+## grammar programming
 
-Middle ware?
-
+See branch `dev-grammar` PROGRESS_BRANCH.md
 
 ## provide test on old environment
 
-docker?
-32bist
-bash 3
+See folder `docker/`
 
+* 32bits
+* bash 3

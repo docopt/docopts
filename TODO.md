@@ -1,9 +1,4 @@
-# docopts (docopt for bash) TODO list
-
-## build and publish binary
-
-Reuse `build.sh` to build golang binary and pubilsh it as a new release too.
-See also PROGRESS.md pre-built binaries.
+# docopts (docopt for bash) TODO list or questions
 
 ## better error handling
 
@@ -13,57 +8,53 @@ See also:
 
 PR: https://github.com/docopt/docopt.go/pull/65
 
-## --json output 
+It probably needs to rewrite the docopt parser.
+
+Example error handling:
+
+* https://github.com/docopt/docopt/issues/459 (-d at the endi handling `[options]`)
+  * > it means "any option not in usage-pattern".
+  * error could be: `-d` option not allowed in `generate` action it has conflict with follwing `Usage: mytool -d | --debug`
+* https://github.com/docopt/docopt/issues/466 (invalid option must be named)
+  * `myscript.py --junkoption` ==> `error: Invalid option '--junkoption'`
+* https://github.com/docopt/docopt/issues/460 (invalid option for selected action + debug parse)
+  * see my comment on issue
+* https://github.com/docopt/docopt/issues/472 ( options are in multiple lines)
+  * error about mandatory argument
+  * curiously --repl=234 is matched?
+
+## --json output
 
 same as `--no-mangle` but json formated
 
 Somewhat discussed here: https://github.com/docopt/docopt/issues/174
 
+Trivial, could be implemented, even without embbeding JSON lib.
+See branch `json-api` too.
+
 ## functional testing for all options
 
 `./docopts --help`
+* `tests/functional_tests_docopts.bats` was introduced in PR #52
 
 ## return or kill for function instead of exit
 
 Add a parameter to handle return or kill instead of exit so it can be launched inside a function.
 
-## embeded JSON
+See also: https://github.com/docopt/docopts/issues/43
 
-See [API_proposal.md](API_proposal.md)
+## verb action
+
+```
+docopts parse "$usage" : [<args>...]
+```
 
 ## generate bash completion from usage
 
+Would probably need a new docopt parser too.
+
 ```
-docopts -h "$help" --generate-completion
-```
-
-## embed test routine (validation)?
-
-May we can interract with the caller to eval some validation…
-It is needed? Is it our goal?
-
-2019-06-07: I think it's ouside `docopts` goal to perform validation. It requires extra language to validate data and it
-will pollute bash own programming role.
-
-
-```bash
-# with tests
-# pass value to parent: JSON or some_thing_else
-eval $(docopts --eval --json --help="Usage: mystuff [--code] INFILE [--out=OUTFILE]" -- "$@")
-
-# docopts test would perform some check based on our own testing language
-if docopts test -- file_exists:INFILE !file_exists:OUTFILE
-then
-  # normal action INFILE exists and OUTFILE will not be ovrerwritten
-else
-  # some error
-fi
-
-eval $(docopts --eval --json --help="Usage: prog [--count=NUM] INFILE..."  -- "$@")
-if docopts test -- num:gt:1:NUM file_exists:INFILE
-then
-  # normal action can be performed
-fi
+docopts completion "$usage"
 ```
 
 ## config file parse config to option format

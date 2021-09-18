@@ -3,16 +3,15 @@
 `docopts` is a shell helper mainly for bash as now, for parsing command-line arguments using the
 [docopt language](https://docopt.org).
 
-This implementation use Go, and we provide pre-built binaries on available for download from
-github releases.
+This implementation use Go, and we provide pre-built binaries available for download from
+[github releases](https://github.com/docopt/docopts/releases).
 
 The sha256sum is provided to ensure the uploaded binaries are conform to the
 one built by the uploader.
 
 ## get the binary
 
-You can simply download the one you want from
-[releases](https://github.com/docopt/docopts/releases).
+You can simply download the one you want from [releases](https://github.com/docopt/docopts/releases).
 
 Or we provide a command line helper if you cloned this repository, that will
 simply download the good binary format from our repository and provide a `docopts` binary in

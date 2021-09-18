@@ -117,7 +117,7 @@ find_end_content() {
   local start_line=$1
   local input=$2
   # find closing ``` : first matching ``` after $start_line
-  awk "NR > $start_line && /^\`{3}/ {print NR; exit}" $input
+  gawk "NR > $start_line && /^\`{3}/ {print NR; exit}" $input
 }
 
 eval_wrapper() {
@@ -186,7 +186,7 @@ get_usage() {
 # extract docopts version
 get_version() {
   local text="$1"
-  local version=$(awk 'NR == 1 { print $2 }')
+  local version=$(gawk 'NR == 1 { print $2 }')
   echo "$text $version"
 }
 

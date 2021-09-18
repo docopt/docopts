@@ -8,17 +8,17 @@ Status: working.
 
 Most concepts are documented in the `docopt` (without S) manual - see [docopt.org](http://docopt.org/).
 
-Many examples use associative arrays in bash 4.x, but there is legacy support for bash 3.2 on macOS (OS X) or legacy
+Many examples use associative arrays in Bash 4+, but there is legacy support for Bash 3.2 on macOS (OS X) or legacy
 GNU/Linux OS.
 
-[make README.md]: # (./docopts --version | get_version "This is a transitional release:")
+[make README.md]: # (./docopts --version | get_version "This is a bug fix release:")
 
 ```
-This is a transitional release: v0.6.3-rc1
+This is a bug fix release: v0.6.4-with-no-mangle-double-dash
 ```
 
-This release will be maintained for compatibility, only fixes will be provided. The 0.6.3 version is fully compatible with
-the previous version of `docopts`.
+This release will be maintained for compatibility, only fixes will be provided. The 0.6.4 version is fully compatible with
+the previous version of `docopts`. Except for `-` handling in global mode, which produces an error.
 
 ## SYNOPSIS
 
@@ -39,6 +39,11 @@ output as a snippet of Bash source code.  Passing this snippet as an argument to
 [`eval(1)`](http://man.cx/eval(1)) is sufficient for handling the CLI needs of
 most scripts.
 
+### Global mode
+
+Global mode, is the default historical output of `docopts`. It will output
+globals variable for storing parsed result.
+
 If `<argv>` matches one of the usage patterns defined in `<msg>`, `docopts`
 generates code for storing the parsed arguments as Bash variables. As most
 command line argument names are not valid Bash identifiers, some name mangling
@@ -48,19 +53,63 @@ will take place:
 * `UPPER-CASE` ==> `UPPER_CASE`
 * `--Long-Option` ==> `Long_Option`
 * `-S` ==> `S`
-* `-4` ==> **INVALID** (without -G)
+* `-4` ==> **INVALID** (without `-G`)
 
 If one of the argument names cannot be mangled into a valid Bash identifier,
 or two argument names map to the same variable name, `docopts` will exit with
 an error, and you should really rethink your CLI, or use `-A` or `-G`.
-The `--` and `-` commands will not be stored.
+If the double-dash is part of the `<msg>` the matched item `--` will be skiped.
 
 Note: You can use `--no-mangle` if you still want full input, this wont
 produce output suitable for bash `eval(1)` but can be parsed by your own
-code.
+code. Double-dash `--` will be kept.
+
+`-G` is a variant of Global mode, which prefixes the globals mangled named with
+`<prefix>` + `_` + `Mangled_name`. In this mode double-dash `--` and single-dash
+`-` will be kept and will be mangled.
+
+* `--Long-Option` ==> `prefix_Long_Option`
+* `--`  ==> `prefix___`
+* `-`  ==> `prefix__`
+
+Note that prefixed invalid mangled names still raise an error, if they resolve to
+invalid bash identifier.
+
+Prefix gobals variable makes it easy to filter variable with `grep` or such, or to
+avoid globals name collision.
+
+Handling `[-]` in global mode is not supported and raises an error when trying to mangle `-`.
+But works for any other modes including `-G`. This behavior differs from python's version of
+`docopts` which would have skiped the positional `-` without error.
+
+```
+./docopts -h 'Usage: dump [-]' : -
+docopts:error: Print_bash_global:Mangling not supported for: '-'
+```
+
+Single-dash can be catch easily by reading it into a `FILENAME` parameter:
+
+```bash
+./docopts  -h 'Usage: prog parse FILENAME' : parse -
+parse=true
+FILENAME='-'
+```
+
+then in your code:
+
+```bash
+f="$FILENAME"
+if [[ $f == '-' ]] ; then
+	f=/dev/stdin
+fi
+```
+
+A working example is provided in [examples/legacy_bash/cat-n_wrapper_example.sh](examples/legacy_bash/cat-n_wrapper_example.sh)
+
+### Associative Array mode
 
 Alternatively, `docopts` can be invoked with the `-A <name>` option, which
-stores the parsed arguments as fields of a Bash 4 associative array called
+stores the parsed arguments as fields of a Bash 4+ associative array called
 `<name>` instead.  However, as Bash does not natively support nested arrays,
 they are faked for repeatable arguments with the following access syntax:
 
@@ -71,9 +120,17 @@ they are faked for repeatable arguments with the following access syntax:
     ${args[ARG,1]} # the second argument to ARG, etc.
 ```
 
+Associative mode don't skip double-dash `--` it will be part of the keys
+as boolean value present or not.
+
+### How arguments are associated to variables
+
+What ever output mode has been selected.
+
 The arguments are stored as follows:
 
-* Non-repeatable, valueless arguments: `true` if found, `false` if not
+* Non-repeatable, valueless arguments: `true` if found, `false` if not.
+  This include double-dash `--` which must be specified as docopt syntax.
 * Repeatable valueless arguments: the count of their instances in `<argv>`
 * Non-repeatable arguments with values: the value as a string if found,
   the empty string if not
@@ -124,7 +181,7 @@ Options:
                                 first one that does not begin with a dash will
                                 be treated as positional arguments.
   -H, --no-help                 Don't handle --help and --version specially.
-  -A <name>                     Export the arguments as a Bash 4.x associative
+  -A <name>                     Export the arguments as a Bash 4+ associative
                                 array called <name>.
   -G <prefix>                   Don't use associative array but output
                                 Bash 3.2 compatible GLOBAL variables assignment:
@@ -142,15 +199,15 @@ Options:
 
 ## COMPATIBILITY
 
-Bash 4.x and higher is the main target.
+Bash 4+ and higher is the main target.
 
-In order to use `docopts` with bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash 4.x associative arrays,
+In order to use `docopts` with Bash 3.2 (for macOS and old GNU/Linux versions) by avoiding bash >4.x associative arrays,
 you can:
 
 * don't use the `-A` option
 * use GLOBAL generated mangled variables
 * use `-G` `<prefix>` option to generate GLOBAL with `prefix_`
-* use `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
+* use `-G` switch with `source docopts.sh --auto -G` (see [example](examples/legacy_bash/sshdiff_with_docopts.sh))
 
 The [`docopts.sh`](docopts.sh) helper allows the use of `set -u`, which
 [gives an error](https://www.gnu.org/software/bash/manual/html_node/The-Set-Builtin.html#The-Set-Builtin)
@@ -165,9 +222,10 @@ The helper has its own documentation here [docs/README.md](docs/README.md).
 
 ## EXAMPLES
 
-Find more examples in [examples/ folder](examples/).
+Find more examples in [examples/ folder](examples/). Please report any
+non working example by creating an [issue](https://github.com/docopt/docopts/issues) with examples.
 
-This example reads the help and version messages from standard input (`docopts` found in `$PATH`):
+The following example reads the help and version messages from standard input (`docopts` found in `$PATH`):
 
 [make README.md]: # (include examples/legacy_bash/rock_hello_world.sh)
 
@@ -232,7 +290,7 @@ for arg in "${argv[@]}"; do
 done
 ```
 
-The next example shows how using the Bash 4.x associative array with `-A`:
+The next example shows how using the Bash 4+ associative array with `-A`:
 
 ```bash
 help="
@@ -257,12 +315,14 @@ while [[ $i -lt ${args[<argument-with-multiple-values>,#]} ]] ; do
 done
 ```
 
-## History
+## Docopts History
 
 `docopts` was first developed by Lari Rasku <rasku@lavabit.com> and was written in Python based on the
 [docopt Python parser](https://github.com/docopt/docopt).
 
-The current version is written in [go](https://golang.org/) and is 100% compatible with previous Python-based `docopts`.
+The current version is written in [go](https://golang.org/) and is almost 100% compatible with previous Python-based `docopts`.
+See section `Global mode` for incompatibly details and provided work around.
+
 Please report any non working code with [issue](https://github.com/docopt/docopts/issues) and examples.
 
 ## Roadmap: A new shell API is proposed
@@ -286,24 +346,24 @@ cp docopts docopts.sh /usr/local/bin
 
 ### Pre-built binaries
 
-Pre-built Go binaries for GNU/Linux (32 and 64 bits) are attached to [releases](https://github.com/docopt/docopts/releases).
+Pre-built Go binaries for some OS (32 and 64 bits) are attached to [releases](https://github.com/docopt/docopts/releases).
 
 We provide a download helper:
 
 ```bash
 git clone https://github.com/docopt/docopts.git
-cd doctops
+cd docopts
 ./get_docopts.sh
 ```
 
-Rename to `docopts` and put it in your `PATH`:
+You should get a renamed `docopts` in the current folder.
+Put it in your `PATH`:
 
 ```bash
-mv docopts_linux_amd64 docopts
-cp docopts docopts.sh /usr/local/bin
+sudo cp docopts docopts.sh /usr/local/bin
 ```
 
-The cloned repository is no more used at this stage. 
+The cloned repository is no more used at this stage, but still contains a lot of bash examples.
 
 Learn more about [pre-built binaries](docs/pre_built_binaries.md).
 
@@ -339,12 +399,12 @@ make all
 make test
 ```
 
-Tested builds are built on: 
+Tested builds are built on:
 
 [make README.md]: # (go version)
 
 ```
-go version go1.11.4 linux/amd64
+go version go1.17.1 linux/amd64
 ```
 
 ## Features
@@ -357,12 +417,12 @@ documentation](docs/README.md).
 
 `docopts` doesn't need a python interpreter anymore, so it works on any legacy system too.
 
-As of 2019-05-18
+As of 2021-09-15
 
-* `docopts` is able to reproduce 100% of the python version.
+* `docopts` is able to reproduce almost 100% of the python version.
 * unit tests for Go are provided, so hack as you wish.
 * 100% of `language_agnostic_tester.py` tests pass (GNU/Linux 64bits).
-* `bats-core` unittests and fonctional testing are provided too. 
+* `bats-core` unittests and functional testing are provided too.
 
 ## Developers
 

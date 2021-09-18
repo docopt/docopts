@@ -33,16 +33,46 @@
 # usually $0 in the main level script
 docopt_get_help_string() {
     local myfname=$1
-    # filter the block (/!\ ALL blocks) starting at a "# Usage:" and ending
-    # at an empty line, one level of comment markup is removed.
-    #
-    # sed gory details:
-    # -n : no print output
-    # -e : pass sed code inline
-    #   /^# Usage:/,/^$/ : filter range blocks from '# Usage:' to empty line
-    #   s/^# \{0,1\}//   : substitute comment marker and an optional space (POSIX regex)
-    #   p                : print
-    sed -n -e '/^# Usage:/,/^$/ s/^# \{0,1\}//p' < "$myfname"
+    # filter the first block starting at a "# Usage:" and ending at an empty line
+    # one level of comment markup is removed.
+    awk '
+        BEGIN { u=0; l=0 }
+        # we catch the first Usage: match
+        /^# Usage:/ {
+            if(u == 0)
+            {
+                u=1
+            }
+        }
+
+        # match all lines. (Usage: is also matched)
+        {
+            if(u == 1) {
+                # append to an array
+                usage[l]=$0
+                l++
+            }
+        }
+
+        # empty line
+        /^$/ {
+            if(u == 1)
+            {
+                # stop parsing when empty line found
+                u=2
+            }
+        }
+
+        # display result and format output
+        END {
+            for(i=0; i<l; i++) {
+                # remove comment (see issue #47) 
+                sub("^# ", "", usage[i])
+                sub("^#", "", usage[i])
+                print usage[i]
+            }
+        }
+        ' < "$myfname"
 }
 
 # Doc:

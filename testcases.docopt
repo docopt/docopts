@@ -955,3 +955,11 @@ other options:
 """
 $ prog --baz --egg
 {"--foo": false, "--baz": true, "--bar": false, "--egg": true, "--spam": false}
+
+#
+# PR52 double-dash handling [--]
+#
+
+r"""Usage: prog double-dash [-p] [-o] [--] <unparsed_option>..."""
+$ prog double-dash -- one -p -auto-approve two
+{ "--": true, "-o": false, "<unparsed_option>": [ "one", "-p", "-auto-approve", "two" ], "double-dash": true, "-p": false }
