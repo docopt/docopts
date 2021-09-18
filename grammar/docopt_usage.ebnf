@@ -4,21 +4,24 @@
 # Program_Usage  = Line_of_text .
 # Indent         = "  " { " " } | "\t" { "\t" } .
 
-Program_Usage = Indent IDENTIFIER  Expr   EOL.
-EOL            = "\n" | "\r\n" | "\r" .
-Indent         = "  " { " " } | "\t" { "\t" } .
-Expr  = Seq  [ "|" Seq ] .
-Seq  = ( Atom [ "..." ] )* .
-Atom = '(' Expr ')' | '[' Expr ']' | 'options' | Long_def | Shorts_option | Argument | Command .
-Shorts_option = Short | Short Argument.
-Long_def = Long | Long Argument | Long '=' Argument.
-Long = '--' Chars Chars ( '_' | '-' | Chars)* .
-Short = '-' Chars .
-Chars = Lowercase | Capital | Digit.
-Argument = Angle_Argument |  Capital_Argument.
-Angle_Argument = '<' Lowercase ( Lowercase | '_'  | '-' | Digit )* '>'.
-Capital_Argument =  Capital ( Capital | '_' | Digit )*.
-
-
+Program_Usage    = Indent Progname Expr EOL .
+EOL              = "\n" | "\r\n" | "\r" .
+Indent           = "  " { " " } | "\t" { "\t" } .
+Expr             = Seq  [ "|" Seq ] .
+Seq              = ( Atom [ "..." ] )* .
+Atom             = '(' Expr ')' | '[' Expr ']' | 'options' | Long_def | Shorts_option | Argument | Action .
+Shorts_option    = Short | Short Argument .
+Long_def         = Long | Long Argument | Long '=' Argument .
+Long             = '--' Chars Chars ( '_' | '-' | Chars)* .
+Short            = '-' Chars .
+Chars            = Lowercase | Capital | Digit .
+Argument         = Angle_Argument |  Capital_Argument .
+Angle_Argument   = '<' Lowercase ( Lowercase | '_'  | '-' | Digit )* '>' .
+Action           = IDENTIFIER .
+Capital_Argument =  Capital ( Capital | '_' | Digit )* .
+Capital          = "A"…"Z" .
+Lowercase        = "a"…"z" .
+IDENTIFIER       = Capital | Lowercase { Capital | Lowercase | Digit | '_' | '-' } .
+Progname         = NON_WHITE_SPACE .
 
 
