@@ -19,6 +19,9 @@ Example error handling:
   * `myscript.py --junkoption` ==> `error: Invalid option '--junkoption'`
 * https://github.com/docopt/docopt/issues/460 (invalid option for selected action + debug parse)
   * see my comment on issue
+* https://github.com/docopt/docopt/issues/472 ( options are in multiple lines)
+  * error about mandatory argument
+  * curiously --repl=234 is matched?
 
 ## --json output
 
