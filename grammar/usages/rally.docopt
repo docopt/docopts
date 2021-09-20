@@ -1,0 +1,37 @@
+A wrapper for rally.
+
+Usage:
+    myrally gen-track-params --bulk=BULK-SIZE... --clients=CLIENTS... --directory=PATH
+                             [-d] --challenges=CHALLENGES... --shards=SHARDS...
+                             --logging-volume=SIZE --replicas=REPLICAS --track=TRACK
+
+Arguments
+    BULK-SIZE       The bulk sizes to use
+    CLIENTS         The number of clients
+    CHALLENGES      The name of challenges
+    SHARDS          The number of shards per replica
+    SIZE            The size of the daily logging volume
+    PATH            A directory path to store generated track parameters
+    REPLICAS        The number of replicas
+    TRACK           The name of the track
+
+    CONFIG-FILE     A configuration file with various parameters
+    TAG             The tag name to set for the rally run
+
+
+
+Options:
+    --bulk=BULK-SIZE            Set the bulk size
+    --clients=CLIENTS           Set the number of clients
+    --challenges=CHALLENGES     Set the name of the challenge
+    -d --dry-run                Print generated configuration without writing it
+    --directory=PATH            Set the base directory to store configuration
+    --logging-volume=SIZE       Set the daily logging volume size
+    --replicas=REPLICAS         Set the number of replicas
+    --shards=SHARDS             Set the shard size
+    --track=TRACK               Set track name
+
+Note:
+    Options that are mentioned with ellipsis(...) can be set multiple times, for
+    instance: -b 1 -b 2. This creates an array with values with the some order as they
+    are passed, so the value `1` is first and the value `2` is second.

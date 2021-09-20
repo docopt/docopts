@@ -103,7 +103,7 @@ func print_args(args docopt.Opts, message string) string {
 	return format
 }
 
-// Sort args keys and return key max length in max
+// Sort args keys and return key max length in max (skipped if max is nil)
 func Sort_args_keys(args docopt.Opts, max *int) []string {
 	keys_list := make([]string, len(args))
 	// compute key max length only if max argument is given
@@ -126,6 +126,7 @@ func Sort_args_keys(args docopt.Opts, max *int) []string {
 	return keys_list
 }
 
+// Key_Generator is an enum which defines how key of parsed option will be outputted
 type Key_Generator int
 
 const (
@@ -139,7 +140,8 @@ type Docopts struct {
 	Global_prefix  string
 	Key_output     Key_Generator
 	Output_declare bool
-	Exit_function  bool
+	// Exit_function is experimental
+	Exit_function bool
 }
 
 // output bash 4+ compatible assoc array, suitable for eval.
@@ -160,7 +162,7 @@ func (d *Docopts) Print_bash_args(bash_assoc string, args docopt.Opts) {
 		// some golang tricks here using reflection to loop over the map[]
 		rt := reflect.TypeOf(value)
 		if IsArray(rt) {
-			// all array is outputed even 0 size
+			// all array is outputted even 0 size
 			val_arr := value.([]string)
 			for index, v := range val_arr {
 				fmt.Fprintf(out, "%s['%s,%d']=%s\n", bash_assoc, Shellquote(key), index, To_bash(v))
@@ -235,7 +237,7 @@ func To_bash(v interface{}) string {
 // Performs output for bash Globals (not bash 4+ assoc) Names are mangled to become
 // suitable for bash eval.
 // Docopts.Key_output will determine how key are printed
-// --no-mangle	: Verbatim
+// --no-mangle	: Verbatim (no suitable for eval(1))
 // -G			: Mangled
 // --docopt_sh	: Docopt_sh
 func (d *Docopts) Print_bash_global(args docopt.Opts) error {
@@ -295,7 +297,7 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 }
 
 // Transform a parsed option or place-holder name into a bash identifier if possible.
-// It Docopts.Global_prefix is prepended if given, wrong prefix may produce invalid
+// Docopts.Global_prefix will be prepended if given, wrong prefix may produce invalid
 // bash identifier and this method will fail too.
 func (d *Docopts) Name_mangle(elem string) (string, error) {
 	var v string
@@ -330,7 +332,9 @@ func (d *Docopts) Name_mangle(elem string) (string, error) {
 	return v, nil
 }
 
-// Transform a string which may contains character no suitable for bash eval to underscore
+// Experimental: issue #36
+// Transform a string which may contains character no suitable for bash eval
+// to underscores. Compatible with https://github.com/andsens/docopt.sh
 func (d *Docopts) Replace_with_undercore(elem string) (string, error) {
 	var v string
 
@@ -351,7 +355,8 @@ func Match(regex string, source string) bool {
 	return matched
 }
 
-// Experimental: Change bash exit source code based on '--function' parameter
+// Experimental: issue #43
+// Change bash exit source code based on '--function' parameter
 func (d *Docopts) Get_exit_code(exit_code int) (str_code string) {
 	if d.Exit_function {
 		str_code = fmt.Sprintf("return %d", exit_code)

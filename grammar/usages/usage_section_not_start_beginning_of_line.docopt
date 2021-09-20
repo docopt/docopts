@@ -1,0 +1,3 @@
+Some free text Prologue
+bla bla Usage: prog [--name] FILENAME
+  prog rm FILENAME [FILENAME...]

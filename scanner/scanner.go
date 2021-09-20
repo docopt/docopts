@@ -1,17 +1,26 @@
-// Copyright 2009 The Go Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
+// scanner.go is derived from go language scanner:
+// https://cs.opensource.google/go/go/+/master:src/go/scanner/scanner.go
 
-// Package scanner implements a scanner for Go source text.
+// Package scanner implements a scanner for docopt language.
 // It takes a []byte as source which can then be tokenized
-// through repeated calls to the Scan method.
+// through repeated calls to the Scan method.  // This is a state scanner which returns different token
+// depending of it actual state.
+//
+//
+// All_states = map[string]string{
+// 	"state_Prologue":   State_Prologue,
+// 	"state_Usage":      State_Usage,
+// 	"state_Usage_Line": State_Usage_Line,
+// 	"state_Options":    State_Options,
+// 	"state_Free":       State_Free,
+// }
 //
 package scanner
 
 import (
 	"bytes"
 	"fmt"
-	"go/token"
+	"github.com/docopt/docopts/token"
 	"path/filepath"
 	"strconv"
 	"unicode"
@@ -828,6 +837,18 @@ func (s *Scanner) switch4(tok0, tok1 token.Token, ch2 rune, tok2, tok3 token.Tok
 //
 func (s *Scanner) Scan() (pos token.Pos, tok token.Token, lit string) {
 scanAgain:
+	switch s.Context {
+	case Prologue:
+		pos, tok, lit = s.ScanPrologue()
+	case Usage:
+		pos, tok, lit = s.ScanUsage()
+	case Options:
+		pos, tok, lit = s.ScanOptions()
+	case Section:
+		// free section ̣≠ Options:
+		pos, tok, lit = s.ScanSection()
+	}
+
 	s.skipWhitespace()
 
 	// current token start
@@ -986,4 +1007,161 @@ scanAgain:
 	}
 
 	return
+}
+
+//  (?P<NEWLINE>\n)
+//  |(?P<SECTION>^Usage:) => state_Usage_Line
+//  |(?P<LINE_OF_TEXT>[^\n]+)
+func (s *Scanner) ScanPrologue() (pos token.Pos, tok token.Token, lit string) {
+	switch ch := s.ch; {
+	case isLetter(ch):
+		lit = s.scanIdentifier()
+		if len(lit) > 1 {
+			// keywords are longer than one letter - avoid lookup otherwise
+			tok = token.Lookup(lit)
+			switch tok {
+			case token.IDENT, token.BREAK, token.CONTINUE, token.FALLTHROUGH, token.RETURN:
+				insertSemi = true
+			}
+		} else {
+			insertSemi = true
+			tok = token.IDENT
+		}
+	case isDecimal(ch) || ch == '.' && isDecimal(rune(s.peek())):
+		insertSemi = true
+		tok, lit = s.scanNumber()
+	default:
+		s.next() // always make progress
+		switch ch {
+		case -1:
+			if s.insertSemi {
+				s.insertSemi = false // EOF consumed
+				return pos, token.SEMICOLON, "\n"
+			}
+			tok = token.EOF
+		case '\n':
+			return pos, token.NEWLINE, "\n"
+		case '"':
+			insertSemi = true
+			tok = token.STRING
+			lit = s.scanString()
+		case '\'':
+			insertSemi = true
+			tok = token.CHAR
+			lit = s.scanRune()
+		case '`':
+			insertSemi = true
+			tok = token.STRING
+			lit = s.scanRawString()
+		case ':':
+			tok = s.switch2(token.COLON, token.DEFINE)
+		case '.':
+			// fractions starting with a '.' are handled by outer switch
+			tok = token.PERIOD
+			if s.ch == '.' && s.peek() == '.' {
+				s.next()
+				s.next() // consume last '.'
+				tok = token.ELLIPSIS
+			}
+		case ',':
+			tok = token.COMMA
+		case ';':
+			tok = token.SEMICOLON
+			lit = ";"
+		case '(':
+			tok = token.LPAREN
+		case ')':
+			insertSemi = true
+			tok = token.RPAREN
+		case '[':
+			tok = token.LBRACK
+		case ']':
+			insertSemi = true
+			tok = token.RBRACK
+		case '{':
+			tok = token.LBRACE
+		case '}':
+			insertSemi = true
+			tok = token.RBRACE
+		case '+':
+			tok = s.switch3(token.ADD, token.ADD_ASSIGN, '+', token.INC)
+			if tok == token.INC {
+				insertSemi = true
+			}
+		case '-':
+			tok = s.switch3(token.SUB, token.SUB_ASSIGN, '-', token.DEC)
+			if tok == token.DEC {
+				insertSemi = true
+			}
+		case '*':
+			tok = s.switch2(token.MUL, token.MUL_ASSIGN)
+		case '/':
+			if s.ch == '/' || s.ch == '*' {
+				// comment
+				if s.insertSemi && s.findLineEnd() {
+					// reset position to the beginning of the comment
+					s.ch = '/'
+					s.offset = s.file.Offset(pos)
+					s.rdOffset = s.offset + 1
+					s.insertSemi = false // newline consumed
+					return pos, token.SEMICOLON, "\n"
+				}
+				comment := s.scanComment()
+				if s.mode&ScanComments == 0 {
+					// skip comment
+					s.insertSemi = false // newline consumed
+					goto scanAgain
+				}
+				tok = token.COMMENT
+				lit = comment
+			} else {
+				tok = s.switch2(token.QUO, token.QUO_ASSIGN)
+			}
+		case '%':
+			tok = s.switch2(token.REM, token.REM_ASSIGN)
+		case '^':
+			tok = s.switch2(token.XOR, token.XOR_ASSIGN)
+		case '<':
+			if s.ch == '-' {
+				s.next()
+				tok = token.ARROW
+			} else {
+				tok = s.switch4(token.LSS, token.LEQ, '<', token.SHL, token.SHL_ASSIGN)
+			}
+		case '>':
+			tok = s.switch4(token.GTR, token.GEQ, '>', token.SHR, token.SHR_ASSIGN)
+		case '=':
+			tok = s.switch2(token.ASSIGN, token.EQL)
+		case '!':
+			tok = s.switch2(token.NOT, token.NEQ)
+		case '&':
+			if s.ch == '^' {
+				s.next()
+				tok = s.switch2(token.AND_NOT, token.AND_NOT_ASSIGN)
+			} else {
+				tok = s.switch3(token.AND, token.AND_ASSIGN, '&', token.LAND)
+			}
+		case '|':
+			tok = s.switch3(token.OR, token.OR_ASSIGN, '|', token.LOR)
+		case '~':
+			tok = token.TILDE
+		default:
+			// next reports unexpected BOMs - don't repeat
+			if ch != bom {
+				s.errorf(s.file.Offset(pos), "illegal character %#U", ch)
+			}
+			insertSemi = s.insertSemi // preserve insertSemi info
+			tok = token.ILLEGAL
+			lit = string(ch)
+		}
+	}
+	if s.mode&dontInsertSemis == 0 {
+		s.insertSemi = insertSemi
+	}
+
+	return
+}
+
+func (s *Scanner) scanUntilNewline(stop_if_match string) string {
+
 }

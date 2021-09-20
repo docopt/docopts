@@ -1,0 +1,6 @@
+Usage:
+    test.py [INPUT...] [-o OUTPUT]... [-t TEST]
+
+Options:
+	-o OUTPUT    collect mutiple output files
+  -t TEST      define test file

@@ -6,10 +6,10 @@ package docopt
 
 import (
 	"fmt"
+	"github.com/alecthomas/repr"
 	"os"
 	"regexp"
 	"strings"
-	"github.com/alecthomas/repr"
 )
 
 type Parser struct {
@@ -117,7 +117,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 		argv = os.Args[1:]
 	}
 
-	usageSections := parseSection("usage:", doc)
+	usageSections := ParseSection("usage:", doc)
 
 	if len(usageSections) == 0 {
 		err = newLanguageError("\"usage:\" (case-insensitive) not found.")
@@ -138,10 +138,10 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 
 	pat, err := parsePattern(formal, &options)
 
-  if PRINT_AST {
+	if PRINT_AST {
 		repr.Println(pat)
-    return
-  }
+		return
+	}
 
 	if err != nil {
 		output = handleError(err, usage)
@@ -202,7 +202,7 @@ func handleError(err error, usage string) string {
 	return ""
 }
 
-func parseSection(name, source string) []string {
+func ParseSection(name, source string) []string {
 	p := regexp.MustCompile(`(?im)^([^\n]*` + name + `[^\n]*\n?(?:[ \t].*?(?:\n|$))*)`)
 	s := p.FindAllString(source, -1)
 	if s == nil {
@@ -217,7 +217,7 @@ func parseSection(name, source string) []string {
 func parseDefaults(doc string) patternList {
 	defaults := patternList{}
 	p := regexp.MustCompile(`\n[ \t]*(-\S+?)`)
-	for _, s := range parseSection("options:", doc) {
+	for _, s := range ParseSection("options:", doc) {
 		// FIXME corner case "bla: options: --foo"
 		_, _, s = stringPartition(s, ":") // get rid of "options:"
 		split := p.Split("\n"+s, -1)[1:]

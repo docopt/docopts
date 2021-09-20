@@ -22,6 +22,8 @@ Example error handling:
 * https://github.com/docopt/docopt/issues/472 ( options are in multiple lines)
   * error about mandatory argument
   * curiously --repl=234 is matched?
+* https://stackoverflow.com/questions/61109871/multiple-positional-and-optional-arguments-using-docopt
+  * help during option matching and AST presentation
 
 ## --json output
 

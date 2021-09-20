@@ -1,6 +1,6 @@
 ## during grammar design
 
-Missing: Which state parser we where (
+Missing: Which state parser we were
 
 ```
 go run docopt_grammar.go docopt_language.docopt

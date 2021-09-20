@@ -1,9 +1,11 @@
 /*
  * This is a lexer code which support state tokenizing.
  *
- * It reuses github.com/alecthomas/participle/lexer code and extend to support in token syntax:
+ * It reuses lexer code from participle and extend to support in token syntax:
  *	- comments
  *	- states changes
+ *
+ * See Also: github.com/alecthomas/participle/lexer
  *
  *
  * Our syntax:
@@ -53,7 +55,7 @@ package lexer_state
 import (
 	"bytes"
 	"fmt"
-	"github.com/alecthomas/participle/lexer"
+	"github.com/docopt/docopts/grammar/lexer"
 	"io"
 	"io/ioutil"
 	"regexp"
@@ -62,8 +64,9 @@ import (
 )
 
 type stateRegexpDefinition struct {
-	State_name  string
-	Re          *regexp.Regexp
+	State_name string
+	Re         *regexp.Regexp
+	// map a named lexer rule to a new stateRegexpDefinition's name
 	Leave_token map[string]string
 	Symbols     []string
 }
@@ -80,14 +83,17 @@ func (def stateRegexpDefinition) String() string {
 type stateLexer struct {
 	// lexer.Position from participle
 	pos lexer.Position
-	b   []byte
-	re  *regexp.Regexp
+	// content to scan
+	b  []byte
+	re *regexp.Regexp
 	// TODO: optimize names change
-	names []string
+	names             []string
+	State_auto_change bool
 
 	s             []*stateRegexpDefinition
 	Current_state *stateRegexpDefinition
-	symbols       map[string]rune
+	// map lexer named pattern name to rune of symbols
+	symbols map[string]rune
 }
 
 // helper
@@ -203,7 +209,8 @@ var eolBytes = []byte("\n")
 //      def, err := StateLexer(states_all, "s1")
 func StateLexer(states_all map[string]string, start_state string) (*stateLexer, error) {
 	states := stateLexer{
-		s: []*stateRegexpDefinition{},
+		s:                 []*stateRegexpDefinition{},
+		State_auto_change: true,
 	}
 	for s, p := range states_all {
 		def, err := Parse_lexer_state(s, p)
@@ -269,7 +276,10 @@ func (sl *stateLexer) ChangeState(new_state string) error {
 	return fmt.Errorf("ChangeState: '%s' state_name not found", new_state)
 }
 
+// Initialize the Lexer with an io.Reader
+// return: a participle lexer.Lexer
 func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
+	// read all bytes
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -327,11 +337,15 @@ nextToken:
 				}
 
 				token.Type = r.symbols[tok_name]
+				token.Regex_name = tok_name
 
-				// if we encounter a leave_token we change our lexer state
-				if new_state, ok := r.Current_state.Leave_token[tok_name]; ok {
-					r.ChangeState(new_state)
+				if r.State_auto_change {
+					// if we encounter a leave_token we change our lexer state
+					if new_state, ok := r.Current_state.Leave_token[tok_name]; ok {
+						r.ChangeState(new_state)
+					}
 				}
+
 				break
 			}
 		}

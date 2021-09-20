@@ -4,7 +4,7 @@ package token_docopt
 var (
 	State_Prologue = `
   (?P<NEWLINE>\n)
-  |(?P<SECTION>^Usage:) => state_Usage_Line
+  |(?P<SECTION>[Uu][Ss][Aa][Gg][Ee]:) => state_Usage_Line
   |(?P<LINE_OF_TEXT>[^\n]+)
   `
 
@@ -24,9 +24,10 @@ var (
   |([\t ]+)
   |(?P<SHORT>-[A-Za-z0-9?])
   |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
-  |(?P<ARGUMENT><[A-Za-z][A-Za-z0-9_-]*>|[A-Z_][A-Z0-9_-]+)
-  # Punctuation doesn't accept comma but elipsis ...
-  |(?P<PUNCT>[\][=()|]|\.{3})
+	# argument are free text colonn is an ARGUMENT
+	|(?P<ARGUMENT><[A-Za-z][A-Za-z0-9_-]*>|[A-Z_][A-Z0-9_-]+|[:])
+	# Punctuation doesn't accept comma, accepts elipsis ...
+	|(?P<PUNCT>[\][=()|-]|\.{3})
   |(?P<IDENT>[A-Za-z][A-Za-z0-9_-]+)
   `
 

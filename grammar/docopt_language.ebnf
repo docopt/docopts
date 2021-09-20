@@ -1,3 +1,4 @@
+# some token defined in grammar/token_docopt/token_docopt.go
 Docopt = [ Prologue ]  Usage  [ Options ] .
 Prologue = Line_of_text EOL | EOL | { Prologue } .
 EOL = "\n" | "\r\n" | "\r" .

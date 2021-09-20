@@ -5,9 +5,9 @@ import (
 	"os"
 
 	"github.com/alecthomas/participle"
-	"github.com/alecthomas/participle/lexer"
 	"github.com/alecthomas/repr"
 
+	"github.com/docopt/docopts/grammar/lexer"
 	"github.com/docopt/docopts/grammar/lexer_state"
 	"github.com/docopt/docopts/grammar/token_docopt"
 )

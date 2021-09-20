@@ -1,13 +1,13 @@
 package main
 
 import (
-  "os"
-  "fmt"
+	"fmt"
+	"os"
 
-  "github.com/alecthomas/repr"
+	"github.com/alecthomas/repr"
 
-  "github.com/alecthomas/participle"
-  "github.com/alecthomas/participle/lexer"
+	"github.com/alecthomas/participle"
+	"github.com/docopt/docopts/grammar/lexer"
 )
 
 /*  grammar participle syntax ~ ebnf
@@ -31,76 +31,75 @@ Options_line   =  INDENT LINE_OF_TEXT "\n" | "\n"
 
 // ================================ grammar ===============================
 type Docopt struct {
-  Prologue *Free_text  `@@?`
-  Usage *Usage `@@`
-	Options *Options `@@?`
-  Free_text *Free_text  `@@?`
+	Prologue  *Free_text `@@?`
+	Usage     *Usage     `@@`
+	Options   *Options   `@@?`
+	Free_text *Free_text `@@?`
 }
 
 type Free_text struct {
 	Pos lexer.Position
 
-  Description []string `( @Indent? @Line_of_text "\n" | @"\n" )*`
+	Description []string `( @Indent? @Line_of_text "\n" | @"\n" )*`
 }
 
 type Usage struct {
 	Pos lexer.Position
 
-  Usage_first   *string         `  "Usage:" ( @Line_of_text "\n" )?`
-  Usage_lines   []*Usage_line   `           @@+`
+	Usage_first *string       `  "Usage:" ( @Line_of_text "\n" )?`
+	Usage_lines []*Usage_line `           @@+`
 }
 
 type Usage_line struct {
 	Pos lexer.Position
 
-  Usage_content  *string   `  Indent @Line_of_text "\n"`
-  Comment        *string   `| ( @Line_of_text "\n" | @"\n"+ )`
+	Usage_content *string `  Indent @Line_of_text "\n"`
+	Comment       *string `| ( @Line_of_text "\n" | @"\n"+ )`
 }
 
 type Options struct {
-  Pos lexer.Position
+	Pos lexer.Position
 
-  Options_lines []string `"Options:" "\n" ( Indent @Line_of_text "\n" | "\n" )+`
+	Options_lines []string `"Options:" "\n" ( Indent @Line_of_text "\n" | "\n" )+`
 }
 
 var (
-  // A custom lexer for docopt input
-  doctop_Lexer = lexer.Must(lexer.Regexp(
-    `(?P<NewLine>\n)` +
-  // catch multiple blank
-    `|(?P<Indent>\s{2,})` +
-  // skip single blank
-		`|(\s)` +
-    `|(?P<Section>^(Usage|Options):)` +
-    `|(?P<Line_of_text>[^\n]+)`,
-  ))
+	// A custom lexer for docopt input
+	doctop_Lexer = lexer.Must(lexer.Regexp(
+		`(?P<NewLine>\n)` +
+			// catch multiple blank
+			`|(?P<Indent>\s{2,})` +
+			// skip single blank
+			`|(\s)` +
+			`|(?P<Section>^(Usage|Options):)` +
+			`|(?P<Line_of_text>[^\n]+)`,
+	))
 
-  parser = participle.MustBuild(&Docopt{},
-    participle.UseLookahead(2),
-    participle.Lexer(doctop_Lexer),
-    //participle.Elide("Comment", "Whitespace"),
-    )
-
+	parser = participle.MustBuild(&Docopt{},
+		participle.UseLookahead(2),
+		participle.Lexer(doctop_Lexer),
+	//participle.Elide("Comment", "Whitespace"),
+	)
 )
 
 func main() {
-  filename := os.Args[1]
+	filename := os.Args[1]
 	f, err := os.Open(filename)
-  if err != nil {
-    fmt.Printf("error: fail to open %s\n", filename)
-    return
-  } else {
-    fmt.Printf("parsing: %s\n", filename)
-  }
+	if err != nil {
+		fmt.Printf("error: fail to open %s\n", filename)
+		return
+	} else {
+		fmt.Printf("parsing: %s\n", filename)
+	}
 
-  ast := &Docopt{}
-  if err = parser.Parse(f, ast) ; err == nil {
-    repr.Println(ast)
-    fmt.Println("Parse Success")
-  } else {
-    fmt.Println("Parse error")
-    fmt.Println(err)
-    fmt.Println("======================= partial AST ==========================")
-    repr.Println(ast)
-  }
+	ast := &Docopt{}
+	if err = parser.Parse(f, ast); err == nil {
+		repr.Println(ast)
+		fmt.Println("Parse Success")
+	} else {
+		fmt.Println("Parse error")
+		fmt.Println(err)
+		fmt.Println("======================= partial AST ==========================")
+		repr.Println(ast)
+	}
 }
