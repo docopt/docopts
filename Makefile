@@ -9,7 +9,7 @@ PREFIX ?= /usr/local
 
 # govvv define main.Version with the contents of ./VERSION file, if exists
 BUILD_FLAGS=$(shell ./get_ldflags.sh)
-docopts: docopts.go Makefile
+docopts: docopts.go Makefile docopt-go/docopt.go
 	go build -o $@ -ldflags "${BUILD_FLAGS} ${LDFLAGS}"
 
 # dependancies

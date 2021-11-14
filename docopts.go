@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	// we use our own embedded docopt-go lib version
 	"github.com/docopt/docopts/docopt-go"
 	"io"
 	"io/ioutil"
@@ -43,7 +44,7 @@ Usage:
   docopts [options] -G <prefix> [--docopt_sh] -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
   docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
-  docopts [options] --print-ast -h <msg> : [<argv>...]
+  docopts [options] [--print-ast|--print-pat-fix|--print-parsed] -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -527,9 +528,19 @@ func main() {
 
 	var bash_args docopt.Opts
 	if arguments["--print-ast"].(bool) {
-		//docopt.PRINT_AST = true
-		//bash_args, err = parser.ParseArgs(doc, argv, bash_version)
-		fmt.Println("PRINT_AST disabled must be enabled in docopt lib")
+		docopt.PRINT_AST = true
+		// parser will print its own ast
+		bash_args, err = parser.ParseArgs(doc, argv, bash_version)
+		return
+	} else if arguments["--print-pat-fix"].(bool) {
+		docopt.PRINT_PAT_FIX = true
+		// parser will print its own ast after fix
+		bash_args, err = parser.ParseArgs(doc, argv, bash_version)
+		return
+	} else if arguments["--print-parsed"].(bool) {
+		docopt.PRINT_PARSE_RESULT = true
+		// parser will print its own ast after fix
+		bash_args, err = parser.ParseArgs(doc, argv, bash_version)
 		return
 	} else {
 		bash_args, err = parser.ParseArgs(doc, argv, bash_version)

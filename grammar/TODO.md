@@ -11,6 +11,7 @@
 
 (our branch PROGRESS.md)
 
+`lexer_docopt.go`
 * dont change state inside the lexer, let the caller decide to change state
  *  remove participle dependancy
 * finish standalone lexer without error failure

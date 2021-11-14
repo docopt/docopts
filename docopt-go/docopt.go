@@ -28,6 +28,8 @@ type Parser struct {
 }
 
 var PRINT_AST = false
+var PRINT_PAT_FIX = false
+var PRINT_PARSE_RESULT = false
 
 var PrintHelpAndExit = func(err error, usage string) {
 	if err != nil {
@@ -130,7 +132,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 	usage := usageSections[0]
 
 	options := parseDefaults(doc)
-	formal, err := formalUsage(usage)
+	formal, err := FormalUsage(usage)
 	if err != nil {
 		output = handleError(err, usage)
 		return
@@ -179,7 +181,17 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 		output = handleError(err, usage)
 		return
 	}
+
+	if PRINT_PAT_FIX {
+		repr.Println(pat)
+		return
+	}
+
 	matched, left, collected := pat.match(&patternArgv, nil)
+	if matched && PRINT_PARSE_RESULT {
+		repr.Println(collected)
+		return
+	}
 	if matched && len(*left) == 0 {
 		patFlat, err = pat.flat(patternDefault)
 		if err != nil {
@@ -535,7 +547,7 @@ func parseShorts(tokens *tokenList, options *patternList) (patternList, error) {
 	return parsed, nil
 }
 
-func formalUsage(section string) (string, error) {
+func FormalUsage(section string) (string, error) {
 	_, _, section = stringPartition(section, ":") // drop "usage:"
 	pu := strings.Fields(section)
 

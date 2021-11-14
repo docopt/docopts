@@ -1,27 +1,96 @@
-# some token defined in grammar/token_docopt/token_docopt.go
-Docopt = [ Prologue ]  Usage  [ Options ] .
-Prologue = Line_of_text EOL | EOL | { Prologue } .
-EOL = "\n" | "\r\n" | "\r" .
-Line_of_text = [^\n]+ .
-Usage   = "Usage:"  ( Program_Usage |  EOL* Program_Usage ) .
-Program_Usage = Indent IDENTIFIER  Expr  EOL .
-Indent = ^ Long_space .
-Long_space = "  " " "*| "\t" "\t"* .
-Expr  = Seq  ( "|" Seq )* .
-Seq  = ( Atom [ "..." ] )* .
-Atom = '(' Expr ')' | '[' Expr ']' | 'options' | Long_def | Shorts_option | Argument | Command .
-Shorts_option = Short | Short Argument .
-Long_def = Long | Long Argument | Long '=' Argument .
-Long = '--' Chars Chars ( '_' | '-' | Chars)* .
-Short = '-' Chars .
-Chars = Lowercase | Capital | Digit .
-Argument = Angle_Argument |  Capital_Argument .
-Angle_Argument = '<' Lowercase ( Lowercase | '_'  | '-' | Digit )* '>' .
-Capital_Argument =  Capital ( Capital | '_' | Digit )* .
-Options = "Options:" Options_Help Options_Help*  .
-Options_Help = Indent Option_Flag Option_description .
-Option_Flag  = ( Short_def | Long_def ) [ ( " " | "," )  Option_Flag ] .
-Short_def = Short | Short Argument .
-Option_description = Long_space Free_text Default_value? .
-Free_text = [^\n[\]]+ .
-Default_value = '[' "default:" Free_text ']' .
+(*
+  here is grammar definition for docopt language, in EBNF.
+  Only the "Usage: progname" is mandatory
+*)
+Docopt =   [ Prologue ]
+         ,   Usage
+         , [ Options ]
+         , [ Free_text ]
+         ;
+
+(*
+  Prologue can be used to introduce the program.
+  Matching USAGE leaves the Prologue.
+*)
+Prologue = Line_of_text, NEWLINE | { Prologue } ;
+NEWLINE = ? all line ending char combination ? ;
+Line_of_text = ALL_CHARACTERS - USAGE ;
+ALL_CHARACTERS = ? all visible characters ? ;
+USAGE   = ? "Usage:" case insensitive ? ;
+
+Usage   = USAGE , First_Program_Usage | { Program_Usage } ;
+First_Program_Usage = PROG_NAME , [ Expr ] ;
+(*
+ PROG_NAME is catched at first definition and stay the same literal for all the parsing
+ Program_Usage can be break multi-line: Indent + PROG_NAME will start a new Program_Usage
+
+ Usage: ./my_program.sh [-h] [--lovely-option] FILENAME
+        ./my_program.sh another LINE OF --usage
+        my_program      will continue [--above] <usage-definition>
+
+ PROG_NAME  on first usage parsing it becomes: "./my_program.sh"
+*)
+PROG_NAME = ? any non space characters ? ;
+Program_Usage = Indent , PROG_NAME  [ Expr ] ;
+Indent = ? Long_space at the beginning of the line ? ;
+Long_space = "  " , { ' ' } | '\t' , { '\t' } ;
+Expr  = Seq , { '|' ,  Seq } ;
+Seq  = Atom , [ "..." ] ;
+Atom = '(' , Expr , ')'
+     | '[' , Expr , ']'
+     | "options"
+     | Long_def
+     | Shorts_option
+     | Argument
+     | Command
+     | '-' | "--" (* single-dash and double-dash *)
+     ;
+Shorts_option = Short | Short , Argument ;
+Long_def = Long | Long , Argument | Long , '=' , Argument ;
+Long = '--' , Chars , Chars { '_' | '-' | Chars } ;
+Short = '-' , Chars ;
+Chars = Lowercase | Capital | Digit ;
+Lowercase = ? lowercase latin1 letters ? ;
+Capital  = ? Uppercase latin1 letters ? ;
+Digit = ? numbers 0 at 9 ? ;
+Argument = Angle_Argument | Capital_Argument ;
+Angle_Argument = '<' , Lowercase , { Lowercase | '_'  | '-' | Digit } , '>' ;
+Capital_Argument =  Capital , { Capital | '_' | Digit } ;
+
+Options =  OPTIONS_KEYWORD , Options_Help { Options_Help } ;
+OPTIONS_KEYWORD =  ? "Options:" case insensitive ? ;
+Options_Help = Indent , Option_Flag , Option_description ;
+Option_Flag  = ( Short_def | Long_def ) , [ ( " " | "," ) ,  Option_Flag ] ;
+Short_def = Short | Short Argument ;
+Option_description = Long_space , Description_text , [ Default_value ] ;
+Description_text = ALL_CHARACTERS - Default_value ;
+(*
+   Value_for_default:
+   ']' can be given for default that way: [default:"]"]
+   double quote can be escaped too: [default:"{ \"I love \" : \"JSON\" }"]
+   emtpy string: [default:""]
+*)
+Default_value = '[' , "default:" , Value_for_default , ']' ;
+Value_for_default = string
+                  | ALL_CHARACTERS - ']'
+                  ;
+string = '"' , { ALL_CHARACTERS - '"' | escaped_double_quote } , '"' ;
+escaped_double_quote = '\' , '"' ;
+
+(*
+  Free_text allow to add help information in a section like messsage, which is eaten by the parser.
+  Free_text could be extend and or parsed on grammar extension, new defined sections fro example:
+
+Arguments:
+  FILENAME    Inputfile
+  COUNTER     Number of time to repeat the action.
+
+etc.
+
+Howto:
+  Some information, bla, bla
+Indent is not mandatory, it's free.
+
+Usage: <== this will fail? or not?
+*)
+Free_text = ALL_CHARACTERS - USAGE , NEWLINE | { Free_text } ;

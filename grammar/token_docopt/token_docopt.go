@@ -4,13 +4,13 @@ package token_docopt
 var (
 	State_Prologue = `
   (?P<NEWLINE>\n)
-  |(?P<SECTION>[Uu][Ss][Aa][Gg][Ee]:) => state_Usage_Line
+  |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:) => state_Usage_Line
   |(?P<LINE_OF_TEXT>[^\n]+)
   `
 
 	State_Usage = `
   (?P<NEWLINE>\n)
-  |(?P<USAGE>^Usage:)
+  |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:)
   |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Options
   |(?P<LONG_BLANK>[\t ]{2,}) => state_Usage_Line
   # skip single blank
