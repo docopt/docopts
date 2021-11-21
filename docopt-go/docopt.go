@@ -138,7 +138,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 		return
 	}
 
-	pat, err := parsePattern(formal, &options)
+	pat, err := ParsePattern(formal, &options)
 
 	if PRINT_AST {
 		repr.Println(pat)
@@ -244,9 +244,9 @@ func parseDefaults(doc string) patternList {
 	return defaults
 }
 
-func parsePattern(source string, options *patternList) (*pattern, error) {
-	tokens := tokenListFromPattern(source)
-	result, err := parseExpr(tokens, options)
+func ParsePattern(source string, options *patternList) (*pattern, error) {
+	tokens := TokenListFromPattern(source)
+	result, err := ParseExpr(tokens, options)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func parseOption(optionDescription string) *pattern {
 	return newOption(short, long, argcount, value)
 }
 
-func parseExpr(tokens *tokenList, options *patternList) (patternList, error) {
+func ParseExpr(tokens *tokenList, options *patternList) (patternList, error) {
 	// expr ::= seq ( '|' seq )* ;
 	seq, err := parseSeq(tokens, options)
 	if err != nil {
@@ -386,7 +386,7 @@ func parseAtom(tokens *tokenList, options *patternList) (patternList, error) {
 	if tokens.current().match(false, "(", "[") {
 		tokens.move()
 		var matching string
-		pl, err := parseExpr(tokens, options)
+		pl, err := ParseExpr(tokens, options)
 		if err != nil {
 			return nil, err
 		}

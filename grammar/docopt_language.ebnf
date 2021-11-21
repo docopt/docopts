@@ -26,7 +26,7 @@ First_Program_Usage = PROG_NAME , [ Expr ] ;
 
  Usage: ./my_program.sh [-h] [--lovely-option] FILENAME
         ./my_program.sh another LINE OF --usage
-        my_program      will continue [--above] <usage-definition>
+        my_program      will continue [the] [--above] <usage-definition>
 
  PROG_NAME  on first usage parsing it becomes: "./my_program.sh"
 *)

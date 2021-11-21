@@ -10,5 +10,6 @@ require (
 	github.com/alecthomas/units v0.0.0-20190924025748-f65c72e2690d // indirect
 	github.com/blynn/nex v0.0.0-20200222124853-f06fb288caba // indirect
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
+	github.com/gookit/color v1.5.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 )

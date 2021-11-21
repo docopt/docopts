@@ -56,6 +56,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/docopt/docopts/grammar/lexer"
+	//"github.com/alecthomas/participle/lexer"
 	"io"
 	"io/ioutil"
 	"regexp"
@@ -63,12 +64,24 @@ import (
 	"unicode/utf8"
 )
 
+type dynamicRegexp struct {
+	re_name     string
+	re_template string
+	re_string   string
+	is_dynamic  bool
+	resolved    bool
+	want        string
+}
+
 type stateRegexpDefinition struct {
 	State_name string
+	All_regexp []*dynamicRegexp
 	Re         *regexp.Regexp
 	// map a named lexer rule to a new stateRegexpDefinition's name
 	Leave_token map[string]string
+	// list of Symbols name
 	Symbols     []string
+	DynamicRule bool
 }
 
 func (def stateRegexpDefinition) String() string {
@@ -80,8 +93,8 @@ func (def stateRegexpDefinition) String() string {
 	)
 }
 
-type stateLexer struct {
-	// lexer.Position from participle
+type StateLexer struct {
+	// lexer.Position copied from participle
 	pos lexer.Position
 	// content to scan
 	b  []byte
@@ -90,6 +103,7 @@ type stateLexer struct {
 	names             []string
 	State_auto_change bool
 
+	// states
 	s             []*stateRegexpDefinition
 	Current_state *stateRegexpDefinition
 	// map lexer named pattern name to rune of symbols
@@ -111,11 +125,17 @@ func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
 // and build the resulting stateRegexpDefinition
 // Token cannot contain the string ' => ' in the regexp part.
 // Comment are introduced with # at column 1, whole line is discarded
+// Support dynamic regexp replace with syntax:
+// |(?P<@PROG_NAME>@PROG_NAME)
+// will be resolved with ==> |(?P<PROG_NAME>%s) where %s will be replaced with the value of PROG_NAME
 func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinition, error) {
-	var final_pat []string
+	var all_regexp []*dynamicRegexp
 	leave_token := map[string]string{}
+	// our regexp to extract the regxep's name from parsed input (valid go named regxep)
 	re_extract_rename, _ := regexp.Compile(`\(\?P<([^>]+)`)
 	leave_str := " => "
+	var new_regexp *dynamicRegexp
+	dynamic_rule := 0
 	for i, l := range strings.Split(pattern, "\n") {
 		// skip empty line
 		if l == "" {
@@ -138,14 +158,23 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 			return nil, fmt.Errorf("Parse_lexer_state:%d: error: more than one '%s', in '%s'", i, leave_str, l)
 		}
 
+		new_regexp = nil
+
+		// handle leaving state definition
 		divide := strings.SplitN(l, leave_str, 2)
 		regexp := strings.Trim(divide[0], "\t ")
-		//var msg string
+
+		// extract regexp name
+		re_name_result := re_extract_rename.FindStringSubmatch(regexp)
+		re_name := ""
+		if re_name_result != nil {
+			re_name = re_name_result[1]
+		}
+
 		if len(divide) == 2 {
 			new_state := strings.Trim(divide[1], "\t ")
-			result := re_extract_rename.FindStringSubmatch(regexp)
-			if result != nil {
-				token := result[1]
+			if re_name != "" {
+				token := re_name
 				//msg = fmt.Sprintf("'%s' => '%s'", token, new_state)
 				leave_token[token] = new_state
 			} else {
@@ -153,15 +182,67 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 			}
 		}
 
-		// fmt.Printf("%d: '%s' : %s\n", i, l, msg)
+		// handle dynamic regexp definition
+		if re_name != "" && strings.Index(regexp, "(?P<@") != -1 {
+			// remove leading @
+			dynamic_name := re_name[1:]
+			new_regexp = &dynamicRegexp{
+				re_name:     re_name,
+				re_template: "|(?P<%s>%s)",
+				re_string:   "",
+				is_dynamic:  true,
+				resolved:    false,
+				want:        dynamic_name,
+			}
+			dynamic_rule++
+		} else {
+			// also handle anonymous regxep
+			new_regexp = &dynamicRegexp{
+				re_name:     re_name,
+				re_template: "",
+				re_string:   regexp,
+				is_dynamic:  false,
+				resolved:    true,
+				want:        "",
+			}
+		}
 
-		final_pat = append(final_pat, regexp)
+		all_regexp = append(all_regexp, new_regexp)
+	}
+
+	s := stateRegexpDefinition{
+		State_name:  state_name,
+		All_regexp:  all_regexp,
+		Re:          nil,
+		Leave_token: leave_token,
+		Symbols:     nil,
+		DynamicRule: dynamic_rule > 0,
+	}
+	if dynamic_rule == 0 {
+		err := s.compile_regexp()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &s, nil
+}
+
+func (s *stateRegexpDefinition) compile_regexp() error {
+	var re *regexp.Regexp
+	var err error
+	var final_pat []string
+	for _, dr := range s.All_regexp {
+		if !dr.resolved {
+			return fmt.Errorf("compile_regexp: dynamicRegexp not resolved: %s missing %s", dr.re_name, dr.want)
+		}
+		final_pat = append(final_pat, dr.re_string)
 	}
 
 	// assign result
-	re, err := regexp.Compile(strings.Join(final_pat, ""))
+	re, err = regexp.Compile(strings.Join(final_pat, ""))
 	if err != nil {
-		return nil, fmt.Errorf("Parse_lexer_state: %v", err)
+		s.Re = nil
+		return fmt.Errorf("compile_regexp: %v", err)
 	}
 
 	// retrieve symbols (token names) from regxep names
@@ -173,21 +254,17 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 	}
 
 	if len(symbols) < 1 {
-		return nil, fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", pattern)
+		return fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", final_pat)
 	}
 
-	s := stateRegexpDefinition{
-		State_name:  state_name,
-		Re:          re,
-		Leave_token: leave_token,
-		Symbols:     symbols,
-	}
-	return &s, nil
+	s.Symbols = symbols
+	s.Re = re
+	return nil
 }
 
 var eolBytes = []byte("\n")
 
-// StateLexer creates a lexer definition from a regular expression map[string]string.
+// CreateStateLexer creates a lexer definition from a regular expression map[string]string.
 //
 // Each named sub-expression in the regular expression matches a token. Anonymous sub-expressions
 // will be matched and discarded.
@@ -206,16 +283,16 @@ var eolBytes = []byte("\n")
 //    "s3" : s3_def_string,
 //   }
 //
-//      def, err := StateLexer(states_all, "s1")
-func StateLexer(states_all map[string]string, start_state string) (*stateLexer, error) {
-	states := stateLexer{
+//      def, err := CreateStateLexer(states_all, "s1")
+func CreateStateLexer(states_all map[string]string, start_state string) (*StateLexer, error) {
+	states := StateLexer{
 		s:                 []*stateRegexpDefinition{},
 		State_auto_change: true,
 	}
 	for s, p := range states_all {
 		def, err := Parse_lexer_state(s, p)
 		if err != nil {
-			return nil, fmt.Errorf("StateLexer: '%s': %v", s, err)
+			return nil, fmt.Errorf("CreateStateLexer: '%s': %v", s, err)
 		}
 
 		states.s = append(states.s, def)
@@ -231,7 +308,7 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
 	return &states, nil
 }
 
-//func (sl *stateLexer) String() string {
+//func (sl *StateLexer) String() string {
 //  var out string
 //  out += fmt.Sprintf("Current_state: %s\n", s.Current_state)
 //  for n, s := range sl.s {
@@ -239,13 +316,13 @@ func StateLexer(states_all map[string]string, start_state string) (*stateLexer, 
 //  }
 //}
 
-func (sl *stateLexer) Make_symbols() error {
+func (sl *StateLexer) Make_symbols() error {
 	// create symbol map common for all state
 	symbols := map[string]rune{
 		"EOF": lexer.EOF,
 	}
 
-	// renumber all symbol
+	// renumber all symbol (symbols are associated with negative rune)
 	var tok rune = lexer.EOF - 1
 	for _, sdef := range sl.s {
 		for _, sym := range sdef.Symbols {
@@ -262,7 +339,7 @@ func (sl *stateLexer) Make_symbols() error {
 	return nil
 }
 
-func (sl *stateLexer) ChangeState(new_state string) error {
+func (sl *StateLexer) ChangeState(new_state string) error {
 	for _, def := range sl.s {
 		if def.State_name == new_state {
 			sl.re = def.Re
@@ -278,7 +355,7 @@ func (sl *stateLexer) ChangeState(new_state string) error {
 
 // Initialize the Lexer with an io.Reader
 // return: a participle lexer.Lexer
-func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
+func (s *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 	// read all bytes
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -296,17 +373,17 @@ func (s *stateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 	return s, nil
 }
 
-func (sl *stateLexer) Symbols() map[string]rune {
+func (sl *StateLexer) Symbols() map[string]rune {
 	return sl.symbols
 }
 
-func (r *stateLexer) Next() (lexer.Token, error) {
+func (r *StateLexer) Next() (lexer.Token, error) {
 nextToken:
 	for len(r.b) != 0 {
 		matches := r.re.FindSubmatchIndex(r.b)
 		if matches == nil || matches[0] != 0 {
 			rn, _ := utf8.DecodeRune(r.b)
-			return lexer.Token{}, lexer.Errorf(r.pos, "invalid token %q", rn)
+			return lexer.Token{}, lexer.Errorf(r.pos, "invalid token %q state: %s", rn, r.Current_state)
 		}
 		match := r.b[:matches[1]]
 		token := lexer.Token{
@@ -354,4 +431,67 @@ nextToken:
 	}
 
 	return lexer.EOFToken(r.pos), nil
+}
+
+func (r *StateLexer) Discard(pos lexer.Position, nb_uchar int) {
+	nb_byte_to_move := 0
+	for i := 0; i < nb_uchar; i++ {
+		_, nb_byte := utf8.DecodeRune(r.b[nb_byte_to_move:])
+		nb_byte_to_move += nb_byte
+	}
+	match := r.b[:nb_byte_to_move]
+	// Update lexer state.
+	r.pos.Offset += nb_byte_to_move
+	lines := bytes.Count(match, eolBytes)
+	r.pos.Line += lines
+	// Update column.
+	if lines == 0 {
+		r.pos.Column += utf8.RuneCount(match)
+	} else {
+		r.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
+	}
+	// update bytes array
+	r.b = r.b[nb_byte_to_move:]
+}
+
+func (sl *StateLexer) DynamicRuleUpdate(variable string, value string) error {
+	found := false
+	for _, s := range sl.s {
+		if rd, ok := s.has_dynamic_regexp(variable); ok {
+			rd.update_regexp(value)
+			found = true
+		}
+	}
+
+	if !found {
+		return fmt.Errorf("DynamicRuleUpdate: variable not found: '%s'", variable)
+	}
+
+	sl.compile_regexp()
+	return nil
+}
+
+func (sl *StateLexer) compile_regexp() error {
+	var err error = nil
+	for _, s := range sl.s {
+		err = s.compile_regexp()
+	}
+	return err
+}
+
+func (s *stateRegexpDefinition) has_dynamic_regexp(variable string) (*dynamicRegexp, bool) {
+	for _, dr := range s.All_regexp {
+		if dr.want == variable && dr.is_dynamic {
+			return dr, true
+		}
+	}
+	return nil, false
+}
+
+func (dr *dynamicRegexp) update_regexp(value string) error {
+	re_string := fmt.Sprintf(dr.re_template, dr.re_name, value)
+	dr.re_string = re_string
+	dr.resolved = true
+
+	return nil
 }

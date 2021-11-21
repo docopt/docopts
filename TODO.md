@@ -12,7 +12,7 @@ It probably needs to rewrite the docopt parser.
 
 Example error handling:
 
-* https://github.com/docopt/docopt/issues/459 (-d at the endi handling `[options]`)
+* https://github.com/docopt/docopt/issues/459 (-d at the end handling `[options]`)
   * > it means "any option not in usage-pattern".
   * error could be: `-d` option not allowed in `generate` action it has conflict with follwing `Usage: mytool -d | --debug`
 * https://github.com/docopt/docopt/issues/466 (invalid option must be named)

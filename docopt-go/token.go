@@ -27,7 +27,7 @@ func tokenListFromString(source string) *tokenList {
 	return newTokenList(strings.Fields(source), errorUser)
 }
 
-func tokenListFromPattern(source string) *tokenList {
+func TokenListFromPattern(source string) *tokenList {
 	p := regexp.MustCompile(`([\[\]\(\)\|]|\.\.\.)`)
 	source = p.ReplaceAllString(source, ` $1 `)
 	p = regexp.MustCompile(`\s+|(\S*<.*?>)`)
@@ -109,6 +109,9 @@ func (tl *tokenList) move() *token {
 		return (*token)(&t)
 	}
 	return nil
+}
+func (tl *tokenList) GetTokens() []string {
+	return tl.tokens
 }
 
 // returns true if all cased characters in the string are uppercase

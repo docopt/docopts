@@ -2,15 +2,18 @@ package token_docopt
 
 // ================================ lexer for docopt language ===========
 var (
+	// State_Prologue can only leave if we encounter "usage:" section
 	State_Prologue = `
   (?P<NEWLINE>\n)
-  |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:) => state_Usage_Line
-  |(?P<LINE_OF_TEXT>[^\n]+)
+  |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:) => state_First_Program_Usage
+  |(?P<WORD>\S+)
+  |(?P<BLANK>\s+)
   `
 
 	State_Usage = `
   (?P<NEWLINE>\n)
   |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:)
+	#|(?P<PROG_NAME>[^ :]+)
   |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Options
   |(?P<LONG_BLANK>[\t ]{2,}) => state_Usage_Line
   # skip single blank
@@ -19,9 +22,16 @@ var (
   |(?P<LINE_OF_TEXT>[^\n]+)
   `
 
+	State_First_Program_Usage = `
+  (?P<NEWLINE>\n)
+  |([\t ]+)
+	|(?P<PROG_NAME>[^ :]+) => state_Usage_Line
+	`
+
 	State_Usage_Line = `
   (?P<NEWLINE>\n) => state_Usage
   |([\t ]+)
+	#|(?P<@PROG_NAME>@PROG_NAME)
   |(?P<SHORT>-[A-Za-z0-9?])
   |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
 	# argument are free text colonn is an ARGUMENT
@@ -55,10 +65,11 @@ var (
   `
 
 	All_states = map[string]string{
-		"state_Prologue":   State_Prologue,
-		"state_Usage":      State_Usage,
-		"state_Usage_Line": State_Usage_Line,
-		"state_Options":    State_Options,
-		"state_Free":       State_Free,
+		"state_Prologue":            State_Prologue,
+		"state_First_Program_Usage": State_First_Program_Usage,
+		"state_Usage":               State_Usage,
+		"state_Usage_Line":          State_Usage_Line,
+		"state_Options":             State_Options,
+		"state_Free":                State_Free,
 	}
 )

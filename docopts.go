@@ -44,7 +44,7 @@ Usage:
   docopts [options] -G <prefix> [--docopt_sh] -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
   docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
-  docopts [options] [--print-ast|--print-pat-fix|--print-parsed] -h <msg> : [<argv>...]
+  docopts [options] (--print-ast|--print-pat-fix|--print-parsed) -h <msg> : [<argv>...]
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.

@@ -379,8 +379,9 @@ local build:
 (also done with our Makefile default target: `make`)
 
 ```
-go get github.com/docopt/docopt-go
-go get github.com/docopt/docopts
+cd $GOPATH/src
+git clone https://github.com/docopt/docopt-go
+git clone https://github.com/docopt/docopts
 cd src/github.com/docopt/docopts
 go build docopts.go
 ```
