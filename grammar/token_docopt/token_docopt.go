@@ -31,7 +31,7 @@ var (
 	State_Usage_Line = `
   (?P<NEWLINE>\n) => state_Usage
   |([\t ]+)
-	#|(?P<@PROG_NAME>@PROG_NAME)
+	|(?P<@PROG_NAME>@PROG_NAME)
   |(?P<SHORT>-[A-Za-z0-9?])
   |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)
 	# argument are free text colonn is an ARGUMENT

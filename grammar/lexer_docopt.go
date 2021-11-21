@@ -29,7 +29,9 @@ func (p *Parser) change_to_state(t *lexer.Token, new_state string, color_fmt *co
 	} else {
 		fmt.Printf("%s change state: %s => %s\n", t.Regex_name, p.s.Current_state.State_name, color_fmt.Render(new_state))
 	}
-	p.s.ChangeState(new_state)
+	if err := p.s.ChangeState(new_state); err != nil {
+		panic(err)
+	}
 	p.last_token = t.Type
 }
 
@@ -96,7 +98,7 @@ func main() {
 		if t.Type == PROG_NAME && p.prog_name == "" {
 			p.prog_name = t.Value
 			fmt.Printf(green.Render("%s:Assign PROG_NAME: '%s' \n"), states.Current_state.State_name, p.prog_name)
-			//p.s.DynamicRuleUpdate("PROG_NAME", p.prog_name)
+			p.s.DynamicRuleUpdate("PROG_NAME", p.prog_name)
 		}
 
 		// two consecutive NEWLINE

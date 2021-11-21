@@ -136,6 +136,7 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 	leave_str := " => "
 	var new_regexp *dynamicRegexp
 	dynamic_rule := 0
+	var symbols []string
 	for i, l := range strings.Split(pattern, "\n") {
 		// skip empty line
 		if l == "" {
@@ -185,14 +186,14 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 		// handle dynamic regexp definition
 		if re_name != "" && strings.Index(regexp, "(?P<@") != -1 {
 			// remove leading @
-			dynamic_name := re_name[1:]
+			re_name = re_name[1:]
 			new_regexp = &dynamicRegexp{
 				re_name:     re_name,
 				re_template: "|(?P<%s>%s)",
 				re_string:   "",
 				is_dynamic:  true,
 				resolved:    false,
-				want:        dynamic_name,
+				want:        re_name,
 			}
 			dynamic_rule++
 		} else {
@@ -207,7 +208,14 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 			}
 		}
 
+		if re_name != "" {
+			symbols = append(symbols, re_name)
+		}
 		all_regexp = append(all_regexp, new_regexp)
+	}
+
+	if len(symbols) < 1 {
+		return nil, fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", pattern)
 	}
 
 	s := stateRegexpDefinition{
@@ -215,7 +223,7 @@ func Parse_lexer_state(state_name string, pattern string) (*stateRegexpDefinitio
 		All_regexp:  all_regexp,
 		Re:          nil,
 		Leave_token: leave_token,
-		Symbols:     nil,
+		Symbols:     symbols,
 		DynamicRule: dynamic_rule > 0,
 	}
 	if dynamic_rule == 0 {
@@ -245,19 +253,6 @@ func (s *stateRegexpDefinition) compile_regexp() error {
 		return fmt.Errorf("compile_regexp: %v", err)
 	}
 
-	// retrieve symbols (token names) from regxep names
-	symbols := []string{}
-	for _, sym := range re.SubexpNames()[1:] {
-		if sym != "" {
-			symbols = append(symbols, sym)
-		}
-	}
-
-	if len(symbols) < 1 {
-		return fmt.Errorf("Parse_lexer_state: error: no symbol found after parsing regxep: '%s'", final_pat)
-	}
-
-	s.Symbols = symbols
 	s.Re = re
 	return nil
 }
@@ -340,8 +335,16 @@ func (sl *StateLexer) Make_symbols() error {
 }
 
 func (sl *StateLexer) ChangeState(new_state string) error {
+	// search in our states name and update our regexp
 	for _, def := range sl.s {
 		if def.State_name == new_state {
+			// on the fly compile_regexp
+			if def.Re == nil {
+				if err := def.compile_regexp(); err != nil {
+					return fmt.Errorf("ChangeState: '%s' dynamicRegexp error %v", new_state, err)
+				}
+			}
+			// assign the new regexp to the StateLexer
 			sl.re = def.Re
 			sl.Current_state = def
 			sl.names = def.Re.SubexpNames()
@@ -467,8 +470,7 @@ func (sl *StateLexer) DynamicRuleUpdate(variable string, value string) error {
 		return fmt.Errorf("DynamicRuleUpdate: variable not found: '%s'", variable)
 	}
 
-	sl.compile_regexp()
-	return nil
+	return sl.compile_regexp()
 }
 
 func (sl *StateLexer) compile_regexp() error {
@@ -489,8 +491,7 @@ func (s *stateRegexpDefinition) has_dynamic_regexp(variable string) (*dynamicReg
 }
 
 func (dr *dynamicRegexp) update_regexp(value string) error {
-	re_string := fmt.Sprintf(dr.re_template, dr.re_name, value)
-	dr.re_string = re_string
+	dr.re_string = fmt.Sprintf(dr.re_template, dr.re_name, value)
 	dr.resolved = true
 
 	return nil

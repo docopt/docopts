@@ -16,8 +16,9 @@
 * ~~dont change state inside the lexer, let the caller decide to change state~~ done in `lexer_docopt.go`
  * ~~remove participle dependancy (keep only our lexer)~~
  * ~~tokenize `usages/rally.docopt` with `Free_text` section after NEWLINE terminating Usage tokenizing~~
-* finish standalone lexer without error failure on valid usage input (See: compare)
-* document orgininal docopt-go lib behavior on some exmaple to compare with our grammar
+* ~~finish standalone lexer without error failure on valid usage input (See: compare)~~
+* ~~document orgininal docopt-go lib behavior on some exmaple to compare with our grammar~~
+* start building ast from our grammar: docopt_language.ebnf
 
 ## issues to read
 
@@ -25,9 +26,9 @@
 
 ## Lexer
 
-* must handle syntax error (return ERROR token + state)
-* must progress one token at time
-* must stop scanning after a NEWLINE empty line with `Usage_line`
+* ~~must handle syntax error (return ERROR token + state)~~
+* ~~must progress one token at time~~
+* ~~must stop scanning after a NEWLINE empty line with `Usage_line`~~ done within the parser calling our lexer
 * ~~compare with `docopt-go/docopt.go` `ParseSection(name, source string)`~~ (See: compare/parseSection.go)
 
 ## outputs
