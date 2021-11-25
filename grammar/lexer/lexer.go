@@ -114,6 +114,14 @@ type Token struct {
 	Regex_name string
 }
 
+// golang doesn't have const complex type
+var EMPTY = Token{
+	Type:       9999,
+	Value:      "",
+	Pos:        Position{"", 0, 0, 0},
+	Regex_name: "",
+}
+
 // RuneToken represents a rune as a Token.
 func RuneToken(r rune) Token {
 	return Token{Type: r, Value: string(r)}

@@ -61,4 +61,7 @@ Parse error
 docopt_language.docopt:26:68: invalid token '['
 ```
 
+## unwanted option
+
+https://github.com/docopt/docopt/issues/461 - Feature Request: ignore (or extract) not specified extra options instead of fail
 

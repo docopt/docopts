@@ -1,10 +1,17 @@
 package docopt_language
 
 import (
+	"fmt"
 	"github.com/docopt/docopts/grammar/lexer"
 	"github.com/docopt/docopts/grammar/lexer_state"
 	"github.com/docopt/docopts/grammar/token_docopt"
+	"strings"
 )
+
+type DocoptAst struct {
+	Type int
+	Node *DocoptAst
+}
 
 type DocoptParser struct {
 	s             *lexer_state.StateLexer
@@ -16,9 +23,10 @@ type DocoptParser struct {
 	symbols_name map[rune]string
 	all_symbols  map[string]rune
 
-	error_count int
+	Error_count int
 	max_error   int
 	errors      []error
+	ast         *DocoptAst
 }
 
 var (
@@ -41,13 +49,13 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 		s: states,
 
 		prog_name:     "",
-		current_token: token_docopt.EMPTY,
-		next_token:    token_docopt.EMPTY,
+		current_token: lexer.EMPTY,
+		next_token:    lexer.EMPTY,
 
 		symbols_name: lexer.SymbolsByRune(states),
 		all_symbols:  states.Symbols(),
 
-		error_count: 0,
+		Error_count: 0,
 		max_error:   10,
 	}
 
@@ -55,24 +63,31 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 	SECTION = p.all_symbols["SECTION"]
 	PROG_NAME = p.all_symbols["PROG_NAME"]
 
-	return &p, nil
+	p.NextToken()
+	return p, nil
 }
 
 func (p *DocoptParser) NextToken() {
 	t, err := p.s.Next()
-	if err != nil {
+	if err == nil {
+		if p.next_token.Type != lexer.EMPTY.Type {
+			p.current_token = p.next_token
+		}
+		p.next_token = t
+	} else {
 		p.AddError(err)
-		p.error_count++
 
-		if p.error_count >= p.max_error {
+		if p.Error_count >= p.max_error {
 			p.FatalError("too many error leaving")
 			return
 		}
 
 		p.s.Discard(err.(*lexer.Error).Pos, 1)
+		p.NextToken()
 	}
+}
 
-	p.current_token = t
+func (p *DocoptParser) Eat(token_type rune) {
 }
 
 func (p *DocoptParser) FatalError(msg string) {
@@ -84,5 +99,81 @@ func (p *DocoptParser) FatalError(msg string) {
 
 func (p *DocoptParser) AddError(e error) {
 	p.errors = append(p.errors, e)
-	p.error_count++
+	p.Error_count++
+}
+
+func (p *DocoptParser) Parse() *DocoptAst {
+	for {
+		p.NextToken()
+		fmt.Printf("%s:%q\n", p.symbols_name[p.current_token.Type], p.current_token.Value)
+		if p.current_token.Type == lexer.EOF {
+			break
+		}
+	}
+	//p.Consume_Prologue()
+	//p.Consume_Usage()
+	//p.Consume_Free_Section()
+	//p.Consume_Options()
+	//p.Consume_Free_Section()
+
+	return p.ast
+}
+
+func (p *DocoptParser) CreateNode(node_name string) error {
+	return nil
+}
+
+func (p *DocoptParser) Consume_Prologue() error {
+	// State_Prologue = `
+	// (?P<NEWLINE>\n)
+	// |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:) => state_First_Program_Usage
+	// |(?P<WORD>\S+)
+	// |(?P<BLANK>\s+)
+	// `
+
+	USAGE := p.all_symbols["USAGE"]
+	p.CreateNode("Prologue")
+
+	for {
+		p.NextToken()
+
+		if p.current_token.Type == USAGE {
+			p.CreateNode("Usage")
+			p.Eat(1)
+			p.Change_lexer_state("state_Usage")
+			return nil
+		}
+
+		p.Eat(1)
+
+		if p.current_token.Type == lexer.EOF {
+			break
+		}
+	}
+
+	return fmt.Errorf("EOF encountered will parsing Prologue")
+}
+
+func (p *DocoptParser) Consume_Usage() error {
+	if p.current_token.Type == PROG_NAME && p.prog_name == "" {
+		p.prog_name = p.current_token.Value
+		fmt.Printf("%s:Assign PROG_NAME: '%s' \n", p.s.Current_state.State_name, p.prog_name)
+		p.s.DynamicRuleUpdate("PROG_NAME", p.prog_name)
+	}
+	// two consecutive NEWLINE
+	if p.current_token.Type == NEWLINE && p.next_token.Type == NEWLINE {
+		p.Eat(2)
+	}
+	return nil
+}
+
+func (p *DocoptParser) Consume_Free_Section() error {
+	if p.s.Current_state.State_name == "state_Free" && p.current_token.Type == SECTION && strings.EqualFold(p.current_token.Value, "Options:") {
+		p.Change_lexer_state("state_Options")
+	}
+	return nil
+}
+
+func (p *DocoptParser) Change_lexer_state(new_stage string) error {
+	return nil
 }

@@ -51,9 +51,10 @@ func main() {
 		fmt.Println(err)
 	}
 
-	var p Parser
-	p.s = states
-	p.last_token = 0
+	p := Parser{
+		s:          states,
+		last_token: 0,
+	}
 
 	filename := os.Args[1]
 	f, err := os.Open(filename)

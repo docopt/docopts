@@ -99,6 +99,7 @@ type StateLexer struct {
 	// content to scan
 	b  []byte
 	re *regexp.Regexp
+
 	// TODO: optimize names change
 	names             []string
 	State_auto_change bool
@@ -374,6 +375,28 @@ func (s *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 	s.names = s.re.SubexpNames()
 
 	return s, nil
+}
+
+func (sl *StateLexer) InitSource(source []byte) error {
+	sl.pos = lexer.Position{
+		Filename: "source",
+		Line:     1,
+		Column:   1,
+	}
+	sl.b = source
+
+	if sl.Current_state.Re == nil {
+		if err := sl.Current_state.compile_regexp(); err != nil {
+			return fmt.Errorf("InitSource: '%s'regexp compile error %v", sl.Current_state.State_name, err)
+		}
+	}
+
+	sl.names = sl.Current_state.Re.SubexpNames()
+	if len(sl.names) == 0 {
+		return fmt.Errorf("InitSource: start_state '%s' regexp has no names", sl.Current_state.State_name)
+	}
+
+	return nil
 }
 
 func (sl *StateLexer) Symbols() map[string]rune {

@@ -31,6 +31,11 @@
 * ~~must stop scanning after a NEWLINE empty line with `Usage_line`~~ done within the parser calling our lexer
 * ~~compare with `docopt-go/docopt.go` `ParseSection(name, source string)`~~ (See: compare/parseSection.go)
 
+## example of parser / AST
+
+* https://golangdocs.com/golang-parser-package
+* https://ruslanspivak.com/lsbasi-part7/ - building an AST in python
+
 ## outputs
 
 ### `analyze`
