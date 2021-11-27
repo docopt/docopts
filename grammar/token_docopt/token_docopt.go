@@ -25,7 +25,7 @@ var (
 	State_First_Program_Usage = `
   (?P<NEWLINE>\n)
   |([\t ]+)
-	|(?P<PROG_NAME>[^ :]+) => state_Usage_Line
+	|(?P<PROG_NAME>\S+) => state_Usage_Line
 	`
 
 	State_Usage_Line = `

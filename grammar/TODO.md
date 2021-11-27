@@ -5,20 +5,25 @@
 
 * We start with our `lexer_state` before testing handcrafted optimized lexer/scanner
 * parse actual grammar (to be determined by studying docopt-go)
-* better error handling (See Also: [Error_reporting.md](Error_reporting.md))
+* better error handling (See Also: [`Error_reporting.md`](Error_reporting.md))
 * improve what needed for better support: `print ast` `analyze` `explain`
 
 ## Current work
 
 (our branch grammar's PROGRESS.md)
+=> start building ast from our grammar: `docopt_language.ebnf`
+* ~~`Consume_Usage_line` ==> wrap all usage into `Usage_line` node~~
+* token lookhead `lexer_state` extract token with the `Current_state`
+* Update ebnf language (add link to ebnf description)
 
+
+## Done
 `lexer_docopt.go`
 * ~~dont change state inside the lexer, let the caller decide to change state~~ done in `lexer_docopt.go`
  * ~~remove participle dependancy (keep only our lexer)~~
  * ~~tokenize `usages/rally.docopt` with `Free_text` section after NEWLINE terminating Usage tokenizing~~
 * ~~finish standalone lexer without error failure on valid usage input (See: compare)~~
 * ~~document orgininal docopt-go lib behavior on some exmaple to compare with our grammar~~
-* start building ast from our grammar: docopt_language.ebnf
 
 ## issues to read
 
@@ -42,8 +47,8 @@
 
 ```
 Usage:
-  docopts analyze [--full|--ast] [--only=<number>] <string_usage>
-  docopts analyze [--full|--ast] [--only=<number>] -f <filename_usage>
+  docopts analyze [--full|--ast] [--only=<usage_entry>] <string_usage>
+  docopts analyze [--full|--ast] [--only=<usage_entry>] -f <filename_usage>
 ```
 
 
@@ -169,6 +174,7 @@ http://lrv.bplaced.net/syntaxtree/?
 https://astexplorer.net/
 ```yaml
 docopts:
+  prologue: []
   usage:
     - optional: optionsshortcut
     - required:
