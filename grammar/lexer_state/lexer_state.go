@@ -94,11 +94,14 @@ func (def stateRegexpDefinition) String() string {
 }
 
 type StateLexer struct {
-	// lexer.Position copied from participle
+	// current position in the buffer, lexer.Position copied from participle
 	pos lexer.Position
+
 	// content to scan
-	b  []byte
-	re *regexp.Regexp
+	b         []byte
+	re        *regexp.Regexp
+	byte_left int
+	buf_pos   int
 
 	// TODO: optimize names change
 	names             []string
@@ -359,22 +362,24 @@ func (sl *StateLexer) ChangeState(new_state string) error {
 
 // Initialize the Lexer with an io.Reader
 // return: a participle lexer.Lexer
-func (s *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
+func (sl *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 	// read all bytes
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	s.pos = lexer.Position{
+	sl.pos = lexer.Position{
 		Filename: lexer.NameOfReader(r),
 		Line:     1,
 		Column:   1,
 	}
-	s.b = b
-	s.names = s.re.SubexpNames()
+	sl.b = b
+	sl.byte_left = len(b)
+	sl.buf_pos = 0
+	sl.names = sl.re.SubexpNames()
 
-	return s, nil
+	return sl, nil
 }
 
 func (sl *StateLexer) InitSource(source []byte) error {
@@ -384,6 +389,8 @@ func (sl *StateLexer) InitSource(source []byte) error {
 		Column:   1,
 	}
 	sl.b = source
+	sl.byte_left = len(source)
+	sl.buf_pos = 0
 
 	if sl.Current_state.Re == nil {
 		if err := sl.Current_state.compile_regexp(); err != nil {
@@ -403,49 +410,57 @@ func (sl *StateLexer) Symbols() map[string]rune {
 	return sl.symbols
 }
 
-func (r *StateLexer) Next() (lexer.Token, error) {
+func (sl *StateLexer) Next() (lexer.Token, error) {
 nextToken:
-	for len(r.b) != 0 {
-		matches := r.re.FindSubmatchIndex(r.b)
+	for sl.byte_left > 0 {
+		matches := sl.re.FindSubmatchIndex(sl.b[sl.buf_pos:])
 		if matches == nil || matches[0] != 0 {
-			rn, _ := utf8.DecodeRune(r.b)
-			return lexer.Token{}, lexer.Errorf(r.pos, "invalid token %q state: %s", rn, r.Current_state)
+			rn, _ := utf8.DecodeRune(sl.b[sl.buf_pos:])
+			return lexer.Token{}, lexer.Errorf(sl.pos, "invalid token %q state: %s", rn, sl.Current_state)
 		}
-		match := r.b[:matches[1]]
+
+		// matched_pos is always 0 (start of the buf_pos)
+		// matches[1] is the end position of the match, but as match always happen
+		// at pos:0 it's also the length of the match
+		matched_len := matches[1]
+
+		match := sl.b[sl.buf_pos : sl.buf_pos+matched_len]
 		token := lexer.Token{
-			Pos:   r.pos,
-			Value: string(match),
+			Pos:        sl.pos,
+			Value:      string(match),
+			State_name: sl.Current_state.State_name,
 		}
 
 		// Update lexer state.
-		r.pos.Offset += matches[1]
-		lines := bytes.Count(match, eolBytes)
-		r.pos.Line += lines
+		sl.pos.Offset += matched_len
+		nb_line := bytes.Count(match, eolBytes)
+		sl.pos.Line += nb_line
 		// Update column.
-		if lines == 0 {
-			r.pos.Column += utf8.RuneCount(match)
+		if nb_line == 0 {
+			sl.pos.Column += utf8.RuneCount(match)
 		} else {
-			r.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
+			sl.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
 		}
 		// Move slice along.
-		r.b = r.b[matches[1]:]
+		sl.buf_pos += matched_len
+		sl.byte_left -= matched_len
 
 		// Finally, assign token type. If it is not a named group, we continue to the next token.
 		for i := 2; i < len(matches); i += 2 {
 			if matches[i] != -1 {
-				tok_name := r.names[i/2]
+				tok_name := sl.names[i/2]
 				// discard unnamed token
 				if tok_name == "" {
 					continue nextToken
 				}
 
-				token.Type = r.symbols[tok_name]
+				token.Type = sl.symbols[tok_name]
 				token.Regex_name = tok_name
 
-				if r.State_auto_change {
+				if sl.State_auto_change {
 					// if we encounter a leave_token we change our lexer state
-					if new_state, ok := r.Current_state.Leave_token[tok_name]; ok {
-						r.ChangeState(new_state)
+					if new_state, ok := sl.Current_state.Leave_token[tok_name]; ok {
+						sl.ChangeState(new_state)
 					}
 				}
 
@@ -456,28 +471,34 @@ nextToken:
 		return token, nil
 	}
 
-	return lexer.EOFToken(r.pos), nil
+	return lexer.EOFToken(sl.pos), nil
 }
 
-func (r *StateLexer) Discard(pos lexer.Position, nb_uchar int) {
+// Discard some utf-8 char from the input buffer at the current position
+// so move forward the requested number of mbchar
+func (sl *StateLexer) Discard(nb_mbchar int) string {
+	// compute the number of bytes from buf_pos to discard
 	nb_byte_to_move := 0
-	for i := 0; i < nb_uchar; i++ {
-		_, nb_byte := utf8.DecodeRune(r.b[nb_byte_to_move:])
+	for i := 0; i < nb_mbchar; i++ {
+		_, nb_byte := utf8.DecodeRune(sl.b[sl.buf_pos+nb_byte_to_move:])
 		nb_byte_to_move += nb_byte
 	}
-	match := r.b[:nb_byte_to_move]
+	match := sl.b[sl.buf_pos : sl.buf_pos+nb_byte_to_move]
 	// Update lexer state.
-	r.pos.Offset += nb_byte_to_move
-	lines := bytes.Count(match, eolBytes)
-	r.pos.Line += lines
+	sl.pos.Offset += nb_byte_to_move
+	nb_line := bytes.Count(match, eolBytes)
+	sl.pos.Line += nb_line
 	// Update column.
-	if lines == 0 {
-		r.pos.Column += utf8.RuneCount(match)
+	if nb_line == 0 {
+		sl.pos.Column += utf8.RuneCount(match)
 	} else {
-		r.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
+		sl.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
 	}
 	// update bytes array
-	r.b = r.b[nb_byte_to_move:]
+	sl.buf_pos += nb_byte_to_move
+	sl.byte_left -= nb_byte_to_move
+
+	return string(match)
 }
 
 func (sl *StateLexer) DynamicRuleUpdate(variable string, value string) error {
@@ -518,4 +539,17 @@ func (dr *dynamicRegexp) update_regexp(value string) error {
 	dr.resolved = true
 
 	return nil
+}
+
+func (sl *StateLexer) Reject(tok *lexer.Token) {
+	// Update lexer state
+	sl.pos.Offset = tok.Pos.Offset
+	sl.pos.Line = tok.Pos.Line
+	sl.pos.Column = tok.Pos.Column
+
+	// update bytes array
+	match := []byte(tok.Value)
+	nb_byte := len(match)
+	sl.buf_pos -= nb_byte
+	sl.byte_left += nb_byte
 }

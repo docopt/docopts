@@ -1,0 +1,8 @@
+Usage: convert to_yaml -l INDENT_LEVEL <filename>
+       convert to_random -r=RANDOMIZER <filename>
+
+Arguments:
+  INDENT_LEVEL  will specify the yaml indent level number
+  RANDOMIZER    is not correctly parsed by docopt-go
+                short option letter are concated into multiple
+                option: -r -= -R -A -N -D etc.

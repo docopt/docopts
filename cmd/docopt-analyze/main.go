@@ -11,13 +11,24 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	for i := 0; i < indent_level; i++ {
 		indent += " "
 	}
-	if current_node.Token != nil {
-		fmt.Printf("%s%s:%q\n", indent, current_node.Type, current_node.Token.Value)
-	} else {
-		fmt.Printf("%s%s\n", indent, current_node.Type)
+
+	nb_children := len(current_node.Children)
+	repeatable := ""
+	if current_node.Repeat {
+		repeatable = "REPEATABLE one or more"
 	}
-	for _, n := range current_node.Children {
-		print_ast(n, indent_level+2)
+
+	if current_node.Token != nil {
+		fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, repeatable)
+	} else {
+		if nb_children == 0 {
+			fmt.Printf("%s%s: []\n", indent, current_node.Type)
+		} else {
+			fmt.Printf("%s%s: %s\n", indent, current_node.Type, repeatable)
+		}
+	}
+	for i := 0; i < nb_children; i++ {
+		print_ast(current_node.Children[i], indent_level+2)
 	}
 }
 
@@ -38,7 +49,9 @@ func main() {
 	}
 	ast := p.Parse()
 
-	fmt.Printf("detected Prog_name:%s\n", p.Prog_name)
+	fmt.Printf("Detected Prog_name:%s\n", p.Prog_name)
+
+	fmt.Printf("============== AST ===============\n")
 	print_ast(ast, 0)
 
 	fmt.Printf("number of error: %d\n", p.Error_count)

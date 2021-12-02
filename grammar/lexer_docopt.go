@@ -86,7 +86,8 @@ func main() {
 		if err != nil {
 			fmt.Println(red.Render(err))
 			error_count++
-			states.Discard(err.(*lexer.Error).Pos, 1)
+			skipped := states.Discard(1)
+			fmt.Printf(yellow.Render("Discard 1 mbchar: %s\n"), skipped)
 			if error_count < max_error {
 				continue
 			} else {

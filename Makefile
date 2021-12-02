@@ -14,12 +14,18 @@ docopts: docopts.go Makefile docopt-go/docopt.go
 
 # dependancies
 install_builddep:
-	go get github.com/docopt/docopts
-	go get github.com/docopt/docopt-go
-	go get github.com/mitchellh/gox
-	go get github.com/itchio/gothub
-	go get gopkg.in/yaml.v2
-	go get github.com/ahmetb/govvv
+	go install github.com/docopt/docopts
+	go install github.com/docopt/docopt-go
+	go install github.com/mitchellh/gox
+	go install github.com/itchio/gothub
+	go install gopkg.in/yaml.v2
+	go install github.com/ahmetb/govvv
+
+parser: parser/docoptnodetype_string.go parser/docopt_language.go parser/docopt_ast.go
+	go build cmd/docopt-analyze/main.go
+
+parser/docoptnodetype_string.go: parser/docopt_ast.go
+	go generate parser/docopt_ast.go
 
 all: install_builddep docopts README.md
 	./deploy.sh build current

@@ -11,19 +11,14 @@
 ## Current work
 
 (our branch grammar's PROGRESS.md)
+
 => start building ast from our grammar: `docopt_language.ebnf`
 * ~~`Consume_Usage_line` ==> wrap all usage into `Usage_line` node~~
-* token lookhead `lexer_state` extract token with the `Current_state`
-* Update ebnf language (add link to ebnf description)
+* ~~token lookhead `lexer_state` extract token with the `Current_state`~~
+* ~~parse usage section~~
+* parse `Options:` section
+* Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
 
-
-## Done
-`lexer_docopt.go`
-* ~~dont change state inside the lexer, let the caller decide to change state~~ done in `lexer_docopt.go`
- * ~~remove participle dependancy (keep only our lexer)~~
- * ~~tokenize `usages/rally.docopt` with `Free_text` section after NEWLINE terminating Usage tokenizing~~
-* ~~finish standalone lexer without error failure on valid usage input (See: compare)~~
-* ~~document orgininal docopt-go lib behavior on some exmaple to compare with our grammar~~
 
 ## issues to read
 

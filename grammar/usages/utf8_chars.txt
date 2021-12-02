@@ -1,0 +1,3 @@
+wastebasket 🗑️
+
+Usage: empty_trash

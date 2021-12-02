@@ -112,6 +112,7 @@ type Token struct {
 	Value      string
 	Pos        Position
 	Regex_name string
+	State_name string
 }
 
 // golang doesn't have const complex type

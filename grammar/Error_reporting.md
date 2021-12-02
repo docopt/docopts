@@ -65,3 +65,12 @@ docopt_language.docopt:26:68: invalid token '['
 
 https://github.com/docopt/docopt/issues/461 - Feature Request: ignore (or extract) not specified extra options instead of fail
 
+## parse error on ambigous usage
+
+```
+Usage: program [--move] FILE
+       program [command3] FILE
+```
+
+call: `program my_file_name`
+

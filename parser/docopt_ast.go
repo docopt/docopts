@@ -21,21 +21,26 @@ const (
 	Usage_long_option
 	Usage_argument
 	Usage_punct
-	Usage_indent
+	Usage_command
+	Usage_optional_group
+	Usage_required_group
+	Group_alternative
 )
 
 type DocoptAst struct {
 	Type     DocoptNodeType
 	Token    *lexer.Token
 	Children []*DocoptAst
-	parent   *DocoptAst
+	Parent   *DocoptAst
+	Repeat   bool
 }
 
 func (n *DocoptAst) AddNode(node_type DocoptNodeType, t *lexer.Token) *DocoptAst {
 	new_node := &DocoptAst{
 		Type:   node_type,
 		Token:  t,
-		parent: n,
+		Parent: n,
+		Repeat: false,
 	}
 	n.Children = append(n.Children, new_node)
 	return new_node
