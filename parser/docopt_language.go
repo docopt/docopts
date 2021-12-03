@@ -72,6 +72,7 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 		run:                 true,
 	}
 
+	// TODO: initialize token in token_docopt
 	NEWLINE = p.all_symbols["NEWLINE"]
 	SECTION = p.all_symbols["SECTION"]
 	PROG_NAME = p.all_symbols["PROG_NAME"]
@@ -161,9 +162,9 @@ func (p *DocoptParser) Parse() *DocoptAst {
 	parse := []Consume_func{
 		consumer("Consume_Prologue", p.Consume_Prologue),
 		consumer("Consume_Usage", p.Consume_Usage),
-		//p.Consume_Free_Section()
-		//p.Consume_Options()
-		//p.Consume_Free_Section()
+		consumer("Consume_Free_Section", p.Consume_Free_section),
+		consumer("Consume_Options", p.Consume_Options),
+		consumer("Consume_Free_Section", p.Consume_Free_section),
 	}
 
 	for _, step := range parse {
@@ -209,6 +210,7 @@ func (p *DocoptParser) CreateNode(node_type DocoptNodeType, token *lexer.Token) 
 }
 
 func (p *DocoptParser) Consume_Prologue() error {
+	// we start parsing we are at Root node
 	p.CreateNode(Prologue, nil)
 
 	for p.run {
@@ -567,14 +569,95 @@ func (p *DocoptParser) Consume_First_Program_Usage() error {
 	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
 }
 
-func (p *DocoptParser) Consume_Free_Section() error {
-	if p.s.Current_state.State_name == "state_Free" && p.current_token.Type == SECTION && strings.EqualFold(p.current_token.Value, "Options:") {
-		p.Change_lexer_state("state_Options")
+// This are section like part of the definition not yet used
+// This basically allow more comment, but node are added to the ast
+func (p *DocoptParser) Consume_Free_section() error {
+	if p.s.Current_state.State_name != "state_Free" {
+		// entering Free_section after: Usage_section or Options_section
+		p.Change_lexer_state("state_Free")
+		p.current_node = p.ast.AddNode(Free_section, nil)
+
+	} else {
+		// nested free section: we matched another SECTION token inside a Free_section
+		p.current_node = p.ast.AddNode(Free_section, nil)
 	}
-	return nil
+
+	if p.current_token.Type == SECTION {
+		p.current_node.AddNode(Section_name, p.current_token)
+	}
+
+	for p.run {
+		p.NextToken()
+
+		if p.current_token.Type == lexer.EOF {
+			return nil
+		}
+
+		if p.current_token.Type == SECTION {
+			if strings.EqualFold(p.current_token.Value, "options:") {
+				return nil
+			}
+
+			if strings.EqualFold(p.current_token.Value, "usage:") {
+				return fmt.Errorf("%s: Usage: token found outside Usage_section: %v",
+					p.current_node.Type,
+					p.current_token)
+			}
+
+			// test if the current section has already some content (was empty unamed section)
+			nb := len(p.current_node.Children)
+			if nb == 0 {
+				p.current_node.AddNode(Section_name, p.current_token)
+				continue
+			}
+
+			// nested Free_section
+			// Free_section leaving condition are: EOF or SECTION == Options: or error
+			return p.Consume_Free_section()
+		}
+
+		p.current_node.AddNode(Section_node, p.current_token)
+	}
+
+	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
 }
 
 func (p *DocoptParser) Change_lexer_state(new_state string) error {
 	p.lexer_state_changed = true
 	return p.s.ChangeState(new_state)
+}
+
+func (p *DocoptParser) Consume_Options() error {
+	if p.current_token.Type == SECTION {
+		// leave condition on previous consumer ensure SECTION == Options:
+		section_node := p.ast.AddNode(Options_section, nil)
+		section_node.AddNode(Section_name, p.current_token)
+		p.current_node = section_node
+	} else {
+		return fmt.Errorf("Consume_Options: must start on a SECTION token: %v", p.current_token)
+	}
+
+	for p.run {
+		p.NextToken()
+
+		if p.current_token.Type == lexer.EOF {
+			return nil
+		}
+
+		if p.current_token.Type == NEWLINE {
+			if p.next_token.Type == NEWLINE {
+				// two consecutive NEWLINE
+				// consume next NEWLINE
+				p.NextToken()
+				// leave Usage parsing
+				return nil
+			}
+
+			// single NEWLINE
+		}
+
+		p.current_node.AddNode(Options_node, p.current_token)
+	}
+
+	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
 }

@@ -24,22 +24,27 @@ func _() {
 	_ = x[Usage_optional_group-14]
 	_ = x[Usage_required_group-15]
 	_ = x[Group_alternative-16]
+	_ = x[Free_section-17]
+	_ = x[Section_name-18]
+	_ = x[Section_node-19]
+	_ = x[Options_section-20]
+	_ = x[Options_node-21]
 }
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternative"
+	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_node"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint8{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 122, 135, 155, 175, 192}
+	_DocoptNodeType_index_1 = [...]uint8{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 122, 135, 155, 175, 192, 204, 216, 228, 243, 255}
 )
 
 func (i DocoptNodeType) String() string {
 	switch {
 	case i == -1:
 		return _DocoptNodeType_name_0
-	case 2 <= i && i <= 16:
+	case 2 <= i && i <= 21:
 		i -= 2
 		return _DocoptNodeType_name_1[_DocoptNodeType_index_1[i]:_DocoptNodeType_index_1[i+1]]
 	default:

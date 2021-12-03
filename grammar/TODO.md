@@ -17,6 +17,7 @@
 * ~~token lookhead `lexer_state` extract token with the `Current_state`~~
 * ~~parse usage section~~
 * parse `Options:` section
+* parse rally.docopt long argument with assign
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
 
 

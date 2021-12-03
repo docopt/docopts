@@ -25,6 +25,11 @@ const (
 	Usage_optional_group
 	Usage_required_group
 	Group_alternative
+	Free_section
+	Section_name
+	Section_node
+	Options_section
+	Options_node
 )
 
 type DocoptAst struct {
