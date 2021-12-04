@@ -30,6 +30,10 @@ const (
 	Section_node
 	Options_section
 	Options_node
+	Option_short
+	Option_long
+	Option_argument
+	Option_alternative_group
 )
 
 type DocoptAst struct {
@@ -49,4 +53,21 @@ func (n *DocoptAst) AddNode(node_type DocoptNodeType, t *lexer.Token) *DocoptAst
 	}
 	n.Children = append(n.Children, new_node)
 	return new_node
+}
+
+func (parent *DocoptAst) Replace_children_with_group(node_type DocoptNodeType) *DocoptAst {
+	group_node := &DocoptAst{
+		Type:     node_type,
+		Token:    nil,
+		Parent:   parent,
+		Children: parent.Children,
+	}
+
+	// move actual Children to new node
+	for _, c := range group_node.Children {
+		c.Parent = group_node
+	}
+
+	parent.Children = []*DocoptAst{group_node}
+	return group_node
 }

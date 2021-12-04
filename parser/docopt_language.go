@@ -35,15 +35,16 @@ type Consume_func struct {
 }
 
 var (
-	NEWLINE   rune
-	SECTION   rune
-	PROG_NAME rune
-	USAGE     rune
-	SHORT     rune
-	LONG      rune
-	ARGUMENT  rune
-	PUNCT     rune
-	IDENT     rune
+	NEWLINE    rune
+	SECTION    rune
+	PROG_NAME  rune
+	USAGE      rune
+	SHORT      rune
+	LONG       rune
+	ARGUMENT   rune
+	PUNCT      rune
+	IDENT      rune
+	LONG_BLANK rune
 )
 
 func ParserInit(source []byte) (*DocoptParser, error) {
@@ -82,6 +83,7 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 	ARGUMENT = p.all_symbols["ARGUMENT"]
 	PUNCT = p.all_symbols["PUNCT"]
 	IDENT = p.all_symbols["IDENT"]
+	LONG_BLANK = p.all_symbols["LONG_BLANK"]
 
 	return p, nil
 }
@@ -327,6 +329,11 @@ func (p *DocoptParser) Consume_Usage_line() error {
 					return err
 				}
 				continue
+			case "=":
+				if err := p.Consume_assign(); err != nil {
+					return err
+				}
+				continue
 			default:
 				// unmatched PUNCT
 				n = Usage_punct
@@ -414,10 +421,6 @@ forLoop:
 				}
 				continue
 			case "|":
-				//if !(p.current_node.Type == Usage_optional_group || p.current_node.Type == Usage_required_group) {
-				//	err = fmt.Errorf("%s: exclusive alternative separator '|' is only exprected within group, invalid Token: %v", p.current_node.Type, p.current_token)
-				//	break forLoop
-				//}
 				if p.current_node.Type != Group_alternative {
 					// move actual Children to a new Group_alternative node
 					alternative := &DocoptAst{
@@ -452,25 +455,9 @@ forLoop:
 				}
 				break forLoop
 			case "=":
-				nb_children := len(p.current_node.Children)
-				if nb_children == 0 {
-					err = fmt.Errorf("Consume_optional_group: assign must follow Usage_long_option, invalid Token: %v", p.current_token)
+				if err = p.Consume_assign(); err != nil {
 					break forLoop
 				}
-
-				prev_child := p.current_node.Children[nb_children-1]
-				if prev_child.Type == Usage_short_option {
-					err = fmt.Errorf("Consume_optional_group: Usage_short_option cannot have assignment '=', invalid Token: %v", p.current_token)
-					break forLoop
-				}
-
-				if prev_child.Type != Usage_long_option {
-					err = fmt.Errorf("Consume_optional_group: %s cannot have assignment '=', invalid Token: %v",
-						prev_child.Type, p.current_token)
-					break forLoop
-				}
-
-				p.Consume_long_option_with_assign(prev_child)
 				continue
 			case "...":
 				if err = p.Consume_ellipsis(); err != nil {
@@ -495,7 +482,7 @@ forLoop:
 		p.current_node = saved_current_node
 		return err
 	} else {
-		return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
 	}
 
 }
@@ -628,15 +615,20 @@ func (p *DocoptParser) Change_lexer_state(new_state string) error {
 }
 
 func (p *DocoptParser) Consume_Options() error {
-	if p.current_token.Type == SECTION {
-		// leave condition on previous consumer ensure SECTION == Options:
-		section_node := p.ast.AddNode(Options_section, nil)
-		section_node.AddNode(Section_name, p.current_token)
-		p.current_node = section_node
-	} else {
+	// the leaving condition on previous consumer ensure SECTION == Options:
+	// so this error should never happen
+	if p.current_token.Type != SECTION {
 		return fmt.Errorf("Consume_Options: must start on a SECTION token: %v", p.current_token)
 	}
 
+	p.Change_lexer_state("state_Options")
+	section_node := p.ast.AddNode(Options_section, nil)
+	section_node.AddNode(Section_name, p.current_token)
+	p.current_node = section_node
+
+	var n DocoptNodeType
+	var err error
+forLoopOption:
 	for p.run {
 		p.NextToken()
 
@@ -653,10 +645,105 @@ func (p *DocoptParser) Consume_Options() error {
 				return nil
 			}
 
-			// single NEWLINE
+			// else: single NEWLINE
 		}
 
-		p.current_node.AddNode(Options_node, p.current_token)
+		n = Options_node
+
+		switch p.current_token.Type {
+		//case LONG_BLANK:
+		//	if p.next_token.Type == SHORT || p.next_token.Type == LONG {
+		//		if err = p.Consume_option_line(); err != nil {
+		//			return err
+		//		}
+		//	}
+		//	continue
+
+		case SHORT:
+			n = Option_short
+		case LONG:
+			n = Option_long
+		case PUNCT:
+			switch p.current_token.Value {
+			case ",":
+				if err = p.Consume_option_alternative(); err != nil {
+					break forLoopOption
+				}
+				continue
+			case "=":
+				if err = p.Consume_assign(); err != nil {
+					break forLoopOption
+				}
+				continue
+			}
+		case NEWLINE:
+			continue
+		}
+
+		p.current_node.AddNode(n, p.current_token)
+	}
+
+	return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
+}
+
+func (p *DocoptParser) Consume_assign() error {
+	nb_children := len(p.current_node.Children)
+	if nb_children == 0 {
+		return fmt.Errorf("Consume_assign: assign must follow Usage_long_option, invalid Token: %v", p.current_token)
+	}
+
+	prev_child := p.current_node.Children[nb_children-1]
+	switch prev_child.Type {
+	case Usage_long_option, Option_long:
+		// only those node can have assign
+		break
+	default:
+		return fmt.Errorf("Consume_assign: %s cannot have assignment '=', invalid Token: %v",
+			prev_child.Type, p.current_token)
+	}
+
+	return p.Consume_long_option_with_assign(prev_child)
+}
+
+func (p *DocoptParser) Consume_option_alternative() error {
+	// create the parent node on first call
+	if p.current_node.Type != Option_alternative_group {
+		nb := len(p.current_node.Children)
+		if nb == 0 {
+			return fmt.Errorf("%s: comma unexpected without alternative option name, invalid Token: %v", p.current_node.Type, p.current_token)
+		}
+
+		p.current_node = p.current_node.Replace_children_with_group(Option_alternative_group)
+	}
+
+	// eat next option alternative
+	for p.run {
+		p.NextToken()
+		switch p.current_token.Type {
+		case lexer.EOF, LONG_BLANK, NEWLINE:
+			if len(p.current_node.Children) <= 1 {
+				return fmt.Errorf("%s: %s unexpected without matchin alternative option name, invalid Token: %v",
+					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token)
+			}
+			// leaving condition OK
+			return nil
+		case SHORT:
+			p.current_node.AddNode(Option_short, p.current_token)
+		case LONG:
+			p.current_node.AddNode(Option_long, p.current_token)
+		case PUNCT:
+			switch p.current_token.Value {
+			case ",":
+				continue
+			case "=":
+				if err := p.Consume_assign(); err != nil {
+					return err
+				}
+				continue
+			default:
+				return fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
+			}
+		}
 	}
 
 	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
