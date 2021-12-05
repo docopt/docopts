@@ -19,7 +19,11 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	}
 
 	if current_node.Token != nil {
-		fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, repeatable)
+		if current_node.Type == docopt_language.Options_node {
+			fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, current_node.Token.Type)
+		} else {
+			fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, repeatable)
+		}
 	} else {
 		if nb_children == 0 {
 			fmt.Printf("%s%s: []\n", indent, current_node.Type)

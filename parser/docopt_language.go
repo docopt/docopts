@@ -45,6 +45,7 @@ var (
 	PUNCT      rune
 	IDENT      rune
 	LONG_BLANK rune
+	DEFAULT    rune
 )
 
 func ParserInit(source []byte) (*DocoptParser, error) {
@@ -84,6 +85,7 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 	PUNCT = p.all_symbols["PUNCT"]
 	IDENT = p.all_symbols["IDENT"]
 	LONG_BLANK = p.all_symbols["LONG_BLANK"]
+	DEFAULT = p.all_symbols["DEFAULT"]
 
 	return p, nil
 }
@@ -330,9 +332,11 @@ func (p *DocoptParser) Consume_Usage_line() error {
 				}
 				continue
 			case "=":
-				if err := p.Consume_assign(); err != nil {
+				if err := p.Consume_assign(p.next_token); err != nil {
 					return err
 				}
+				// consume ARGUMENT assigned
+				p.NextToken()
 				continue
 			default:
 				// unmatched PUNCT
@@ -455,9 +459,11 @@ forLoop:
 				}
 				break forLoop
 			case "=":
-				if err = p.Consume_assign(); err != nil {
+				if err = p.Consume_assign(p.next_token); err != nil {
 					break forLoop
 				}
+				// consume ARGUMENT assigned
+				p.NextToken()
 				continue
 			case "...":
 				if err = p.Consume_ellipsis(); err != nil {
@@ -485,32 +491,6 @@ forLoop:
 		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
 	}
 
-}
-
-func (p *DocoptParser) Consume_long_option_with_assign(long_option *DocoptAst) error {
-	long_option_with_assign := &DocoptAst{
-		Type:   Usage_long_option,
-		Token:  long_option.Token,
-		Parent: p.current_node,
-	}
-	// search long_option in current Children, and replace with the new node
-	for i := 0; i < len(p.current_node.Children); i++ {
-		if p.current_node.Children[i] == long_option {
-			p.current_node.Children[i] = long_option_with_assign
-		}
-	}
-
-	p.NextToken()
-	if p.current_token.Type != ARGUMENT {
-		return fmt.Errorf("Consume_long_option_with_assign: invalid token: %v", p.current_token)
-	}
-
-	long_option_with_assign.AddNode(Usage_argument, p.current_token)
-	return nil
-}
-
-func (p *DocoptParser) Consume_required_group() error {
-	return nil
 }
 
 func (p *DocoptParser) Consume_First_Program_Usage() error {
@@ -651,13 +631,13 @@ forLoopOption:
 		n = Options_node
 
 		switch p.current_token.Type {
-		//case LONG_BLANK:
-		//	if p.next_token.Type == SHORT || p.next_token.Type == LONG {
-		//		if err = p.Consume_option_line(); err != nil {
-		//			return err
-		//		}
-		//	}
-		//	continue
+		case LONG_BLANK:
+			if p.next_token.Type == SHORT || p.next_token.Type == LONG {
+				if err = p.Consume_option_line(); err != nil {
+					return err
+				}
+			}
+			continue
 
 		case SHORT:
 			n = Option_short
@@ -671,7 +651,8 @@ forLoopOption:
 				}
 				continue
 			case "=":
-				if err = p.Consume_assign(); err != nil {
+				if err = p.Consume_assign(p.next_token); err != nil {
+					p.NextToken()
 					break forLoopOption
 				}
 				continue
@@ -680,29 +661,43 @@ forLoopOption:
 			continue
 		}
 
+		// unmatch Options_node
 		p.current_node.AddNode(n, p.current_token)
 	}
 
 	return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
 }
 
-func (p *DocoptParser) Consume_assign() error {
+// consume the next token which must be ARGUMENT as the argument of the last
+// node added.
+func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
+	if argument.Type != ARGUMENT {
+		return fmt.Errorf("%s: Consume_assign must be followed by ARGUMENT, invalid token: %v",
+			p.current_node.Type, argument)
+	}
+
 	nb_children := len(p.current_node.Children)
 	if nb_children == 0 {
-		return fmt.Errorf("Consume_assign: assign must follow Usage_long_option, invalid Token: %v", p.current_token)
+		// Consume_assign must called after having assigned a option LONG in Usage_line
+		// or any option in Options_line called with oe without equal sign
+		return fmt.Errorf("Consume_assign: current_node must have an option child, invalid Token: %v", p.current_token)
 	}
 
 	prev_child := p.current_node.Children[nb_children-1]
+	var node_type DocoptNodeType
 	switch prev_child.Type {
-	case Usage_long_option, Option_long:
-		// only those node can have assign
-		break
+	// only those kind of node can have assignment with ARGUMENT
+	case Usage_long_option:
+		node_type = Usage_argument
+	case Option_long, Option_short:
+		node_type = Option_argument
 	default:
-		return fmt.Errorf("Consume_assign: %s cannot have assignment '=', invalid Token: %v",
+		return fmt.Errorf("Consume_assign: node %s cannot have assignment '=', invalid Token: %v",
 			prev_child.Type, p.current_token)
 	}
 
-	return p.Consume_long_option_with_assign(prev_child)
+	prev_child.AddNode(node_type, argument)
+	return nil
 }
 
 func (p *DocoptParser) Consume_option_alternative() error {
@@ -736,9 +731,11 @@ func (p *DocoptParser) Consume_option_alternative() error {
 			case ",":
 				continue
 			case "=":
-				if err := p.Consume_assign(); err != nil {
+				if err := p.Consume_assign(p.next_token); err != nil {
 					return err
 				}
+				// consume ARGUMENT assigned
+				p.NextToken()
 				continue
 			default:
 				return fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
@@ -747,4 +744,114 @@ func (p *DocoptParser) Consume_option_alternative() error {
 	}
 
 	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+}
+
+func (p *DocoptParser) Consume_option_line() error {
+	// we did look a head on token: p.current_token is an option LONG or SHORT
+	// the option argument will be consumed during the first loop
+	saved_node := p.current_node
+	option_line := p.current_node.AddNode(Option_line, nil)
+	p.current_node = option_line
+	var err error = nil
+forLoopOptionLine:
+	for p.run {
+		p.NextToken()
+
+		switch p.current_token.Type {
+		case lexer.EOF, NEWLINE:
+			// leaving condition option without description
+			if len(p.current_node.Children) == 0 {
+				err = fmt.Errorf("%s: %s unexpected empty option, invalid Token: %s",
+					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token)
+			}
+			break forLoopOptionLine
+		case LONG_BLANK:
+			// LONG_BLANK in Consume_option_line occurs after options are comsumed
+			// leaving condition of Consume_Usage_line
+			err = p.Consume_option_description()
+			break forLoopOptionLine
+		case SHORT:
+			p.current_node.AddNode(Option_short, p.current_token)
+		case LONG:
+			p.current_node.AddNode(Option_long, p.current_token)
+		case ARGUMENT:
+			if err = p.Consume_assign(p.current_token); err != nil {
+				break forLoopOptionLine
+			}
+		case PUNCT:
+			switch p.current_token.Value {
+			case ",":
+				continue
+			case "=":
+				if err := p.Consume_assign(p.next_token); err != nil {
+					break forLoopOptionLine
+				}
+				// consume ARGUMENT assigned
+				p.NextToken()
+			default:
+				err = fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
+				break forLoopOptionLine
+			}
+		default:
+			err = fmt.Errorf("%s: Consume_option_line invalid Token: %v", p.current_node.Type, p.current_token)
+			break forLoopOptionLine
+		}
+	} // end forLoopOption
+
+	if p.run {
+		p.current_node = saved_node
+		return err
+	} else {
+		return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+	}
+}
+
+// option description occurs after option has been parsed and can continue on multiple line
+// indented by LONG_BLANK. The description is terminated when a new option SHORT or LONG
+// is matched at the beginning of the line: NEWLINE LONG_BLANK (SHORT | LONG)
+//
+//                            Start consume description here
+//                                |
+// Options:                       v
+//   -h <msg>, --help=<msg>        The help message in docopt format.
+//                                 Without argument outputs this help.
+//                                 If - is given, read the help message from
+//                                 standard input.
+//                                 If no argument is given, print docopts's own
+//                                 help message and quit.
+// => LONG_BLANK + option ==> leaving
+func (p *DocoptParser) Consume_option_description() error {
+	description := p.current_node.AddNode(Option_description, nil)
+	current_line := 0
+
+	for p.run {
+		p.NextToken()
+
+		switch p.current_token.Type {
+		case NEWLINE:
+			current_line++
+		// all the following are leaving condition, other token will be collected as part of the description
+		case lexer.EOF:
+			return nil
+		case LONG_BLANK:
+			if current_line > 0 && (p.next_token.Type == SHORT || p.next_token.Type == LONG) {
+				// LONG_BLANK need to be re extracted for starting the next Options_line
+				p.s.Reject(p.current_token)
+				p.next_token = nil
+				p.current_token = nil
+				return nil
+			}
+			// LONG_BLANK inside description
+		case DEFAULT:
+			return p.Consume_option_default()
+		}
+
+		description.AddNode(Description_node, p.current_token)
+	}
+
+	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+}
+
+func (p *DocoptParser) Consume_option_default() error {
+	return nil
 }

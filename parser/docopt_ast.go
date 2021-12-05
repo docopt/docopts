@@ -30,10 +30,13 @@ const (
 	Section_node
 	Options_section
 	Options_node
+	Option_line
 	Option_short
 	Option_long
 	Option_argument
 	Option_alternative_group
+	Option_description
+	Description_node
 )
 
 type DocoptAst struct {

@@ -29,26 +29,29 @@ func _() {
 	_ = x[Section_node-19]
 	_ = x[Options_section-20]
 	_ = x[Options_node-21]
-	_ = x[Option_short-22]
-	_ = x[Option_long-23]
-	_ = x[Option_argument-24]
-	_ = x[Option_alternative_group-25]
+	_ = x[Option_line-22]
+	_ = x[Option_short-23]
+	_ = x[Option_long-24]
+	_ = x[Option_argument-25]
+	_ = x[Option_alternative_group-26]
+	_ = x[Option_description-27]
+	_ = x[Description_node-28]
 }
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_shortOption_longOption_argumentOption_alternative_group"
+	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint16{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 122, 135, 155, 175, 192, 204, 216, 228, 243, 255, 267, 278, 293, 317}
+	_DocoptNodeType_index_1 = [...]uint16{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 122, 135, 155, 175, 192, 204, 216, 228, 243, 255, 266, 278, 289, 304, 328, 346, 362}
 )
 
 func (i DocoptNodeType) String() string {
 	switch {
 	case i == -1:
 		return _DocoptNodeType_name_0
-	case 2 <= i && i <= 25:
+	case 2 <= i && i <= 28:
 		i -= 2
 		return _DocoptNodeType_name_1[_DocoptNodeType_index_1[i]:_DocoptNodeType_index_1[i+1]]
 	default:
