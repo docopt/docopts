@@ -101,7 +101,6 @@ type StateLexer struct {
 	b         []byte
 	re        *regexp.Regexp
 	byte_left int
-	buf_pos   int
 
 	// TODO: optimize names change
 	names             []string
@@ -373,10 +372,10 @@ func (sl *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 		Filename: lexer.NameOfReader(r),
 		Line:     1,
 		Column:   1,
+		Offset:   0,
 	}
 	sl.b = b
 	sl.byte_left = len(b)
-	sl.buf_pos = 0
 	sl.names = sl.re.SubexpNames()
 
 	return sl, nil
@@ -384,13 +383,13 @@ func (sl *StateLexer) Lex(r io.Reader) (lexer.Lexer, error) {
 
 func (sl *StateLexer) InitSource(source []byte) error {
 	sl.pos = lexer.Position{
-		Filename: "source",
+		Filename: "string",
 		Line:     1,
 		Column:   1,
+		Offset:   0,
 	}
 	sl.b = source
 	sl.byte_left = len(source)
-	sl.buf_pos = 0
 
 	if sl.Current_state.Re == nil {
 		if err := sl.Current_state.compile_regexp(); err != nil {
@@ -413,18 +412,18 @@ func (sl *StateLexer) Symbols() map[string]rune {
 func (sl *StateLexer) Next() (lexer.Token, error) {
 nextToken:
 	for sl.byte_left > 0 {
-		matches := sl.re.FindSubmatchIndex(sl.b[sl.buf_pos:])
+		matches := sl.re.FindSubmatchIndex(sl.b[sl.pos.Offset:])
 		if matches == nil || matches[0] != 0 {
-			rn, _ := utf8.DecodeRune(sl.b[sl.buf_pos:])
+			rn, _ := utf8.DecodeRune(sl.b[sl.pos.Offset:])
 			return lexer.Token{}, lexer.Errorf(sl.pos, "invalid token %q state: %s", rn, sl.Current_state)
 		}
 
-		// matched_pos is always 0 (start of the buf_pos)
+		// matched_pos is always 0 (start of the pos.Offset)
 		// matches[1] is the end position of the match, but as match always happen
 		// at pos:0 it's also the length of the match
 		matched_len := matches[1]
 
-		match := sl.b[sl.buf_pos : sl.buf_pos+matched_len]
+		match := sl.b[sl.pos.Offset : sl.pos.Offset+matched_len]
 		token := lexer.Token{
 			Pos:        sl.pos,
 			Value:      string(match),
@@ -441,8 +440,6 @@ nextToken:
 		} else {
 			sl.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
 		}
-		// Move slice along.
-		sl.buf_pos += matched_len
 		sl.byte_left -= matched_len
 
 		// Finally, assign token type. If it is not a named group, we continue to the next token.
@@ -477,13 +474,13 @@ nextToken:
 // Discard some utf-8 char from the input buffer at the current position
 // so move forward the requested number of mbchar
 func (sl *StateLexer) Discard(nb_mbchar int) string {
-	// compute the number of bytes from buf_pos to discard
+	// compute the number of bytes from pos.Offset to discard
 	nb_byte_to_move := 0
 	for i := 0; i < nb_mbchar; i++ {
-		_, nb_byte := utf8.DecodeRune(sl.b[sl.buf_pos+nb_byte_to_move:])
+		_, nb_byte := utf8.DecodeRune(sl.b[sl.pos.Offset+nb_byte_to_move:])
 		nb_byte_to_move += nb_byte
 	}
-	match := sl.b[sl.buf_pos : sl.buf_pos+nb_byte_to_move]
+	match := sl.b[sl.pos.Offset : sl.pos.Offset+nb_byte_to_move]
 	// Update lexer state.
 	sl.pos.Offset += nb_byte_to_move
 	nb_line := bytes.Count(match, eolBytes)
@@ -495,7 +492,6 @@ func (sl *StateLexer) Discard(nb_mbchar int) string {
 		sl.pos.Column = utf8.RuneCount(match[bytes.LastIndex(match, eolBytes):])
 	}
 	// update bytes array
-	sl.buf_pos += nb_byte_to_move
 	sl.byte_left -= nb_byte_to_move
 
 	return string(match)
@@ -542,14 +538,12 @@ func (dr *dynamicRegexp) update_regexp(value string) error {
 }
 
 func (sl *StateLexer) Reject(tok *lexer.Token) {
+	nb_byte_diff := sl.pos.Offset - tok.Pos.Offset
+
 	// Update lexer state
 	sl.pos.Offset = tok.Pos.Offset
 	sl.pos.Line = tok.Pos.Line
 	sl.pos.Column = tok.Pos.Column
 
-	// update bytes array
-	match := []byte(tok.Value)
-	nb_byte := len(match)
-	sl.buf_pos -= nb_byte
-	sl.byte_left += nb_byte
+	sl.byte_left += nb_byte_diff
 }

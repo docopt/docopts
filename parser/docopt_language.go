@@ -608,7 +608,7 @@ func (p *DocoptParser) Consume_Options() error {
 
 	var n DocoptNodeType
 	var err error
-forLoopOption:
+
 	for p.run {
 		p.NextToken()
 
@@ -621,7 +621,7 @@ forLoopOption:
 				// two consecutive NEWLINE
 				// consume next NEWLINE
 				p.NextToken()
-				// leave Usage parsing
+				// leave Usage parsing of Consume_Options
 				return nil
 			}
 
@@ -631,6 +631,8 @@ forLoopOption:
 		n = Options_node
 
 		switch p.current_token.Type {
+		case SECTION:
+			return nil
 		case LONG_BLANK:
 			if p.next_token.Type == SHORT || p.next_token.Type == LONG {
 				if err = p.Consume_option_line(); err != nil {
@@ -647,13 +649,13 @@ forLoopOption:
 			switch p.current_token.Value {
 			case ",":
 				if err = p.Consume_option_alternative(); err != nil {
-					break forLoopOption
+					return err
 				}
 				continue
 			case "=":
 				if err = p.Consume_assign(p.next_token); err != nil {
 					p.NextToken()
-					break forLoopOption
+					return err
 				}
 				continue
 			}
@@ -796,7 +798,7 @@ forLoopOptionLine:
 			err = fmt.Errorf("%s: Consume_option_line invalid Token: %v", p.current_node.Type, p.current_token)
 			break forLoopOptionLine
 		}
-	} // end forLoopOption
+	} // end forLoopOptionLine
 
 	if p.run {
 		p.current_node = saved_node
@@ -830,6 +832,17 @@ func (p *DocoptParser) Consume_option_description() error {
 		switch p.current_token.Type {
 		case NEWLINE:
 			current_line++
+			if p.next_token.Type == NEWLINE {
+				// two consecutive NEWLINE
+				description.AddNode(Description_node, p.current_token)
+
+				// consume next NEWLINE
+				p.NextToken()
+				// leave Consume_option_description
+				return nil
+			}
+			// else: single NEWLINE will be consumed as part of the description
+
 		// all the following are leaving condition, other token will be collected as part of the description
 		case lexer.EOF:
 			return nil

@@ -21,8 +21,8 @@
 * refactor for Consume_option_line()
   * ~~Consume_Usage_line() call Consume_option_with_assign() with or without equal sign~~
   * ~~refactor Consume_long_option_with_assign() => Consume_option_with_assign()~~
-  * handle multi Option_line node with NEWLINE + LONG_BLANK + (SHORT | LONG) as starting a
-    new Option_line
+  * ~~handle multi Option_line node with NEWLINE + LONG_BLANK + (SHORT | LONG) as start~~
+    * ~~Reject with p.current_token (compute pos + byte_left without value)~~
 * Add String() methode to our token
 * go generate our token strings
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
