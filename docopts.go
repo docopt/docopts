@@ -253,7 +253,9 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 	}
 
 	// final output
-	fmt.Fprintf(out, output_format_str, out_buf)
+	if (len(out_buf) > 0) {
+		fmt.Fprintf(out, output_format_str, out_buf)
+	}
 
 	return nil
 }
