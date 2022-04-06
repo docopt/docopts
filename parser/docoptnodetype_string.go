@@ -19,7 +19,7 @@ func _() {
 	_ = x[Usage_short_option-9]
 	_ = x[Usage_long_option-10]
 	_ = x[Usage_argument-11]
-	_ = x[Usage_punct-12]
+	_ = x[Usage_unmatched_punct-12]
 	_ = x[Usage_command-13]
 	_ = x[Usage_optional_group-14]
 	_ = x[Usage_required_group-15]
@@ -40,11 +40,11 @@ func _() {
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
+	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint16{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 122, 135, 155, 175, 192, 204, 216, 228, 243, 255, 266, 278, 289, 304, 328, 346, 362}
+	_DocoptNodeType_index_1 = [...]uint16{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 132, 145, 165, 185, 202, 214, 226, 238, 253, 265, 276, 288, 299, 314, 338, 356, 372}
 )
 
 func (i DocoptNodeType) String() string {

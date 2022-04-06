@@ -338,12 +338,15 @@ func (p *DocoptParser) Consume_Usage_line() error {
 				// consume ARGUMENT assigned
 				p.NextToken()
 				continue
+			//case "|":
+			//p.Ensure_node(p.current_node, Group_alternative)
+
 			default:
 				// unmatched PUNCT
-				n = Usage_punct
+				n = Usage_unmatched_punct
 			}
 
-			if n != Usage_punct {
+			if n != Usage_unmatched_punct {
 				// try to match a group required or optional
 				if err := p.Consume_group(n); err != nil {
 					return err
@@ -473,7 +476,7 @@ forLoop:
 			}
 
 			// unmatched PUNCT
-			n = Usage_punct
+			n = Usage_unmatched_punct
 
 		case IDENT:
 			n = Usage_command
@@ -560,6 +563,7 @@ func (p *DocoptParser) Consume_Free_section() error {
 			return nil
 		}
 
+		// leaving condition
 		if p.current_token.Type == SECTION {
 			if strings.EqualFold(p.current_token.Value, "options:") {
 				return nil
@@ -595,14 +599,13 @@ func (p *DocoptParser) Change_lexer_state(new_state string) error {
 }
 
 func (p *DocoptParser) Consume_Options() error {
-	// the leaving condition on previous consumer ensure SECTION == Options:
-	// so this error should never happen
-	if p.current_token.Type != SECTION {
-		return fmt.Errorf("Consume_Options: must start on a SECTION token: %v", p.current_token)
+	section_node := p.ast.AddNode(Options_section, nil)
+	// only start parsing Options if we start on a token SECTION == Options:
+	if p.current_token.Type != SECTION || !strings.EqualFold(p.current_token.Value, "options:") {
+		return nil
 	}
 
 	p.Change_lexer_state("state_Options")
-	section_node := p.ast.AddNode(Options_section, nil)
 	section_node.AddNode(Section_name, p.current_token)
 	p.current_node = section_node
 
@@ -640,25 +643,6 @@ func (p *DocoptParser) Consume_Options() error {
 				}
 			}
 			continue
-
-		case SHORT:
-			n = Option_short
-		case LONG:
-			n = Option_long
-		case PUNCT:
-			switch p.current_token.Value {
-			case ",":
-				if err = p.Consume_option_alternative(); err != nil {
-					return err
-				}
-				continue
-			case "=":
-				if err = p.Consume_assign(p.next_token); err != nil {
-					p.NextToken()
-					return err
-				}
-				continue
-			}
 		case NEWLINE:
 			continue
 		}

@@ -20,7 +20,7 @@ const (
 	Usage_short_option
 	Usage_long_option
 	Usage_argument
-	Usage_punct
+	Usage_unmatched_punct
 	Usage_command
 	Usage_optional_group
 	Usage_required_group

@@ -1,0 +1,8 @@
+Equivalent to: program_with_alternative_one_line_without_parenthese.docopt
+
+Both should generate the same AST? (for error handling no, because the syntax is diffrent and the token too)
+In original docopt it was normalized first: `FormalUsage(section string) (string, error)`
+
+Usage:
+  my_program run
+  my_program jump

@@ -2,7 +2,24 @@
 
 some main code:
 
+## native golang parser
+
+Work-in-Progress
+
+following an EBNF (like) grammar and keeping strong error handling in mind, the code is here:
+
+* proposed grammar: `docopt_language.ebnf` (based on actual docopt parser behavior study)
+* code lib: `../parser/docopt_language.go`
+* code runner: `../cmd/docopt-analyze/main.go`
+
+```
+cd ../cmd/docopt-analyze
+for d in ../../grammar/usages/*.docopt; do   echo "=============== $d";   go run ./main.go $d; done | batcat
+```
+
 ## `lexer_docopt.go`
+
+is it DEPRECATED?
 
 Our `lexer_docopt` as a stand alone lexer with state
 

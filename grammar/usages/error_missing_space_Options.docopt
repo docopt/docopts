@@ -1,5 +1,11 @@
 Instance Manager
 Comes from: https://github.com/docopt/docopt/issues/455
+the error is:
+
+  --size=<size> Size of the container.
+              ^^^  should more than one space here
+  --replication Service Replication.`
+              ^^^  same here: should more than one space here
 
 Usage:
   instance_manager cluster create <name> <manager> <worker>... [--google|--virtualbox]

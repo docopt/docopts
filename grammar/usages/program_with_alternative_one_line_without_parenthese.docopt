@@ -1,0 +1,7 @@
+Barely equivalent to:
+  my_program run
+  my_program jump
+
+Both should generate the same AST.
+
+Usage: my_program run | jump

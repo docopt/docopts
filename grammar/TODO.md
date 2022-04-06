@@ -1,4 +1,5 @@
 # docopt Grammar
+
 // extract the Usage: section (case-insensitive) until the next empty line
 
 ## goal
@@ -6,31 +7,26 @@
 * We start with our `lexer_state` before testing handcrafted optimized lexer/scanner
 * parse actual grammar (to be determined by studying docopt-go)
 * better error handling (See Also: [`Error_reporting.md`](Error_reporting.md))
-* improve what needed for better support: `print ast` `analyze` `explain`
+* improve what needed for better support: `print ast` `analyze` `explain` `convert`
 
 ## Current work
 
 (our branch grammar's PROGRESS.md)
 
 => start building ast from our grammar: `docopt_language.ebnf`
-* ~~`Consume_Usage_line` ==> wrap all usage into `Usage_line` node~~
-* ~~token lookhead `lexer_state` extract token with the `Current_state`~~
-* ~~parse usage section~~
-* parse `Options:` section
-* ~~parse rally.docopt long argument with assign~~
-* refactor for Consume_option_line()
-  * ~~Consume_Usage_line() call Consume_option_with_assign() with or without equal sign~~
-  * ~~refactor Consume_long_option_with_assign() => Consume_option_with_assign()~~
-  * ~~handle multi Option_line node with NEWLINE + LONG_BLANK + (SHORT | LONG) as start~~
-    * ~~Reject with p.current_token (compute pos + byte_left without value)~~
-* Add String() methode to our token
-* go generate our token strings
+* parse `Usage:` section
+ * handle alternatives `|` without parentheses
+ * handle usage alternatives: `Usage: my_program (run [--fast] | jump [--high])`
+* Refactor String() method to our token with a go generate? => can use GoString()
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
-
+* add unit test
 
 ## issues to read
 
 * https://github.com/docopt/docopts/issues/35#issuecomment-516356005 explore docopt-ng
+* https://github.com/docopt/docopt/issues/190
+* https://github.com/docopt/docopt.go/issues/61
+* https://github.com/docopt/docopts/issues/17
 
 ## Lexer
 
@@ -44,7 +40,9 @@
 * https://golangdocs.com/golang-parser-package
 * https://ruslanspivak.com/lsbasi-part7/ - building an AST in python
 
-## outputs
+## outputs proposal
+
+some extra command for docopts:
 
 ### `analyze`
 
@@ -54,8 +52,9 @@ Usage:
   docopts analyze [--full|--ast] [--only=<usage_entry>] -f <filename_usage>
 ```
 
-
 Example:
+
+Here self help message parsing.
 ```
 docopts analyze "$(docopts -h)"
 

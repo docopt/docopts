@@ -4,6 +4,7 @@
 *)
 Docopt =   [ Prologue ]
          ,   Usage
+         , [ Free_text ]
          , [ Options ]
          , [ Free_text ]
          ;

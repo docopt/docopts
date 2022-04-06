@@ -141,7 +141,7 @@ func (t Token) String() string {
 }
 
 func (t Token) GoString() string {
-	return fmt.Sprintf("Token{%d, %q}", t.Type, t.Value)
+	return fmt.Sprintf("Token{%s (%d), %q}", t.Regex_name, t.Type, t.Value)
 }
 
 // MakeSymbolTable builds a lookup table for checking token ID existence.

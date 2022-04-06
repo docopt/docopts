@@ -1,4 +1,12 @@
-## during grammar design
+# Error reporting
+
+Some sample of error reporting:
+
+We should define a useful and meaningful error reporting.
+
+## during grammar design (parsing)
+
+DEPRECATED
 
 Missing: Which state parser we were
 

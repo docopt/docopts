@@ -15,7 +15,7 @@ var (
   |(?P<USAGE>[Uu][Ss][Aa][Gg][Ee]:)
 	#|(?P<PROG_NAME>[^ :]+)
   |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Options
-  |(?P<LONG_BLANK>[\t ]{2,}) => state_Usage_Line
+  |(?P<LONG_BLANK>\t|[\t ]{2,}) => state_Usage_Line
   # skip single blank
   |([\t ])
   # Match some kind of comment when not preceded by LongBlank
@@ -45,7 +45,7 @@ var (
   (?P<NEWLINE>\n)
   # Options: is matched by state_Usage
   |(?P<SECTION>^[A-Z][A-Za-z _-]+:) => state_Free
-  |(?P<LONG_BLANK>[\t ]{2,})
+  |(?P<LONG_BLANK>\t|[\t ]{2,})
 	|(?P<DEFAULT>^default: )
   # skip single blank
   |([\t ])

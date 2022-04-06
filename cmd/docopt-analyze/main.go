@@ -19,16 +19,22 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	}
 
 	if current_node.Token != nil {
+		// final node with token
 		if current_node.Type == docopt_language.Options_node {
-			fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, current_node.Token.Type)
+			// Options_node are unmatched node
+			fmt.Printf("%s- %s: %s\n", indent, current_node.Type, current_node.Token.GoString())
 		} else {
 			fmt.Printf("%s- %s: %q %s\n", indent, current_node.Type, current_node.Token.Value, repeatable)
 		}
 	} else {
-		if nb_children == 0 {
+		// syntax node without token
+		switch nb_children {
+		case 0:
 			fmt.Printf("%s%s: []\n", indent, current_node.Type)
-		} else {
+		case 1:
 			fmt.Printf("%s%s: %s\n", indent, current_node.Type, repeatable)
+		default:
+			fmt.Printf("%s%s: (%d) %s\n", indent, current_node.Type, nb_children, repeatable)
 		}
 	}
 	for i := 0; i < nb_children; i++ {
@@ -49,7 +55,7 @@ func main() {
 	p, err := docopt_language.ParserInit(data)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		os.Exit(999)
 	}
 	ast := p.Parse()
 
