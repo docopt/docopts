@@ -4,6 +4,10 @@ This code is for studiying go lib docopt-go (modified as internal copy)
 
 We Capilatize the lib method and call them with some source.
 
+See also;
+
+`./docopts --print-ast -h "$(cat ./grammar/usages/program_with_alternative_one_line_without_parenthese.docopt )" :`
+
 ## `ParseSection(name, source string) []string`
 
 Note: In vim use ctags to jump to function definition (pwd where tags file live)

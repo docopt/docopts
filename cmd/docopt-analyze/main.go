@@ -37,8 +37,32 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 			fmt.Printf("%s%s: (%d) %s\n", indent, current_node.Type, nb_children, repeatable)
 		}
 	}
-	for i := 0; i < nb_children; i++ {
-		print_ast(current_node.Children[i], indent_level+2)
+
+	if current_node.Type == docopt_language.Prologue {
+		// Prologue is printed merged (no nested level, only Children
+		children := current_node.Children
+		indent += "  "
+		new_line := true
+		out := ""
+		for i := 0; i < nb_children; i++ {
+			if new_line && children[i].Token.Type != docopt_language.NEWLINE {
+				out = fmt.Sprintf("%s- %s: \"%s", indent, children[i].Type, children[i].Token.Value)
+				new_line = false
+			} else if children[i].Token.Type == docopt_language.NEWLINE {
+				if new_line {
+					continue
+				}
+
+				fmt.Printf("%s\"\n", out)
+				new_line = true
+			} else {
+				out += children[i].Token.Value
+			}
+		}
+	} else {
+		for i := 0; i < nb_children; i++ {
+			print_ast(current_node.Children[i], indent_level+2)
+		}
 	}
 }
 

@@ -338,9 +338,36 @@ func (p *DocoptParser) Consume_Usage_line() error {
 				// consume ARGUMENT assigned
 				p.NextToken()
 				continue
-			//case "|":
-			//p.Ensure_node(p.current_node, Group_alternative)
+			case "|":
+				if p.current_node.Type != Usage_Expr {
+					return fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
+				}
 
+				parent := p.current_node.Parent
+				if parent.Type == Usage_line {
+					// first node is Prog_name, it wont goes to the Group_alternative
+					group_node := &DocoptAst{
+						Type:     Group_alternative,
+						Token:    p.current_token,
+						Parent:   parent,
+						Children: parent.Children[1:],
+					}
+
+					// update the Parent
+					for _, c := range group_node.Children {
+						c.Parent = group_node
+					}
+
+					// recreate Children keeping only Prog_name first node and the new group_node
+					parent.Children = []*DocoptAst{parent.Children[0], group_node}
+					// prepare the next new container node
+					expr := group_node.AddNode(Usage_Expr, nil)
+					p.current_node = expr
+				} else {
+					// token eaten, we create a new Usage_Expr then the next token will continue at this node
+					p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
+				}
+				continue
 			default:
 				// unmatched PUNCT
 				n = Usage_unmatched_punct
@@ -367,6 +394,13 @@ func (p *DocoptParser) Consume_Usage_line() error {
 		default:
 			n = Unmatched_node
 		}
+
+		// add internal group to AST to store the current Expr
+		if p.current_node.Type == Usage_line {
+			// We should first have matched a Prog_name
+			p.current_node = p.current_node.AddNode(Usage_Expr, nil)
+		}
+
 		p.current_node.AddNode(n, p.current_token)
 	}
 
@@ -384,6 +418,7 @@ func (p *DocoptParser) Consume_ellipsis() error {
 	return nil
 }
 
+// Consume_group assume that we are in a open Group_alternative
 func (p *DocoptParser) Consume_group(group_type DocoptNodeType) error {
 	group := p.current_node.AddNode(group_type, nil)
 	saved_current_node := p.current_node
@@ -430,18 +465,10 @@ forLoop:
 			case "|":
 				if p.current_node.Type != Group_alternative {
 					// move actual Children to a new Group_alternative node
-					alternative := &DocoptAst{
-						Type:     Group_alternative,
-						Token:    nil,
-						Parent:   p.current_node,
-						Children: p.current_node.Children,
-					}
-					for _, c := range alternative.Children {
-						c.Parent = alternative
-					}
-					p.current_node.Children = []*DocoptAst{alternative}
+					alternative := p.current_node.Replace_children_with_group(Group_alternative)
 					p.current_node = alternative
 				}
+				// else will be appended (do we need to create a new node?)
 				continue
 			case "]":
 				if p.current_node.Type == Group_alternative {

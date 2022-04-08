@@ -24,6 +24,7 @@ const (
 	Usage_command
 	Usage_optional_group
 	Usage_required_group
+	Usage_Expr
 	Group_alternative
 	Free_section
 	Section_name
@@ -58,6 +59,10 @@ func (n *DocoptAst) AddNode(node_type DocoptNodeType, t *lexer.Token) *DocoptAst
 	return new_node
 }
 
+// Replace_children_with_group move all actual children of the node, to a new node of type `node_type`.
+// Current node: `parent` becomes the new parent, and all its children becomes
+// children of the new node `group_node`.
+// returns the new group node recreated
 func (parent *DocoptAst) Replace_children_with_group(node_type DocoptNodeType) *DocoptAst {
 	group_node := &DocoptAst{
 		Type:     node_type,
@@ -71,6 +76,14 @@ func (parent *DocoptAst) Replace_children_with_group(node_type DocoptNodeType) *
 		c.Parent = group_node
 	}
 
+	// create anew parent Children[] array with group_node only as new sole children
 	parent.Children = []*DocoptAst{group_node}
 	return group_node
+}
+
+func (n *DocoptAst) Detach_child(child_index int) *DocoptAst {
+	detached := n.Children[child_index]
+	n.Children = append(n.Children[:child_index], n.Children[child_index+1:]...)
+	detached.Parent = nil
+	return detached
 }

@@ -4,3 +4,4 @@ env
 build/docopts_*
 build/docopts.go
 tags
+.~lock.*.odg#

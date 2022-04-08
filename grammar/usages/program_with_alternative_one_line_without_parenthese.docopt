@@ -1,7 +1,8 @@
 Barely equivalent to:
   my_program run
   my_program jump
+  my_program climb
 
-Both should generate the same AST.
+The parsed AST will differe, but the docopt behavior should be the same
 
-Usage: my_program run | jump
+Usage: my_program run | jump | climb
