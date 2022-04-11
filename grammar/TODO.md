@@ -15,11 +15,13 @@
 
 => start building ast from our grammar: `docopt_language.ebnf`
 * parse `Usage:` section
- * handle alternatives `|` without parentheses
- * handle usage alternatives: `Usage: my_program (run [--fast] | jump [--high])`
+ * divide usages in `valid` `wrong` and add some automated testing
 * Refactor String() method to our token with a go generate? => can use GoString()
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
 * add unit test
+
+## TODO
+* container/list (double linked list) handle parsed token list?
 
 ## issues to read
 

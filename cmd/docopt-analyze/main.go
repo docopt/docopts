@@ -39,7 +39,7 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	}
 
 	if current_node.Type == docopt_language.Prologue {
-		// Prologue is printed merged (no nested level, only Children
+		// Prologue is printed merged (no nested level, only one level of Children)
 		children := current_node.Children
 		indent += "  "
 		new_line := true
@@ -89,5 +89,8 @@ func main() {
 	print_ast(ast, 0)
 
 	fmt.Printf("number of error: %d\n", p.Error_count)
+	for _, e := range p.Errors {
+		fmt.Println(e)
+	}
 	os.Exit(p.Error_count)
 }

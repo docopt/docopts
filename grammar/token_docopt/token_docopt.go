@@ -24,13 +24,14 @@ var (
 
 	State_First_Program_Usage = `
   (?P<NEWLINE>\n)
-  |([\t ]+)
+  |(?P<BLANK>[\t ]+)
 	|(?P<PROG_NAME>\S+) => state_Usage_Line
 	`
 
 	State_Usage_Line = `
   (?P<NEWLINE>\n) => state_Usage
-  |([\t ]+)
+  |(?P<LONG_BLANK>\t|[\t ]{2,})
+  |([\t ])
 	|(?P<@PROG_NAME>@PROG_NAME)
   |(?P<SHORT>-[A-Za-z0-9?])
   |(?P<LONG>--[A-Za-z][A-Za-z0-9_-]+|^--$)

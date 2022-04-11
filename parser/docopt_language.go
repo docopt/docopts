@@ -1,6 +1,7 @@
 package docopt_language
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/docopt/docopts/grammar/lexer"
 	"github.com/docopt/docopts/grammar/lexer_state"
@@ -13,6 +14,7 @@ type DocoptParser struct {
 	Prog_name     string
 	current_token *lexer.Token
 	next_token    *lexer.Token
+	tokens        *list.List
 
 	// map symbols <=> name
 	symbols_name map[rune]string
@@ -20,13 +22,23 @@ type DocoptParser struct {
 
 	Error_count  int
 	max_error    int
-	errors       []error
+	Errors       []error
 	ast          *DocoptAst
 	current_node *DocoptAst
 
 	lexer_state_changed bool
 	run                 bool
 }
+
+// Reason for a consumer to leave
+type Reason int
+
+const (
+	Error              = -1
+	TWO_NEWLINE Reason = 1 + iota
+	PROG_NAME_sequence
+	EOF_reached
+)
 
 type Consume_method func() error
 type Consume_func struct {
@@ -64,6 +76,7 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 		Prog_name:     "",
 		current_token: nil,
 		next_token:    nil,
+		tokens:        list.New(),
 
 		symbols_name: lexer.SymbolsByRune(states),
 		all_symbols:  states.Symbols(),
@@ -95,6 +108,7 @@ func (p *DocoptParser) NextToken() {
 		p.s.Reject(p.next_token)
 		p.lexer_state_changed = false
 		p.next_token = nil
+		p.tokens.Remove(p.tokens.Back())
 	}
 
 	if p.next_token != nil {
@@ -108,6 +122,15 @@ func (p *DocoptParser) NextToken() {
 	if p.Error_count >= p.max_error {
 		p.FatalError("too many error leaving")
 	}
+
+	p.tokens.PushBack(p.current_token)
+}
+
+func (p *DocoptParser) reject_current_token() {
+	p.s.Reject(p.current_token)
+	p.next_token = nil
+	p.current_token = nil
+	p.tokens.Remove(p.tokens.Back())
 }
 
 func (p *DocoptParser) try_get_NextToken(token_to_store **lexer.Token) error {
@@ -141,15 +164,16 @@ func (p *DocoptParser) Eat(f Consume_method) error {
 }
 
 func (p *DocoptParser) FatalError(msg string) {
-	for _, e := range p.errors {
+	for _, e := range p.Errors {
 		fmt.Println(e)
 	}
 	p.run = false
 }
 
-func (p *DocoptParser) AddError(e error) {
-	p.errors = append(p.errors, e)
+func (p *DocoptParser) AddError(e error) error {
+	p.Errors = append(p.Errors, e)
 	p.Error_count++
+	return e
 }
 
 func consumer(name string, method Consume_method) Consume_func {
@@ -266,19 +290,24 @@ func (p *DocoptParser) Consume_Usage() error {
 	return nil
 }
 
+// Consume_Usage_line: take all Usage_line after we matched Consume_First_Program_Usage
+// the current node is Usage_line with one Children: Prog_name
+// (the PROG_NAME token has been dynamically changeg)
+// Every time we match again a sequence: NEWLINE LONG_BLANK PROG_NAME
+// we start a new Usage_line
 func (p *DocoptParser) Consume_Usage_line() error {
 	p.Change_lexer_state("state_Usage_Line")
-	var n DocoptNodeType
-	// current_node: Usage_line right after PROG_NAME has been matched
+	var reason Reason
+	var err error
 
 	for p.run {
 		p.NextToken()
-		if p.current_token.Type == lexer.EOF {
+		if p.has_reach_EOF(&reason) {
 			// assert leaving condition are met
 			return nil
 		}
 
-		// matching a PROG_NAME will start a new Usage_line
+		// wrong PROG_NAME token matching
 		if p.current_token.Type == PROG_NAME {
 			if p.Prog_name != p.current_token.Value {
 				return fmt.Errorf(
@@ -288,10 +317,6 @@ func (p *DocoptParser) Consume_Usage_line() error {
 					p.current_token,
 					p.current_token.State_name)
 			}
-
-			usage_line := p.current_node.Parent.AddNode(Usage_line, nil)
-			usage_line.AddNode(Prog_name, p.current_token)
-			p.current_node = usage_line
 			continue
 		}
 
@@ -299,21 +324,54 @@ func (p *DocoptParser) Consume_Usage_line() error {
 			return fmt.Errorf("Consume_Usage_line: USAGE invalid Token: %v", p.current_token)
 		}
 
-		if p.current_token.Type == NEWLINE {
-			if p.next_token.Type == NEWLINE {
-				// two consecutive NEWLINE
-				// consume next NEWLINE
-				p.NextToken()
-				// leave Usage parsing
-				return nil
-			}
+		// eat a single Usage_line starting with an Usage_Expr
+		// current_token is already pointing to the next item the lexer got, following PROG_NAME
+		if err, reason = p.Consume_Usage_Expr(); err != nil {
+			return err
+		}
 
-			// single NEWLINE skipping
+		switch reason {
+		case TWO_NEWLINE, EOF_reached:
+			// normal exit condition
+			return nil
+		case PROG_NAME_sequence:
+			// start parsing a new Usage_line
+			usage_line := p.current_node.Parent.AddNode(Usage_line, nil)
+			usage_line.AddNode(Prog_name, p.current_token)
+			p.current_node = usage_line.AddNode(Usage_Expr, nil)
 			continue
+		default:
+			p.FatalError("switch default not supposed to be reached")
+		}
+	}
+
+	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+}
+
+// following PROG_NAME detection Expr is optional
+// Expr could be multiline if Prog_name don't repeat (TODO: ref docopt-go/)
+func (p *DocoptParser) Consume_Usage_Expr() (error, Reason) {
+	saved_current_node := p.current_node
+	var err error
+	var n DocoptNodeType
+	var reason Reason
+	// don't fetch another token, already fetched by Consume_Usage_line, it will be reread
+	p.reject_current_token()
+forLoop:
+	for p.run {
+		p.NextToken()
+
+		if p.has_reach_EOF(&reason) || p.has_reach_two_NEWLINE(&reason, true) || p.has_reach_PROG_NAME(&reason) {
+			// TODO: assert leaving condition are met
+			err = nil
+			break forLoop
 		}
 
 		// assign a token
 		switch p.current_token.Type {
+		case NEWLINE, LONG_BLANK:
+			// skip
+			continue
 		case SHORT:
 			n = Usage_short_option
 		case LONG:
@@ -327,20 +385,26 @@ func (p *DocoptParser) Consume_Usage_line() error {
 			case "(":
 				n = Usage_required_group
 			case "...":
+				p.ensure_node(Usage_Expr)
 				if err := p.Consume_ellipsis(); err != nil {
-					return err
+					reason = Error
+					break forLoop
 				}
 				continue
 			case "=":
+				p.ensure_node(Usage_Expr)
 				if err := p.Consume_assign(p.next_token); err != nil {
-					return err
+					reason = Error
+					break forLoop
 				}
 				// consume ARGUMENT assigned
 				p.NextToken()
 				continue
 			case "|":
 				if p.current_node.Type != Usage_Expr {
-					return fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
+					err = fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
+					reason = Error
+					break forLoop
 				}
 
 				parent := p.current_node.Parent
@@ -371,41 +435,95 @@ func (p *DocoptParser) Consume_Usage_line() error {
 			default:
 				// unmatched PUNCT
 				n = Usage_unmatched_punct
-			}
+			} // end switch PUNCT
 
-			if n != Usage_unmatched_punct {
+			// we found some PUNCT so we modify current_node
+			p.ensure_node(Usage_Expr)
+
+			if n == Usage_optional_group || n == Usage_required_group {
 				// try to match a group required or optional
 				if err := p.Consume_group(n); err != nil {
-					return err
+					reason = Error
+					break forLoop
 				}
 
 				// assert
-				if p.current_node.Type != Usage_line {
+				if p.current_node.Type != Usage_Expr {
 					p.FatalError(fmt.Sprintf("p.Consume_group(%s) did not restore current_node: %s",
 						n,
 						p.current_node.Type))
 				}
 				continue
 			}
-
 			// else: unmatched PUNCT will added to the AST
+			// end handling PUNCT in Usage_Expr
 		case IDENT:
 			n = Usage_command
 		default:
-			n = Unmatched_node
-		}
+			return p.AddError(
+					fmt.Errorf("Consume_Usage_Expr: Unmatched token: %s", p.current_token.GoString())),
+				Error
+		} // end switch Token.Type
 
-		// add internal group to AST to store the current Expr
-		if p.current_node.Type == Usage_line {
-			// We should first have matched a Prog_name
-			p.current_node = p.current_node.AddNode(Usage_Expr, nil)
-		}
-
+		p.ensure_node(Usage_Expr)
 		p.current_node.AddNode(n, p.current_token)
-	}
+	} // end for loop token
 
-	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+	if p.run {
+		p.current_node = saved_current_node
+		return err, reason
+	} else {
+		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err), Error
+	}
+} // end Consume_Usage_Expr
+
+func (p *DocoptParser) has_reach_EOF(reason *Reason) bool {
+	if p.current_token.Type == lexer.EOF {
+		*reason = EOF_reached
+		return true
+	}
+	return false
 }
+
+func (p *DocoptParser) has_reach_two_NEWLINE(reason *Reason, consume_newline bool) bool {
+	if p.current_token.Type == NEWLINE {
+		if p.next_token.Type == NEWLINE {
+			// two consecutive NEWLINE
+			if consume_newline {
+				p.NextToken()
+			}
+			*reason = TWO_NEWLINE
+			return true
+		}
+	}
+	return false
+}
+
+func (p *DocoptParser) has_reach_PROG_NAME(reason *Reason) bool {
+	if p.current_token != nil && p.current_token.Type == PROG_NAME &&
+		p.current_token.Value == p.Prog_name {
+		// check sequence
+		if p.tokens.Len() > 3 {
+			t := p.tokens.Back()
+			if t.Prev().Prev().Value.(*lexer.Token).Type == NEWLINE &&
+				t.Prev().Value.(*lexer.Token).Type == LONG_BLANK {
+				*reason = PROG_NAME_sequence
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// func (p *DocoptParser) has_reach_token(token_type rune, token_value *string) bool {
+// 	if p.current_node.Token != nil && p.current_node.Token.Type == token_type {
+// 		if token_value != nil {
+// 			return p.current_node.Token.Value == *token_value
+// 		}
+// 		return true
+// 	}
+// 	return false
+// }
 
 func (p *DocoptParser) Consume_ellipsis() error {
 	nb := len(p.current_node.Children)
@@ -533,6 +651,9 @@ func (p *DocoptParser) Consume_First_Program_Usage() error {
 
 		if p.current_token.Type == PROG_NAME {
 			p.Prog_name = p.current_token.Value
+			// update the regex of the lexer with the actul found PROG_NAME value
+			// if next_token is also a PROG_NAME (because the regexp also matched it)
+			// it must be rejected
 			p.s.DynamicRuleUpdate("PROG_NAME", p.Prog_name)
 
 			usage_line := p.current_node.AddNode(Usage_line, nil)
@@ -860,9 +981,7 @@ func (p *DocoptParser) Consume_option_description() error {
 		case LONG_BLANK:
 			if current_line > 0 && (p.next_token.Type == SHORT || p.next_token.Type == LONG) {
 				// LONG_BLANK need to be re extracted for starting the next Options_line
-				p.s.Reject(p.current_token)
-				p.next_token = nil
-				p.current_token = nil
+				p.reject_current_token()
 				return nil
 			}
 			// LONG_BLANK inside description
@@ -878,4 +997,10 @@ func (p *DocoptParser) Consume_option_description() error {
 
 func (p *DocoptParser) Consume_option_default() error {
 	return nil
+}
+
+func (p *DocoptParser) ensure_node(node_type DocoptNodeType) {
+	if p.current_node.Type != node_type {
+		p.current_node = p.current_node.AddNode(node_type, nil)
+	}
 }
