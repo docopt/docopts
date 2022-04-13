@@ -1,10 +1,28 @@
+//
+// docopt-analyze parse and generate parsing information about docopt language
+//
 package main
 
 import (
 	"fmt"
 	docopt_language "github.com/docopt/docopts/parser"
 	"os"
+	// still use legacy embedded docopt lib
+	"github.com/alecthomas/repr"
+	"github.com/docopt/docopts/docopt-go"
 )
+
+var Usage string = `docopt language grammar analyzer
+
+Usage:
+  docopt-analyze [-s] [-r] FILENAME
+
+Options:
+  -s      Serialize yaml AST for unit testing
+	-r      Print AST as repr
+`
+
+var Version string = "0.2"
 
 func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	var indent string
@@ -66,14 +84,61 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	}
 }
 
+func nil_parent(n *docopt_language.DocoptAst) {
+	if n.Parent != nil {
+		n.Parent = nil
+	}
+	for _, c := range n.Children {
+		nil_parent(c)
+	}
+}
+
+// yaml serialize our AST
+func serialize_ast(n *docopt_language.DocoptAst, indent string) {
+	if n.Type == docopt_language.Root {
+		fmt.Printf("---\n")
+		fmt.Printf("%snode: %s\n", indent, n.Type)
+	} else {
+		fmt.Printf("%s- node: %s\n", indent, n.Type)
+		indent += "  "
+	}
+
+	if n.Token != nil {
+		fmt.Printf("%stoken: { type: %s, value: %q }\n", indent, n.Token.Regex_name, n.Token.Value)
+	}
+
+	nb_children := len(n.Children)
+	if nb_children > 0 {
+		fmt.Printf("%schildren:\n", indent)
+		for i := 0; i < nb_children; i++ {
+			serialize_ast(n.Children[i], indent)
+		}
+	}
+}
+
 func main() {
-	filename := os.Args[1]
+	docopt_p := &docopt.Parser{
+		OptionsFirst: true,
+	}
+
+	args, err := docopt_p.ParseArgs(Usage, nil, Version)
+	if err != nil {
+		msg := fmt.Sprintf("you're not suppose to get here: %v\n", err)
+		panic(msg)
+	}
+
+	filename := args["FILENAME"].(string)
+	print_repr := args["-r"].(bool)
+	serialize := args["-s"].(bool)
+
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("error: fail to open '%s': $s\n", filename)
 		os.Exit(1)
 	} else {
-		fmt.Printf("parsing: %s\n", filename)
+		if !print_repr && !serialize {
+			fmt.Printf("parsing: %s\n", filename)
+		}
 	}
 
 	p, err := docopt_language.ParserInit(data)
@@ -83,14 +148,21 @@ func main() {
 	}
 	ast := p.Parse()
 
-	fmt.Printf("Detected Prog_name:%s\n", p.Prog_name)
+	if print_repr {
+		nil_parent(ast)
+		repr.Println(ast)
+	} else if serialize {
+		serialize_ast(ast, "")
+	} else {
+		fmt.Printf("Detected Prog_name:%s\n", p.Prog_name)
 
-	fmt.Printf("============== AST ===============\n")
-	print_ast(ast, 0)
+		fmt.Printf("============== AST ===============\n")
+		print_ast(ast, 0)
 
-	fmt.Printf("number of error: %d\n", p.Error_count)
-	for _, e := range p.Errors {
-		fmt.Println(e)
+		fmt.Printf("number of error: %d\n", p.Error_count)
+		for _, e := range p.Errors {
+			fmt.Println(e)
+		}
+		os.Exit(p.Error_count)
 	}
-	os.Exit(p.Error_count)
 }
