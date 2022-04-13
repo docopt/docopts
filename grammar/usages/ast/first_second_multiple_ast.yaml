@@ -1,0 +1,53 @@
+---
+node: Root
+children:
+- node: Prologue
+  children:
+  - node: Prologue_node
+    token: { type: WORD, value: "Two" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "elipis" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "paramters" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "allowing" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "multiple" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "values" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "test.py" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<first>" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--second" }
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "PARAM" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

@@ -1,0 +1,281 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--arg" }
+      - node: Usage_optional_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-A" }
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-V" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--long" }
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<args>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FICHIER" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "action" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--verbose" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "PARAM" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "help" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "ici" }
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--par-la" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--la-bas" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "do_something_strange" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--very" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "stranger_thing" }
+      - node: Usage_optional_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--very" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--strange" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "one_action" }
+          - node: Usage_command
+            token: { type: IDENT, value: "or_this_one" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_short_option
+          token: { type: SHORT, value: "-v" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FILE" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_optional_group
+            children:
+            - node: Usage_short_option
+              token: { type: SHORT, value: "-F" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_short_option
+              token: { type: SHORT, value: "-G" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-i" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "INPUT" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FILE" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "command1" }
+          - node: Usage_command
+            token: { type: IDENT, value: "command2" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FILE" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "command3" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FILE" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "run" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_long_option
+              token: { type: LONG, value: "--fast" }
+          - node: Usage_command
+            token: { type: IDENT, value: "jump" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_long_option
+              token: { type: LONG, value: "--high" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "go" }
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--up" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--down" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--left" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--right" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_required_group
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<one-argument>" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<another-argument>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--either-this" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<and-that>" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<or-this>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "elipsis_on_group" }
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "one" }
+          - node: Usage_command
+            token: { type: IDENT, value: "another" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "two_or_more" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<file>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<file>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "program" }
+    - node: Usage_Expr
+- node: Free_section
+- node: Options_section
+- node: Free_section

@@ -1,0 +1,271 @@
+---
+node: Root
+children:
+- node: Prologue
+  children:
+  - node: Prologue_node
+    token: { type: WORD, value: "A" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "wrapper" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "for" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "rally." }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "myrally" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "gen-track-params" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--bulk" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "BULK-SIZE" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--clients" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "CLIENTS" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--directory" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "PATH" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_short_option
+          token: { type: SHORT, value: "-d" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--challenges" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "CHALLENGES" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--shards" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "SHARDS" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--logging-volume" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "SIZE" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--replicas" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "REPLICAS" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--track" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "TRACK" }
+- node: Free_section
+  children:
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "Arguments" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    BULK-SIZE       The bulk sizes to use" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    CLIENTS         The number of clients" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    CHALLENGES      The name of challenges" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    SHARDS          The number of shards per replica" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    SIZE            The size of the daily logging volume" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    PATH            A directory path to store generated track parameters" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    REPLICAS        The number of replicas" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    TRACK           The name of the track" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    CONFIG-FILE     A configuration file with various parameters" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    TAG             The tag name to set for the rally run" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Options_section
+  children:
+  - node: Section_name
+    token: { type: SECTION, value: "Options:" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--bulk" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "BULK-SIZE" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the bulk size" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--clients" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "CLIENTS" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the number of clients" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--challenges" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "CHALLENGES" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the name of the challenge" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-d" }
+    - node: Option_long
+      token: { type: LONG, value: "--dry-run" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Print generated configuration without writing it" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--directory" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "PATH" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the base directory to store configuration" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--logging-volume" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "SIZE" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the daily logging volume size" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--replicas" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "REPLICAS" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the number of replicas" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--shards" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "SHARDS" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set the shard size" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--track" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "TRACK" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Set track name" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+- node: Free_section
+  children:
+  - node: Section_name
+    token: { type: SECTION, value: "Note:" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    Options that are mentioned with ellipsis(...) can be set multiple times, for" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    instance: -b 1 -b 2. This creates an array with values with the some order as they" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "    are passed, so the value `1` is first and the value `2` is second." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }

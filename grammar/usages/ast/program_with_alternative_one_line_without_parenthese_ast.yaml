@@ -1,0 +1,129 @@
+---
+node: Root
+children:
+- node: Prologue
+  children:
+  - node: Prologue_node
+    token: { type: WORD, value: "Barely" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "equivalent" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "to:" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: BLANK, value: "  " }
+  - node: Prologue_node
+    token: { type: WORD, value: "my_program" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "run" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: BLANK, value: "  " }
+  - node: Prologue_node
+    token: { type: WORD, value: "my_program" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "jump" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: BLANK, value: "  " }
+  - node: Prologue_node
+    token: { type: WORD, value: "my_program" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "climb" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: WORD, value: "The" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "parsed" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "AST" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "will" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "differe," }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "but" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "the" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "docopt" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "behavior" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "should" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "be" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "the" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "same" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Group_alternative
+      token: { type: PUNCT, value: "|" }
+      children:
+      - node: Usage_Expr
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "run" }
+      - node: Usage_Expr
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "jump" }
+      - node: Usage_Expr
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "climb" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

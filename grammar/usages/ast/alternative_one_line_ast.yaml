@@ -1,0 +1,33 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "run" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_long_option
+              token: { type: LONG, value: "--fast" }
+          - node: Usage_command
+            token: { type: IDENT, value: "jump" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_long_option
+              token: { type: LONG, value: "--high" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

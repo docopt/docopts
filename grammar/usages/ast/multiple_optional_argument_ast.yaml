@@ -1,0 +1,62 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "test.py" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "INPUT" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_short_option
+          token: { type: SHORT, value: "-o" }
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "OUTPUT" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_short_option
+          token: { type: SHORT, value: "-t" }
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "TEST" }
+- node: Free_section
+- node: Options_section
+  children:
+  - node: Section_name
+    token: { type: SECTION, value: "Options:" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-o" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "OUTPUT" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "collect mutiple output files" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-t" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "TEST" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "define test file" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+- node: Free_section

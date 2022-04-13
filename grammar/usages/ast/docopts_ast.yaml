@@ -1,0 +1,427 @@
+---
+node: Root
+children:
+- node: Prologue
+  children:
+  - node: Prologue_node
+    token: { type: WORD, value: "Shell" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "interface" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "for" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "docopt," }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "the" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "CLI" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "description" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "language." }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "docopts" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "options" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-h" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: ":" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<argv>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "docopts" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "options" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--no-declare" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-A" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<name>" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-h" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: ":" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<argv>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "docopts" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "options" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-G" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<prefix>" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-h" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: ":" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<argv>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "docopts" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_command
+          token: { type: IDENT, value: "options" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--no-mangle" }
+      - node: Usage_short_option
+        token: { type: SHORT, value: "-h" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: ":" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<argv>" }
+- node: Free_section
+- node: Options_section
+  children:
+  - node: Section_name
+    token: { type: SECTION, value: "Options:" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-h" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+    - node: Option_long
+      token: { type: LONG, value: "--help" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "The help message in docopt format." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Without argument outputs this help." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "If - is given, read the help message from" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "standard input." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "If no argument is given, print docopts's own" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "help message and quit." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-V" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+    - node: Option_long
+      token: { type: LONG, value: "--version" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<msg>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "A version message." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "If - is given, read the version message from" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "standard input.  If the help message is also" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "read from standard input, it is read first." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "If no argument is given, print docopts's own" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "version message and quit." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-s" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<str>" }
+    - node: Option_long
+      token: { type: LONG, value: "--separator" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<str>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "The string to use to separate the help message" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "from the version message when both are given" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "via standard input. " }
+      - node: Description_node
+        token: { type: PUNCT, value: "[" }
+  - node: Options_node
+    token: { type: LINE_OF_TEXT, value: "----" }
+  - node: Options_node
+    token: { type: PUNCT, value: "]" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-O" }
+    - node: Option_long
+      token: { type: LONG, value: "--options-first" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Disallow interspersing options and positional" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "arguments: all arguments starting from the" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "first one that does not begin with a dash will" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "be treated as positional arguments." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-H" }
+    - node: Option_long
+      token: { type: LONG, value: "--no-help" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Don't handle --help and --version specially." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-A" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<name>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Export the arguments as a Bash 4.x associative" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "array called <name>." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-G" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<prefix>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Don't use associative array but output" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Bash 3.2 compatible GLOBAL variables assignment:" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                  " }
+      - node: Description_node
+        token: { type: ARGUMENT, value: "<prefix>" }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "_{mangled_args}={parsed_value}" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Can be used with numeric incompatible options" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "as well.  See also: --no-mangle" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--no-mangle" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Output parsed option not suitable for bash eval." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Full option names are kept. Rvalue is still" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "shellquoted. Extra parsing is required." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--no-declare" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Don't output 'declare -A <name>', used only" }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "with -A argument." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--debug" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Output extra parsing information for debugging." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+      - node: Description_node
+        token: { type: LONG_BLANK, value: "                                " }
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Output cannot be used in bash eval." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+- node: Free_section

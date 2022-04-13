@@ -1,0 +1,103 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "Program_string" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--optional-long-argument" }
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "required-action" }
+          - node: Usage_command
+            token: { type: IDENT, value: "or-this-required-action" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<argument-for-the-action>" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<etc>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "Program_string" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "another-action" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--which-support" }
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<argument>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "WITH_OTHER_SYNTAX_ARGUMENT" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "Program_string" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "action" }
+      - node: Usage_optional_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-A" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "ARG_HERE" }
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-B" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "ARG_FOR_B" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<extra-argument1>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<extra-argument2>" }
+- node: Free_section
+  children:
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "This section can be a single line or multi-line, the token Usage must start the section." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "Repeating program's usage serve to produce different parse usage of the program." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "Content of a section must be indented with two or more space." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: " " }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "The next section is parsed." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "Lines without indent are still discarded, the Options: section is optional, and starts a new syntax parsing." }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Options_section
+- node: Free_section

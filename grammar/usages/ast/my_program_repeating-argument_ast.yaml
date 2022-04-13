@@ -1,0 +1,68 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "command" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--option" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<argument>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<optional-argument>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_long_option
+        token: { type: LONG, value: "--another-option" }
+        children:
+        - node: Usage_argument
+          token: { type: ARGUMENT, value: "<with-argument>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--either-that-option" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<or-this-argument>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<repeating-argument>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<repeating-argument>" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

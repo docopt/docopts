@@ -1,0 +1,19 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "prog" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "ONE_ARG" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

@@ -1,0 +1,186 @@
+---
+node: Root
+children:
+- node: Prologue
+  children:
+  - node: Prologue_node
+    token: { type: WORD, value: "Naval" }
+  - node: Prologue_node
+    token: { type: BLANK, value: " " }
+  - node: Prologue_node
+    token: { type: WORD, value: "Fate." }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Prologue_node
+    token: { type: NEWLINE, value: "\n" }
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "ship" }
+      - node: Usage_command
+        token: { type: IDENT, value: "new" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<name>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "ship" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<name>" }
+      - node: Usage_command
+        token: { type: IDENT, value: "move" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<x>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<y>" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--speed" }
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<kn>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "ship" }
+      - node: Usage_command
+        token: { type: IDENT, value: "shoot" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<x>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<y>" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "mine" }
+      - node: Usage_required_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "set" }
+          - node: Usage_command
+            token: { type: IDENT, value: "remove" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<x>" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "<y>" }
+      - node: Usage_optional_group
+        children:
+        - node: Group_alternative
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--moored" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--drifting" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Group_alternative
+      token: { type: PUNCT, value: "|" }
+      children:
+      - node: Usage_Expr
+        children:
+        - node: Usage_short_option
+          token: { type: SHORT, value: "-h" }
+      - node: Usage_Expr
+        children:
+        - node: Usage_long_option
+          token: { type: LONG, value: "--help" }
+  - node: Usage_line
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "naval_fate" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_long_option
+        token: { type: LONG, value: "--version" }
+- node: Free_section
+- node: Options_section
+  children:
+  - node: Section_name
+    token: { type: SECTION, value: "Options:" }
+  - node: Option_line
+    children:
+    - node: Option_short
+      token: { type: SHORT, value: "-h" }
+    - node: Option_long
+      token: { type: LONG, value: "--help" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Show this screen." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--version" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Show version." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--speed" }
+      children:
+      - node: Option_argument
+        token: { type: ARGUMENT, value: "<kn>" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Speed in knots " }
+      - node: Description_node
+        token: { type: PUNCT, value: "[" }
+  - node: Options_node
+    token: { type: LINE_OF_TEXT, value: "10" }
+  - node: Options_node
+    token: { type: PUNCT, value: "]" }
+  - node: Options_node
+    token: { type: PUNCT, value: "." }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--moored" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Moored (anchored) mine." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+  - node: Option_line
+    children:
+    - node: Option_long
+      token: { type: LONG, value: "--drifting" }
+    - node: Option_description
+      children:
+      - node: Description_node
+        token: { type: LINE_OF_TEXT, value: "Drifting mine." }
+      - node: Description_node
+        token: { type: NEWLINE, value: "\n" }
+- node: Free_section
