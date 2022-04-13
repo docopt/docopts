@@ -1,6 +1,6 @@
 Instance Manager
 Comes from: https://github.com/docopt/docopt/issues/455
-the error is:
+the error is in the Options section:
 
   --size=<size> Size of the container.
               ^^^  should more than one space here

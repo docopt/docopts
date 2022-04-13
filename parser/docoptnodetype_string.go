@@ -9,6 +9,7 @@ func _() {
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
 	_ = x[Unmatched_node - -1]
+	_ = x[NONE_node-1]
 	_ = x[Root-2]
 	_ = x[Prologue-3]
 	_ = x[Prologue_node-4]
@@ -41,19 +42,19 @@ func _() {
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "RootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
+	_DocoptNodeType_name_1 = "NONE_nodeRootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint16{0, 4, 12, 25, 38, 43, 53, 62, 80, 97, 111, 132, 145, 165, 185, 195, 212, 224, 236, 248, 263, 275, 286, 298, 309, 324, 348, 366, 382}
+	_DocoptNodeType_index_1 = [...]uint16{0, 9, 13, 21, 34, 47, 52, 62, 71, 89, 106, 120, 141, 154, 174, 194, 204, 221, 233, 245, 257, 272, 284, 295, 307, 318, 333, 357, 375, 391}
 )
 
 func (i DocoptNodeType) String() string {
 	switch {
 	case i == -1:
 		return _DocoptNodeType_name_0
-	case 2 <= i && i <= 29:
-		i -= 2
+	case 1 <= i && i <= 29:
+		i -= 1
 		return _DocoptNodeType_name_1[_DocoptNodeType_index_1[i]:_DocoptNodeType_index_1[i+1]]
 	default:
 		return "DocoptNodeType(" + strconv.FormatInt(int64(i), 10) + ")"

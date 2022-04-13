@@ -31,13 +31,28 @@ type DocoptParser struct {
 }
 
 // Reason for a consumer to leave
-type Reason int
+type Reason_Value int
 
 const (
-	Error              = -1
-	TWO_NEWLINE Reason = 1 + iota
-	PROG_NAME_sequence
-	EOF_reached
+	Reason_Error       Reason_Value = -1
+	Reason_TWO_NEWLINE              = 1 + iota
+	Reason_PROG_NAME_sequence
+	Reason_EOF_reached
+	Reason_Continue
+)
+
+type Reason struct {
+	Value   Reason_Value
+	Leaving bool
+}
+
+// golang doesn't have const complex type
+var (
+	Error              = Reason{Reason_Error, true}
+	TWO_NEWLINE        = Reason{Reason_TWO_NEWLINE, true}
+	PROG_NAME_sequence = Reason{Reason_EOF_reached, true}
+	EOF_reached        = Reason{Reason_PROG_NAME_sequence, true}
+	Continue           = Reason{Reason_Continue, false}
 )
 
 type Consume_method func() error
@@ -176,6 +191,8 @@ func (p *DocoptParser) AddError(e error) error {
 	return e
 }
 
+// create a Consume_method from a strind a a method name
+// TODO: what is the benefit of this call?
 func consumer(name string, method Consume_method) Consume_func {
 	return Consume_func{
 		name:    name,
@@ -234,6 +251,56 @@ func (p *DocoptParser) CreateNode(node_type DocoptNodeType, token *lexer.Token) 
 
 	if p.ast == nil {
 		p.ast = p.current_node
+	}
+}
+
+type Consume_token_method func(*DocoptParser) (error, Reason)
+type Consumer_Definition struct {
+	create_node        bool
+	toplevel           *DocoptAst
+	toplevel_node      DocoptNodeType
+	save_current_node  bool
+	reject_first_token bool
+	consume_token      Consume_token_method
+}
+
+// generic Consume loop method with token
+func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (error, Reason) {
+	if c.create_node {
+		c.toplevel = p.current_node.AddNode(c.toplevel_node, nil)
+		// CREATE toplevel node: p.CreateNode(Prologue, nil)
+	}
+
+	var saved_current_node *DocoptAst = nil
+	if c.save_current_node {
+		saved_current_node = p.current_node
+	}
+
+	if c.reject_first_token {
+		p.reject_current_token()
+	}
+
+	var reason Reason
+	var err error = nil
+
+	// loop
+	for p.run {
+		p.NextToken()
+
+		err, reason = c.consume_token(p)
+		if err != nil || reason.Leaving {
+			break
+		}
+	}
+
+	if p.run {
+		// RESTORE SAVED NODE
+		if c.save_current_node {
+			p.current_node = saved_current_node
+		}
+		return err, reason
+	} else {
+		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err), Error
 	}
 }
 
@@ -300,6 +367,21 @@ func (p *DocoptParser) Consume_Usage_line() error {
 	var reason Reason
 	var err error
 
+	// ensure we got the correct initial condition for adding Usage_line nodes
+	usage_section := p.current_node.Parent
+	if usage_section.Type != Usage_section {
+		return fmt.Errorf("wrong node Type: '%s' expected Usage_section", usage_section.Type)
+	}
+
+	consume_Expr := Consumer_Definition{
+		create_node:        false,
+		toplevel:           nil,
+		toplevel_node:      NONE_node,
+		save_current_node:  true,
+		reject_first_token: true,
+		consume_token:      Consume_Usage_Expr,
+	}
+
 	for p.run {
 		p.NextToken()
 		if p.has_reach_EOF(&reason) {
@@ -326,7 +408,7 @@ func (p *DocoptParser) Consume_Usage_line() error {
 
 		// eat a single Usage_line starting with an Usage_Expr
 		// current_token is already pointing to the next item the lexer got, following PROG_NAME
-		if err, reason = p.Consume_Usage_Expr(); err != nil {
+		if err, reason = p.Consume_loop(&consume_Expr); err != nil {
 			return err
 		}
 
@@ -336,7 +418,7 @@ func (p *DocoptParser) Consume_Usage_line() error {
 			return nil
 		case PROG_NAME_sequence:
 			// start parsing a new Usage_line
-			usage_line := p.current_node.Parent.AddNode(Usage_line, nil)
+			usage_line := usage_section.AddNode(Usage_line, nil)
 			usage_line.AddNode(Prog_name, p.current_token)
 			p.current_node = usage_line.AddNode(Usage_Expr, nil)
 			continue
@@ -350,131 +432,113 @@ func (p *DocoptParser) Consume_Usage_line() error {
 
 // following PROG_NAME detection Expr is optional
 // Expr could be multiline if Prog_name don't repeat (TODO: ref docopt-go/)
-func (p *DocoptParser) Consume_Usage_Expr() (error, Reason) {
-	saved_current_node := p.current_node
-	var err error
+func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
+	var err error = nil
 	var n DocoptNodeType
 	var reason Reason
-	// don't fetch another token, already fetched by Consume_Usage_line, it will be reread
-	p.reject_current_token()
-forLoop:
-	for p.run {
-		p.NextToken()
 
-		if p.has_reach_EOF(&reason) || p.has_reach_two_NEWLINE(&reason, true) || p.has_reach_PROG_NAME(&reason) {
-			// TODO: assert leaving condition are met
-			err = nil
-			break forLoop
-		}
-
-		// assign a token
-		switch p.current_token.Type {
-		case NEWLINE, LONG_BLANK:
-			// skip
-			continue
-		case SHORT:
-			n = Usage_short_option
-		case LONG:
-			n = Usage_long_option
-		case ARGUMENT:
-			n = Usage_argument
-		case PUNCT:
-			switch p.current_token.Value {
-			case "[":
-				n = Usage_optional_group
-			case "(":
-				n = Usage_required_group
-			case "...":
-				p.ensure_node(Usage_Expr)
-				if err := p.Consume_ellipsis(); err != nil {
-					reason = Error
-					break forLoop
-				}
-				continue
-			case "=":
-				p.ensure_node(Usage_Expr)
-				if err := p.Consume_assign(p.next_token); err != nil {
-					reason = Error
-					break forLoop
-				}
-				// consume ARGUMENT assigned
-				p.NextToken()
-				continue
-			case "|":
-				if p.current_node.Type != Usage_Expr {
-					err = fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
-					reason = Error
-					break forLoop
-				}
-
-				parent := p.current_node.Parent
-				if parent.Type == Usage_line {
-					// first node is Prog_name, it wont goes to the Group_alternative
-					group_node := &DocoptAst{
-						Type:     Group_alternative,
-						Token:    p.current_token,
-						Parent:   parent,
-						Children: parent.Children[1:],
-					}
-
-					// update the Parent
-					for _, c := range group_node.Children {
-						c.Parent = group_node
-					}
-
-					// recreate Children keeping only Prog_name first node and the new group_node
-					parent.Children = []*DocoptAst{parent.Children[0], group_node}
-					// prepare the next new container node
-					expr := group_node.AddNode(Usage_Expr, nil)
-					p.current_node = expr
-				} else {
-					// token eaten, we create a new Usage_Expr then the next token will continue at this node
-					p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
-				}
-				continue
-			default:
-				// unmatched PUNCT
-				n = Usage_unmatched_punct
-			} // end switch PUNCT
-
-			// we found some PUNCT so we modify current_node
-			p.ensure_node(Usage_Expr)
-
-			if n == Usage_optional_group || n == Usage_required_group {
-				// try to match a group required or optional
-				if err := p.Consume_group(n); err != nil {
-					reason = Error
-					break forLoop
-				}
-
-				// assert
-				if p.current_node.Type != Usage_Expr {
-					p.FatalError(fmt.Sprintf("p.Consume_group(%s) did not restore current_node: %s",
-						n,
-						p.current_node.Type))
-				}
-				continue
-			}
-			// else: unmatched PUNCT will added to the AST
-			// end handling PUNCT in Usage_Expr
-		case IDENT:
-			n = Usage_command
-		default:
-			return p.AddError(
-					fmt.Errorf("Consume_Usage_Expr: Unmatched token: %s", p.current_token.GoString())),
-				Error
-		} // end switch Token.Type
-
-		p.ensure_node(Usage_Expr)
-		p.current_node.AddNode(n, p.current_token)
-	} // end for loop token
-
-	if p.run {
-		p.current_node = saved_current_node
+	if p.has_reach_EOF(&reason) || p.has_reach_two_NEWLINE(&reason, true) || p.has_reach_PROG_NAME(&reason) {
+		// TODO: assert leaving condition are met
 		return err, reason
-	} else {
-		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err), Error
 	}
+
+	// assign a token
+	switch p.current_token.Type {
+	case NEWLINE, LONG_BLANK:
+		// skip
+		return nil, Continue
+	case SHORT:
+		n = Usage_short_option
+	case LONG:
+		n = Usage_long_option
+	case ARGUMENT:
+		n = Usage_argument
+	case PUNCT:
+		switch p.current_token.Value {
+		case "[":
+			n = Usage_optional_group
+		case "(":
+			n = Usage_required_group
+		case "...":
+			p.ensure_node(Usage_Expr)
+			if err := p.Consume_ellipsis(); err != nil {
+				return err, Error
+			}
+			return nil, Continue
+		case "=":
+			p.ensure_node(Usage_Expr)
+			if err := p.Consume_assign(p.next_token); err != nil {
+				return err, Error
+			}
+			// consume ARGUMENT assigned
+			p.NextToken()
+			return nil, Continue
+		case "|":
+			if p.current_node.Type != Usage_Expr {
+				err = fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
+				return err, Error
+			}
+
+			parent := p.current_node.Parent
+			if parent.Type == Usage_line {
+				// first node is Prog_name, it wont goes to the Group_alternative
+				group_node := &DocoptAst{
+					Type:     Group_alternative,
+					Token:    p.current_token,
+					Parent:   parent,
+					Children: parent.Children[1:],
+				}
+
+				// update the Parent
+				for _, c := range group_node.Children {
+					c.Parent = group_node
+				}
+
+				// recreate Children keeping only Prog_name first node and the new group_node
+				parent.Children = []*DocoptAst{parent.Children[0], group_node}
+				// prepare the next new container node
+				expr := group_node.AddNode(Usage_Expr, nil)
+				p.current_node = expr
+			} else {
+				// token eaten, we create a new Usage_Expr then the next token will continue at this node
+				p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
+			}
+			return nil, Continue
+		default:
+			return fmt.Errorf("unmatched PUNC: %s", p.current_token.GoString()), Error
+		} // end switch PUNCT
+
+		// we found some PUNCT so we modify current_node
+		p.ensure_node(Usage_Expr)
+
+		if n == Usage_optional_group || n == Usage_required_group {
+			// try to match a group required or optional
+			if err := p.Consume_group(n); err != nil {
+				return err, Error
+			}
+
+			// assert
+			if p.current_node.Type != Usage_Expr {
+				p.FatalError(fmt.Sprintf("p.Consume_group(%s) did not restore current_node: %s",
+					n,
+					p.current_node.Type))
+			}
+			return nil, Continue
+		}
+		// else: unmatched PUNCT will added to the AST
+		// end handling PUNCT in Usage_Expr
+	case IDENT:
+		n = Usage_command
+	default:
+		return p.AddError(
+				fmt.Errorf("Consume_Usage_Expr: Unmatched token: %s", p.current_token.GoString())),
+			Error
+	} // end switch Token.Type
+
+	p.ensure_node(Usage_Expr)
+	p.current_node.AddNode(n, p.current_token)
+
+	return err, reason
 } // end Consume_Usage_Expr
 
 func (p *DocoptParser) has_reach_EOF(reason *Reason) bool {
@@ -812,7 +876,7 @@ func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
 
 	nb_children := len(p.current_node.Children)
 	if nb_children == 0 {
-		// Consume_assign must called after having assigned a option LONG in Usage_line
+		// Consume_assign must called after having assigned a option LONG in Usage_Expr
 		// or any option in Options_line called with oe without equal sign
 		return fmt.Errorf("Consume_assign: current_node must have an option child, invalid Token: %v", p.current_token)
 	}

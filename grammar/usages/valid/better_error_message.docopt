@@ -1,0 +1,11 @@
+From: https://github.com/docopt/docopt/issues/429
++ https://github.com/docopt/docopt/issues/428
+
+
+Usage: code_sanity [-h] [-i ID] [-z] [-v] database
+
+Event without describing option -i would expect one mandatory argument
+
+Sample of use:
+  ./code_sanity foo -i
+  code_sanity: error: argument -i: expected one argument

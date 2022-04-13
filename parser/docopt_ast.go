@@ -9,8 +9,10 @@ type DocoptNodeType int
 
 // ast nodes types
 const (
+	// NONE is a value for not to be matched DocoptNodeType
 	Unmatched_node DocoptNodeType = -1
-	Root           DocoptNodeType = 1 + iota
+	NONE_node      DocoptNodeType = 0 + iota
+	Root
 	Prologue
 	Prologue_node
 	Usage_section

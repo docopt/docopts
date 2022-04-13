@@ -1,0 +1,8 @@
+This sample is related to multiple_optional_argument.docopt.
+Without the explicit Options section, this sample is wrongly parsed.
+As ARGUMENT are not associated to the related OPTION.
+
+Should we assocition ARGUMENT with SHORT here?
+
+Usage:
+    test.py [INPUT...] [-o OUTPUT]... [-t TEST]

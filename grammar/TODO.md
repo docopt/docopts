@@ -2,12 +2,16 @@
 
 // extract the Usage: section (case-insensitive) until the next empty line
 
-## goal
+## Goal
 
 * We start with our `lexer_state` before testing handcrafted optimized lexer/scanner
 * parse actual grammar (to be determined by studying docopt-go)
 * better error handling (See Also: [`Error_reporting.md`](Error_reporting.md))
 * improve what needed for better support: `print ast` `analyze` `explain` `convert`
+
+## Choices
+
+* hand crafted parser for better error handling
 
 ## Current work
 
@@ -15,13 +19,19 @@
 
 => start building ast from our grammar: `docopt_language.ebnf`
 * parse `Usage:` section
- * divide usages in `valid` `wrong` and add some automated testing
+ * add some automated testing
+* matching engine
 * Refactor String() method to our token with a go generate? => can use GoString()
+* full error handling support  and reporting
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
 * add unit test
 
 ## TODO
 * container/list (double linked list) handle parsed token list?
+* code profiling
+* fuzzy wrong option report suggestion
+* bash completion (See cod parser)
+
 
 ## issues to read
 
