@@ -60,19 +60,12 @@ func TestParseUsages(t *testing.T) {
 	Match_ast(t, ast_from_yaml, ast)
 }
 
-// yaml serialize our AstNode to stdout
+// Compare all node from AstNode and DocoptAst
 func Match_ast(t *testing.T, n *AstNode, parsed *DocoptAst) bool {
-	if n.Node == "Root" {
-		if parsed.Type != Root {
-			t.Errorf("expected node Root got %v", parsed.Type)
-			return false
-		}
-	} else {
-		expect := DocoptNodes[n.Node]
-		if parsed.Type != expect {
-			t.Errorf("expected node '%s' got %v", expect, parsed.Type)
-			return false
-		}
+	expect := DocoptNodes[n.Node]
+	if parsed.Type != expect {
+		t.Errorf("expected node '%s' got %v", expect, parsed.Type)
+		return false
 	}
 
 	if n.Token != nil {
@@ -98,3 +91,7 @@ func Match_ast(t *testing.T, n *AstNode, parsed *DocoptAst) bool {
 
 	return true
 }
+
+// ensure one Usage section
+// ensure Usage matched case insensitive
+// check p.options_node pointing to Options_section:

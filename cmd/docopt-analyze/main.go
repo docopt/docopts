@@ -93,29 +93,6 @@ func nil_parent(n *docopt_language.DocoptAst) {
 	}
 }
 
-// yaml serialize our AST
-func serialize_ast(n *docopt_language.DocoptAst, indent string) {
-	if n.Type == docopt_language.Root {
-		fmt.Printf("---\n")
-		fmt.Printf("%snode: %s\n", indent, n.Type)
-	} else {
-		fmt.Printf("%s- node: %s\n", indent, n.Type)
-		indent += "  "
-	}
-
-	if n.Token != nil {
-		fmt.Printf("%stoken: { type: %s, value: %q }\n", indent, n.Token.Regex_name, n.Token.Value)
-	}
-
-	nb_children := len(n.Children)
-	if nb_children > 0 {
-		fmt.Printf("%schildren:\n", indent)
-		for i := 0; i < nb_children; i++ {
-			serialize_ast(n.Children[i], indent)
-		}
-	}
-}
-
 func main() {
 	docopt_p := &docopt.Parser{
 		OptionsFirst: true,
@@ -141,6 +118,7 @@ func main() {
 		}
 	}
 
+	// get our grammar parser as p
 	p, err := docopt_language.ParserInit(data)
 	if err != nil {
 		fmt.Println(err)
@@ -152,7 +130,7 @@ func main() {
 		nil_parent(ast)
 		repr.Println(ast)
 	} else if serialize {
-		serialize_ast(ast, "")
+		docopt_language.Serialize_DocoptAst(ast, "")
 	} else {
 		fmt.Printf("Detected Prog_name:%s\n", p.Prog_name)
 

@@ -40,6 +40,7 @@ const (
 	Option_alternative_group
 	Option_description
 	Description_node
+	Last_node_type
 )
 
 type DocoptAst struct {

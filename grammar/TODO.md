@@ -18,9 +18,8 @@
 (our branch grammar's PROGRESS.md)
 
 => start building ast from our grammar: `docopt_language.ebnf`
-* parse `Usage:` section
- * add some automated testing
 * matching engine
+* add some automated testing and unit testing
 * Refactor String() method to our token with a go generate? => can use GoString()
 * full error handling support  and reporting
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)

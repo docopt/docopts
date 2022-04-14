@@ -25,6 +25,7 @@ type DocoptParser struct {
 	Errors       []error
 	ast          *DocoptAst
 	current_node *DocoptAst
+	options_node *DocoptAst
 
 	lexer_state_changed bool
 	run                 bool
@@ -91,6 +92,7 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 		Prog_name:     "",
 		current_token: nil,
 		next_token:    nil,
+		options_node:  nil,
 		tokens:        list.New(),
 
 		symbols_name: lexer.SymbolsByRune(states),
@@ -200,6 +202,9 @@ func consumer(name string, method Consume_method) Consume_func {
 	}
 }
 
+// Parse() main parser entry point, for parsing docopt syntax
+// pre-condition: lexer must be initialized with the []byte of the
+// text to parse, See: ParserInit()
 func (p *DocoptParser) Parse() *DocoptAst {
 	p.CreateNode(Root, nil)
 
@@ -220,6 +225,32 @@ func (p *DocoptParser) Parse() *DocoptAst {
 	}
 
 	return p.ast
+}
+
+// same as Opts in legacy docopt-go
+type DocoptOpts map[string]interface{}
+
+// algorithm derive from docopt.ParseArgs() docopt-go/docopt.go
+func (p *DocoptParser) MatchArgs(argv []string) (args DocoptOpts, err error) {
+	if p.ast == nil {
+		err = fmt.Errorf("error: ast is nil")
+		return
+	}
+
+	//if len(usageSections) == 0 {
+	//	err = newLanguageError("\"usage:\" (case-insensitive) not found.")
+	//	return
+	//}
+	//if len(usageSections) > 1 {
+	//	err = newLanguageError("More than one \"usage:\" (case-insensitive).")
+	//	return
+	//}
+
+	// options := parseDefaults(doc)
+	// formal, err := FormalUsage(usage)
+	// pat, err := ParsePattern(formal, &options)
+
+	return
 }
 
 // simple call to our tokenizer for testing debuging purpose
@@ -254,7 +285,7 @@ func (p *DocoptParser) CreateNode(node_type DocoptNodeType, token *lexer.Token) 
 	}
 }
 
-type Consume_token_method func(*DocoptParser) (error, Reason)
+type Consume_token_method func(*DocoptParser) (Reason, error)
 type Consumer_Definition struct {
 	create_node        bool
 	toplevel           *DocoptAst
@@ -265,7 +296,7 @@ type Consumer_Definition struct {
 }
 
 // generic Consume loop method with token
-func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (error, Reason) {
+func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (Reason, error) {
 	if c.create_node {
 		c.toplevel = p.current_node.AddNode(c.toplevel_node, nil)
 		// CREATE toplevel node: p.CreateNode(Prologue, nil)
@@ -287,7 +318,7 @@ func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (error, Reason) {
 	for p.run {
 		p.NextToken()
 
-		err, reason = c.consume_token(p)
+		reason, err = c.consume_token(p)
 		if err != nil || reason.Leaving {
 			break
 		}
@@ -298,9 +329,9 @@ func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (error, Reason) {
 		if c.save_current_node {
 			p.current_node = saved_current_node
 		}
-		return err, reason
+		return reason, err
 	} else {
-		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err), Error
+		return Error, fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
 	}
 }
 
@@ -408,7 +439,7 @@ func (p *DocoptParser) Consume_Usage_line() error {
 
 		// eat a single Usage_line starting with an Usage_Expr
 		// current_token is already pointing to the next item the lexer got, following PROG_NAME
-		if err, reason = p.Consume_loop(&consume_Expr); err != nil {
+		if reason, err = p.Consume_loop(&consume_Expr); err != nil {
 			return err
 		}
 
@@ -432,21 +463,21 @@ func (p *DocoptParser) Consume_Usage_line() error {
 
 // following PROG_NAME detection Expr is optional
 // Expr could be multiline if Prog_name don't repeat (TODO: ref docopt-go/)
-func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
+func Consume_Usage_Expr(p *DocoptParser) (Reason, error) {
 	var err error = nil
 	var n DocoptNodeType
 	var reason Reason
 
 	if p.has_reach_EOF(&reason) || p.has_reach_two_NEWLINE(&reason, true) || p.has_reach_PROG_NAME(&reason) {
 		// TODO: assert leaving condition are met
-		return err, reason
+		return reason, err
 	}
 
 	// assign a token
 	switch p.current_token.Type {
 	case NEWLINE, LONG_BLANK:
 		// skip
-		return nil, Continue
+		return Continue, nil
 	case SHORT:
 		n = Usage_short_option
 	case LONG:
@@ -462,21 +493,21 @@ func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
 		case "...":
 			p.ensure_node(Usage_Expr)
 			if err := p.Consume_ellipsis(); err != nil {
-				return err, Error
+				return Error, err
 			}
-			return nil, Continue
+			return Continue, nil
 		case "=":
 			p.ensure_node(Usage_Expr)
 			if err := p.Consume_assign(p.next_token); err != nil {
-				return err, Error
+				return Error, err
 			}
 			// consume ARGUMENT assigned
 			p.NextToken()
-			return nil, Continue
+			return Continue, nil
 		case "|":
 			if p.current_node.Type != Usage_Expr {
 				err = fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
-				return err, Error
+				return Error, err
 			}
 
 			parent := p.current_node.Parent
@@ -503,9 +534,9 @@ func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
 				// token eaten, we create a new Usage_Expr then the next token will continue at this node
 				p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
 			}
-			return nil, Continue
+			return Continue, nil
 		default:
-			return fmt.Errorf("unmatched PUNC: %s", p.current_token.GoString()), Error
+			return Error, fmt.Errorf("unmatched PUNC: %s", p.current_token.GoString())
 		} // end switch PUNCT
 
 		// we found some PUNCT so we modify current_node
@@ -514,7 +545,7 @@ func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
 		if n == Usage_optional_group || n == Usage_required_group {
 			// try to match a group required or optional
 			if err := p.Consume_group(n); err != nil {
-				return err, Error
+				return Error, err
 			}
 
 			// assert
@@ -523,22 +554,21 @@ func Consume_Usage_Expr(p *DocoptParser) (error, Reason) {
 					n,
 					p.current_node.Type))
 			}
-			return nil, Continue
+			return Continue, nil
 		}
 		// else: unmatched PUNCT will added to the AST
 		// end handling PUNCT in Usage_Expr
 	case IDENT:
 		n = Usage_command
 	default:
-		return p.AddError(
-				fmt.Errorf("Consume_Usage_Expr: Unmatched token: %s", p.current_token.GoString())),
-			Error
+		return Error, p.AddError(
+			fmt.Errorf("Consume_Usage_Expr: Unmatched token: %s", p.current_token.GoString()))
 	} // end switch Token.Type
 
 	p.ensure_node(Usage_Expr)
 	p.current_node.AddNode(n, p.current_token)
 
-	return err, reason
+	return reason, err
 } // end Consume_Usage_Expr
 
 func (p *DocoptParser) has_reach_EOF(reason *Reason) bool {
@@ -812,6 +842,7 @@ func (p *DocoptParser) Change_lexer_state(new_state string) error {
 
 func (p *DocoptParser) Consume_Options() error {
 	section_node := p.ast.AddNode(Options_section, nil)
+	p.options_node = section_node
 	// only start parsing Options if we start on a token SECTION == Options:
 	if p.current_token.Type != SECTION || !strings.EqualFold(p.current_token.Value, "options:") {
 		return nil

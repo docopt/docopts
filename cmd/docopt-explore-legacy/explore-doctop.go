@@ -19,7 +19,7 @@ Arguments:
   <call_method>           method in docopt-go lib see list_method
   <argument_for_method>   text argument for the method to call, for ParseSection
                           the section string + ending ':' that starts the section
-                          bloc.
+                          bloc. Or an empty string "" if not needed.
   <filename>              a valid filename containing the usage to parse, if
                           <filename> is - use stdin.
 
@@ -55,6 +55,24 @@ func call_method(method_name string, argument_for_method string, usage_string st
 		usage, formal := extract_usage_and_FormalUsage(usage_string, argument_for_method)
 		fmt.Printf("extrated Usage:\n%s\n", usage)
 		fmt.Printf("FormalUsage: %s\n", formal)
+	case "ParseDefaults", "parseDefaults":
+		optionSection := docopt.ParseDefaults(usage_string)
+		// returns a list or pattern struct
+		// type pattern struct {
+		// 	t patternType
+		//
+		// 	children patternList
+		//
+		// 	name  string
+		// 	value interface{}
+		//
+		// 	short    string
+		// 	long     string
+		// 	argcount int
+		// }
+		for i, p := range optionSection {
+			fmt.Printf("pat[%d]: %s\n", i, p)
+		}
 	case "TokenListFromPattern", "tokenListFromPattern":
 		_, formal := extract_usage_and_FormalUsage(usage_string, argument_for_method)
 		tokens := docopt.TokenListFromPattern(formal)
@@ -76,7 +94,7 @@ func main() {
 	}
 
 	list_method := arguments["list_method"].(bool)
-	available_method := [...]string{"FormalUsage", "ParseSection", "TokenListFromPattern"}
+	available_method := [...]string{"FormalUsage", "ParseSection", "TokenListFromPattern", "ParseDefaults"}
 	if list_method {
 		fmt.Printf("supported method: %s\n", available_method)
 		os.Exit(0)

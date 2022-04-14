@@ -131,7 +131,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 	}
 	usage := usageSections[0]
 
-	options := parseDefaults(doc)
+	options := ParseDefaults(doc)
 	formal, err := FormalUsage(usage)
 	if err != nil {
 		output = handleError(err, usage)
@@ -168,7 +168,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 		return
 	}
 	for _, optionsShortcut := range patFlat {
-		docOptions := parseDefaults(doc)
+		docOptions := ParseDefaults(doc)
 		optionsShortcut.children = docOptions.unique().diff(patternOptions)
 	}
 
@@ -226,7 +226,7 @@ func ParseSection(name, source string) []string {
 	return s
 }
 
-func parseDefaults(doc string) patternList {
+func ParseDefaults(doc string) patternList {
 	defaults := patternList{}
 	p := regexp.MustCompile(`\n[ \t]*(-\S+?)`)
 	for _, s := range ParseSection("options:", doc) {
