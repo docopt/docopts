@@ -19,6 +19,9 @@
 
 => start building ast from our grammar: `docopt_language.ebnf`
 * matching engine
+ * parse AST for match
+ * compare recieved os.Args to valid argument or option
+* parse Options: default value
 * add some automated testing and unit testing
 * Refactor String() method to our token with a go generate? => can use GoString()
 * full error handling support  and reporting

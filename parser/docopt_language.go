@@ -230,6 +230,7 @@ func (p *DocoptParser) Parse() *DocoptAst {
 // same as Opts in legacy docopt-go
 type DocoptOpts map[string]interface{}
 
+// MatchArgs() associate argv (os.Args) to parsed Options / Argument
 // algorithm derive from docopt.ParseArgs() docopt-go/docopt.go
 func (p *DocoptParser) MatchArgs(argv []string) (args DocoptOpts, err error) {
 	if p.ast == nil {
@@ -247,10 +248,66 @@ func (p *DocoptParser) MatchArgs(argv []string) (args DocoptOpts, err error) {
 	//}
 
 	// options := parseDefaults(doc)
+	//options, err := p.transform_Options_section_to_map()
+	//if err != nil {
+	//	return nil, err
+	//}
+
 	// formal, err := FormalUsage(usage)
 	// pat, err := ParsePattern(formal, &options)
 
 	return
+}
+
+type OptionRule struct {
+	Long          *string
+	Short         *string
+	Arg_count     int
+	Default_value *string
+	Argument_name *string
+}
+
+type OptionsMap map[string]*OptionRule
+
+func (p *DocoptParser) transform_Options_section_to_map() (OptionsMap, error) {
+	// nil map
+	var options OptionsMap
+	if p.options_node == nil {
+		return options, fmt.Errorf("error: options_node is nil")
+	}
+
+	options = make(OptionsMap)
+	nb_children := len(p.options_node.Children)
+	if nb_children > 0 {
+		for _, o := range p.options_node.Children {
+			if o.Type != Option_line {
+				continue
+			}
+
+			r := &OptionRule{}
+			for _, s := range o.Children {
+				if s.Type == Option_long {
+					r.Long = &s.Token.Value
+					options[*r.Long] = r
+					if len(s.Children) == 1 && s.Children[0].Type == Option_argument {
+						r.Arg_count = 1
+						r.Argument_name = &s.Children[0].Token.Value
+					}
+				}
+				if s.Type == Option_short {
+					r.Short = &s.Token.Value
+					options[*r.Short] = r
+					if len(s.Children) == 1 && s.Children[0].Type == Option_argument {
+						r.Arg_count = 1
+						r.Argument_name = &s.Children[0].Token.Value
+					}
+				}
+			}
+
+		}
+	}
+
+	return options, nil
 }
 
 // simple call to our tokenizer for testing debuging purpose
@@ -952,6 +1009,7 @@ func (p *DocoptParser) Consume_option_alternative() error {
 			// leaving condition OK
 			return nil
 		case SHORT:
+			// TODO: error handling multiple definition
 			p.current_node.AddNode(Option_short, p.current_token)
 		case LONG:
 			p.current_node.AddNode(Option_long, p.current_token)
@@ -968,8 +1026,10 @@ func (p *DocoptParser) Consume_option_alternative() error {
 				continue
 			default:
 				return fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
-			}
-		}
+			} // end switch PUNCT
+		default:
+			return fmt.Errorf("%s: unexpected Token, invalid Token: %v", p.current_node.Type, p.current_token)
+		} // end switch Token.Type
 	}
 
 	return fmt.Errorf("%s: parser stoped", p.current_node.Type)

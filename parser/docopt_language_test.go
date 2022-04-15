@@ -11,16 +11,16 @@ import (
 	"testing"
 )
 
-func parse_usage(filename string) (*DocoptAst, error) {
+func parse_usage(filename string) (*DocoptParser, error) {
 	// data is []byte
 	data, err := os.ReadFile(filename)
 	p, err := ParserInit(data)
 	if err != nil {
-		return nil, err
+		return p, err
 	}
-	ast := p.Parse()
-
-	return ast, err
+	// AST is available from p.ast
+	p.Parse()
+	return p, err
 }
 
 var DocoptNodes map[string]DocoptNodeType
@@ -32,18 +32,27 @@ func init_DocoptNodes() {
 	}
 }
 
-func TestParseUsages(t *testing.T) {
+func load_usage(t *testing.T, usage_filename string) (string, *DocoptParser, error) {
 	usage_dir := "../grammar/usages/valid"
-	filename := usage_dir + "/naval_fate.docopt"
-	ast, err := parse_usage(filename)
-	if err != nil {
-		t.Errorf("parse_usage failed")
+	filename := usage_dir + "/" + usage_filename
+	if _, err := os.Stat(filename); err != nil {
+		t.Errorf("doctop file is missing: '%s'", filename)
+		return filename, nil, err
 	}
 
-	if ast == nil {
+	p, err := parse_usage(filename)
+	if err != nil {
+		t.Errorf("parse_usage failed for: %s", filename)
+	} else if p.ast == nil {
 		t.Errorf("ast is nil")
 	}
+	return filename, p, err
+}
 
+func TestParseUsages(t *testing.T) {
+	filename, p, _ := load_usage(t, "docopts.docopt")
+
+	usage_dir := filepath.Dir(filename)
 	ast_dir := usage_dir + "/../ast"
 	ast_file := ast_dir + "/" + strings.Replace(filepath.Base(filename), ".docopt", "_ast.yaml", 1)
 
@@ -57,7 +66,7 @@ func TestParseUsages(t *testing.T) {
 	}
 
 	init_DocoptNodes()
-	Match_ast(t, ast_from_yaml, ast)
+	Match_ast(t, ast_from_yaml, p.ast)
 }
 
 // Compare all node from AstNode and DocoptAst
@@ -90,6 +99,34 @@ func Match_ast(t *testing.T, n *AstNode, parsed *DocoptAst) bool {
 	}
 
 	return true
+}
+
+func Test_transform_Options_section_to_map(t *testing.T) {
+	_, p, _ := load_usage(t, "docopts.docopt")
+
+	options, err := p.transform_Options_section_to_map()
+	if err != nil {
+		t.Errorf("transform_Options_section_to_map error: %v", err)
+	}
+
+	if len(options) == 0 {
+		t.Errorf("transform_Options_section_to_map: options map has no element")
+	}
+
+	if options["-s"].Arg_count != 1 {
+		t.Errorf("transform_Options_section_to_map: options[\"-s\"] (separator) as not 1 mandatory argument count")
+	}
+
+	expected := "<str>"
+	if *options["--separator"].Argument_name != expected {
+		t.Errorf("transform_Options_section_to_map: options[\"--separator\"].Argument_name got: %q expected %q",
+			expected,
+			*options["--separator"].Argument_name)
+	}
+
+	if options["-s"] != options["--separator"] {
+		t.Errorf("transform_Options_section_to_map: options[\"-s\"] != options[\"--separator\"]")
+	}
 }
 
 // ensure one Usage section
