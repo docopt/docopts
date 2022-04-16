@@ -101,18 +101,50 @@ For extracting yaml data from `deployment.yml`
 go get gopkg.in/mikefarah/yq.v2
 ```
 
-### build docopts
 
-Our script uses `docopts` for parsing our command line option.
-
-```
-make
-```
-
-### deploy
+## deploy / publish release
 
 We provide a deploy script, which will take the last git tag, and a deployment
 message written in a yaml file `deployment.yml`.
+
+The script can be downloaded from https://github.com/opensource-expert/deploy.sh
+
+### install `deploy.sh`
+
+`deploy.sh` uses `docopts` for parsing our command line option. So you will need to build a first `docopts` and having
+it installed in th PATH
+
+build `docopts`:
+
+```
+cd path/to/docopt/docopts
+make
+```
+
+clone and install `deploy.sh` (will be installed by default in `PREFIX=${HOME}/.local`
+
+```
+git clone https://github.com/opensource-expert/deploy.sh deploy_sh
+cd deploy_sh
+make
+make install
+```
+
+if your `${HOME}/.local/bin` is not in your PATH
+
+```
+PATH=$PATH:${HOME}/.local/bin
+```
+
+test
+
+```
+deploy.sh -h
+```
+
+### deployment steps
+
+In `docopts` project folder.
 
 So you need to create the release text in `deployment.yml` before you run
 `deploy.sh`.
@@ -120,17 +152,17 @@ So you need to create the release text in `deployment.yml` before you run
 See what will going on (dry-run):
 
 ```
-./deploy.sh deploy -n
+deploy.sh deploy -n
 ```
 
 Deploy and replace existing binaries for this release.
 
 ```
-./deploy.sh deploy --replace
+deploy.sh deploy --replace
 ```
 
 Only build binaries in `build/` dir:
 
 ```
-./deploy.sh build
+deploy.sh build
 ```
