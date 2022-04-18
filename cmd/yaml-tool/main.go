@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	err, ast := docopt_language.Load_ast_from_yaml(os.Args[1])
+	ast, err := docopt_language.Load_ast_from_yaml(os.Args[1])
 	if err != nil {
 		panic(err)
 	}

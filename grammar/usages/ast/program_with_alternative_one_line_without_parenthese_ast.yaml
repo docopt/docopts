@@ -106,24 +106,26 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "my_program ( run | jump | climb )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
-    - node: Group_alternative
-      token: { type: PUNCT, value: "|" }
+    - node: Usage_Expr
       children:
-      - node: Usage_Expr
+      - node: Usage_required_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "run" }
-      - node: Usage_Expr
-        children:
-        - node: Usage_command
-          token: { type: IDENT, value: "jump" }
-      - node: Usage_Expr
-        children:
-        - node: Usage_command
-          token: { type: IDENT, value: "climb" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "run" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "jump" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "climb" }
 - node: Free_section
 - node: Options_section
 - node: Free_section

@@ -7,6 +7,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "prog ONE_ARG"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "prog" }

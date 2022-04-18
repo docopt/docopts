@@ -2,11 +2,14 @@
 #
 # Generate the parsed AST.yaml from docopt input file
 #
-# Usage: generate_ast.sh DIRNAME... --out-dir=DEST_DIR
+# Usage: generate_ast.sh [--rebuild] DIRNAME... --out-dir=DEST_DIR
 #
 # Arguments:
 #   DIRNAME    a foldername to look for .docopt file
 #   DEST_DIR   a foldername into which to generate AST.yaml parsed file
+#
+# Options:
+#   --realpath   force rebuild of docopt-analyze (previous binary will be removed)
 #
 
 me=$(realpath  $0)
@@ -29,11 +32,16 @@ fi
 dest_dir=$(realpath $ARGS_out_dir)
 
 parser=$(realpath $my_dir/../../cmd/docopt-analyze/docopt-analyze)
-if [[ ! -x $parser ]]
+if [[ ! -x $parser || $ARGS_rebuild == 'true' ]]
 then
   echo "try building parser '$parser'"
   cd $(dirname $parser)
   go build
+  if [[ ! $? -eq 0 ]]
+  then
+    echo "building error"
+    exit 1
+  fi
 fi
 
 cd $usage_folder
@@ -41,6 +49,6 @@ for u in *.docopt
 do
   echo "==================== $u"
   ast_fname="$dest_dir/$(basename $u .docopt)_ast.yaml"
-  $parser -s $u > $ast_fname
+  $parser -y $u > $ast_fname
 done
 

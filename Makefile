@@ -21,8 +21,9 @@ install_builddep:
 	go install gopkg.in/yaml.v2
 	go install github.com/ahmetb/govvv
 
-parser: parser/docoptnodetype_string.go parser/docopt_language.go parser/docopt_ast.go
+parser: parser/docoptnodetype_string.go parser/docopt_language.go parser/docopt_ast.go parser/serialize_ast.go
 	go build cmd/docopt-analyze/main.go
+	go build cmd/yaml-tool/main.go
 
 parser/docoptnodetype_string.go: parser/docopt_ast.go
 	go generate parser/docopt_ast.go

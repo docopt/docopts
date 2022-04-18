@@ -25,28 +25,28 @@ func _() {
 	_ = x[Usage_optional_group-14]
 	_ = x[Usage_required_group-15]
 	_ = x[Usage_Expr-16]
-	_ = x[Group_alternative-17]
-	_ = x[Free_section-18]
-	_ = x[Section_name-19]
-	_ = x[Section_node-20]
-	_ = x[Options_section-21]
-	_ = x[Options_node-22]
-	_ = x[Option_line-23]
-	_ = x[Option_short-24]
-	_ = x[Option_long-25]
-	_ = x[Option_argument-26]
-	_ = x[Option_alternative_group-27]
-	_ = x[Option_description-28]
-	_ = x[Description_node-29]
+	_ = x[Free_section-17]
+	_ = x[Section_name-18]
+	_ = x[Section_node-19]
+	_ = x[Options_section-20]
+	_ = x[Options_node-21]
+	_ = x[Option_line-22]
+	_ = x[Option_short-23]
+	_ = x[Option_long-24]
+	_ = x[Option_argument-25]
+	_ = x[Option_alternative_group-26]
+	_ = x[Option_description-27]
+	_ = x[Description_node-28]
+	_ = x[Last_node_type-29]
 }
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "NONE_nodeRootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprGroup_alternativeFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_node"
+	_DocoptNodeType_name_1 = "NONE_nodeRootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_nodeLast_node_type"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint16{0, 9, 13, 21, 34, 47, 52, 62, 71, 89, 106, 120, 141, 154, 174, 194, 204, 221, 233, 245, 257, 272, 284, 295, 307, 318, 333, 357, 375, 391}
+	_DocoptNodeType_index_1 = [...]uint16{0, 9, 13, 21, 34, 47, 52, 62, 71, 89, 106, 120, 141, 154, 174, 194, 204, 216, 228, 240, 255, 267, 278, 290, 301, 316, 340, 358, 374, 388}
 )
 
 func (i DocoptNodeType) String() string {

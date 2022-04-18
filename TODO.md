@@ -59,6 +59,10 @@ Would probably need a new docopt parser too.
 docopts completion "$usage"
 ```
 
+## batcat -h
+
+parse additionnal format?
+
 ## config file parse config to option format
 
 À la nslcd… ?

@@ -9,6 +9,19 @@ import (
 	"strings"
 )
 
+type Consume_token_method func(*DocoptParser) (Reason, error)
+type Consumer_Definition struct {
+	create_self_node   bool
+	create_node        bool
+	toplevel_node      DocoptNodeType
+	save_current_node  bool
+	reject_first_token bool
+	consume_func       Consume_token_method
+
+	// runing properties
+	toplevel *DocoptAst
+}
+
 type DocoptParser struct {
 	s             *lexer_state.StateLexer
 	Prog_name     string
@@ -26,9 +39,12 @@ type DocoptParser struct {
 	ast          *DocoptAst
 	current_node *DocoptAst
 	options_node *DocoptAst
+	usage_node   *DocoptAst
 
 	lexer_state_changed bool
 	run                 bool
+
+	Parse_def map[DocoptNodeType]*Consumer_Definition
 }
 
 // Reason for a consumer to leave
@@ -40,6 +56,7 @@ const (
 	Reason_PROG_NAME_sequence
 	Reason_EOF_reached
 	Reason_Continue
+	Reason_EOG_reached
 )
 
 type Reason struct {
@@ -54,6 +71,7 @@ var (
 	PROG_NAME_sequence = Reason{Reason_EOF_reached, true}
 	EOF_reached        = Reason{Reason_PROG_NAME_sequence, true}
 	Continue           = Reason{Reason_Continue, false}
+	END_OF_Group       = Reason{Reason_EOG_reached, true}
 )
 
 type Consume_method func() error
@@ -116,6 +134,30 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 	IDENT = p.all_symbols["IDENT"]
 	LONG_BLANK = p.all_symbols["LONG_BLANK"]
 	DEFAULT = p.all_symbols["DEFAULT"]
+
+	p.Parse_def = make(map[DocoptNodeType]*Consumer_Definition)
+
+	// language parsing defintion
+	p.Parse_def[Usage_Expr] = &Consumer_Definition{
+		create_node:        false,
+		toplevel_node:      NONE_node,
+		save_current_node:  true,
+		reject_first_token: true,
+		consume_func:       Consume_Usage_Expr,
+	}
+
+	p.Parse_def[Usage_optional_group] = &Consumer_Definition{
+		create_self_node:   true,
+		create_node:        true,
+		toplevel_node:      Usage_Expr,
+		save_current_node:  true,
+		reject_first_token: false,
+		consume_func:       Consume_group,
+	}
+
+	// copy same def, but duplicate it
+	def := *p.Parse_def[Usage_optional_group]
+	p.Parse_def[Usage_required_group] = &def
 
 	return p, nil
 }
@@ -232,32 +274,142 @@ type DocoptOpts map[string]interface{}
 
 // MatchArgs() associate argv (os.Args) to parsed Options / Argument
 // algorithm derive from docopt.ParseArgs() docopt-go/docopt.go
-func (p *DocoptParser) MatchArgs(argv []string) (args DocoptOpts, err error) {
-	if p.ast == nil {
-		err = fmt.Errorf("error: ast is nil")
-		return
-	}
+//func (p *DocoptParser) MatchArgs(argv []string) (args DocoptOpts, err error) {
+//	if p.ast == nil {
+//		err = fmt.Errorf("error: ast is nil")
+//		return
+//	}
+//
+//	//if len(usageSections) == 0 {
+//	//	err = newLanguageError("\"usage:\" (case-insensitive) not found.")
+//	//	return
+//	//}
+//	//if len(usageSections) > 1 {
+//	//	err = newLanguageError("More than one \"usage:\" (case-insensitive).")
+//	//	return
+//	//}
+//
+//	// options := parseDefaults(doc)
+//	// READY
+//	//options, err := p.transform_Options_section_to_map()
+//	//if err != nil {
+//	//	return nil, err
+//	//}
+//
+//	// formal, err := FormalUsage(usage)
+//	// pat, err := ParsePattern(formal, &options)
+//
+//	// loop over Usage_line to find one that match
+//	var found int = -1
+//	var matched bool
+//	for i, l := range p.usage_node.Children {
+//		if l.Type != Usage_line {
+//			continue
+//		}
+//		var expr *DocoptAst = nil
+//		// search Usage_Expr node for this Usage_line
+//		for _, c := range l.Children {
+//			if c.Type != Usage_Expr {
+//				continue
+//			} else {
+//				expr = c.Children
+//				break
+//			}
+//		}
+//		if expr == nil {
+//			err = fmt.Errorf("error: expr not found for Usage_line[%d]", i+1)
+//			return
+//		}
+//
+//		matched, args, err = p.Match_Usage_Expr(expr, argv)
+//		if err == nil && matched {
+//			// success found an expr that match
+//			found = i
+//			break
+//		}
+//	}
+//
+//	if err == nil && found > -1 {
+//		// success
+//		return
+//	}
+//
+//	// no match found, argument parsing error
+//	if err != nil {
+//		// error previously caught
+//		return
+//	}
+//
+//	err = fmt.Errorf("no match found for argv: %v", argv)
+//	return
+//}
 
-	//if len(usageSections) == 0 {
-	//	err = newLanguageError("\"usage:\" (case-insensitive) not found.")
-	//	return
-	//}
-	//if len(usageSections) > 1 {
-	//	err = newLanguageError("More than one \"usage:\" (case-insensitive).")
-	//	return
-	//}
-
-	// options := parseDefaults(doc)
-	//options, err := p.transform_Options_section_to_map()
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	// formal, err := FormalUsage(usage)
-	// pat, err := ParsePattern(formal, &options)
-
-	return
-}
+//func (p *DocoptParser) Match_Usage_Expr(expr *DocoptAst, argv []string) (matched bool, args DocoptOpts, err error) {
+//	// docopts [options] -h <msg> : [<argv>...]
+//	// docopts -h "Usage: myprog cat [-c COLOR] FILENAME" : cat pipo
+//	//   Usage_Expr: cat [-c COLOR] STRING
+//	//   argv: "pipo"
+//	//
+//  //  Usage_Expr: (3)
+//  //    - Usage_command: "cat"
+//  //    Usage_optional_group: (2)
+//  //      - Usage_short_option: "-c"
+//  //      - Usage_argument: "COLOR"
+//  //    - Usage_argument: "FILENAME"
+//
+//
+//	matched = false
+//	nb := len(argv)
+//	if nb == 0 {
+//		matched, err = p.Match_empty_argv(expr)
+//		return
+//	}
+//
+//	i := 0
+//forLoopMatch_Usage_Expr:
+//	for _, c := range expr.Children {
+//		switch c.Type {
+//		case Usage_optional_group:
+//			matched, err = p.Match_Usage_group(c, argv[i], &args)
+//			if err == nil {
+//				if matched {
+//					i++
+//				}
+//				continue
+//			}
+//			break forLoopMatch_Usage_Expr
+//		case Usage_required_group:
+//			matched, err = p.Match_Usage_group(c, argv[i], &args)
+//			if err == nil {
+//				if matched {
+//					i++
+//					continue
+//				} else {
+//					err = fmt.Errorf("required group %s, faild to match '%s'", c.Type, argv[i])
+//					break forLoopMatch_Usage_Expr
+//				}
+//			}
+//		case Usage_command:
+//			matched, err = p.Match_Usage_command(c, argv[i], &args)
+//			if err == nil {
+//				if matched {
+//					i++
+//					continue
+//				} else {
+//					err = fmt.Errorf("expected Usage_command %s, faild to match '%s'", c.Token.Value, argv[i])
+//					break forLoopMatch_Usage_Expr
+//				}
+//			}
+//		case Usage_section
+//		default:
+//				err = fmt.Errorf("unhandled ast node %s", c.Type)
+//				break forLoopMatch_Usage_Expr
+//		} // end switch c.Type
+//		break forLoopMatch_Usage_Expr
+//	}
+//
+//	return
+//}
 
 type OptionRule struct {
 	Long          *string
@@ -342,26 +494,29 @@ func (p *DocoptParser) CreateNode(node_type DocoptNodeType, token *lexer.Token) 
 	}
 }
 
-type Consume_token_method func(*DocoptParser) (Reason, error)
-type Consumer_Definition struct {
-	create_node        bool
-	toplevel           *DocoptAst
-	toplevel_node      DocoptNodeType
-	save_current_node  bool
-	reject_first_token bool
-	consume_token      Consume_token_method
-}
-
 // generic Consume loop method with token
-func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (Reason, error) {
-	if c.create_node {
-		c.toplevel = p.current_node.AddNode(c.toplevel_node, nil)
-		// CREATE toplevel node: p.CreateNode(Prologue, nil)
-	}
+// This avoid code duplication in parser algorithm
+// Parse_def are composed in ParserInit() See also Consumer_Definition struct
+func (p *DocoptParser) Consume_loop(t DocoptNodeType) (Reason, error) {
+	c := p.Parse_def[t]
 
 	var saved_current_node *DocoptAst = nil
 	if c.save_current_node {
 		saved_current_node = p.current_node
+	}
+
+	// for group we also creat a self node
+	if c.create_self_node {
+		c.toplevel = p.current_node.AddNode(t, nil)
+		p.current_node = c.toplevel
+	}
+
+	if c.create_node {
+		new_node := p.current_node.AddNode(c.toplevel_node, nil)
+		if c.toplevel == nil {
+			c.toplevel = new_node
+		}
+		p.current_node = new_node
 	}
 
 	if c.reject_first_token {
@@ -375,7 +530,7 @@ func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (Reason, error) {
 	for p.run {
 		p.NextToken()
 
-		reason, err = c.consume_token(p)
+		reason, err = c.consume_func(p)
 		if err != nil || reason.Leaving {
 			break
 		}
@@ -388,7 +543,7 @@ func (p *DocoptParser) Consume_loop(c *Consumer_Definition) (Reason, error) {
 		}
 		return reason, err
 	} else {
-		return Error, fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
+		return Error, fmt.Errorf("%s: Consume_loop(%s) parser stoped: %s", p.current_node.Type, t, err)
 	}
 }
 
@@ -400,10 +555,11 @@ func (p *DocoptParser) Consume_Prologue() error {
 		p.NextToken()
 
 		if p.current_token.Type == USAGE {
+			// TODO: should we leav prologue and handle usage_node creation outside of Consume_Prologue?
 			// leaving Prologue
-			usage_node := p.ast.AddNode(Usage_section, nil)
-			usage_node.AddNode(Usage, p.current_token)
-			p.current_node = usage_node
+			p.usage_node = p.ast.AddNode(Usage_section, nil)
+			p.usage_node.AddNode(Usage, p.current_token)
+			p.current_node = p.usage_node
 			return nil
 		}
 
@@ -461,15 +617,6 @@ func (p *DocoptParser) Consume_Usage_line() error {
 		return fmt.Errorf("wrong node Type: '%s' expected Usage_section", usage_section.Type)
 	}
 
-	consume_Expr := Consumer_Definition{
-		create_node:        false,
-		toplevel:           nil,
-		toplevel_node:      NONE_node,
-		save_current_node:  true,
-		reject_first_token: true,
-		consume_token:      Consume_Usage_Expr,
-	}
-
 	for p.run {
 		p.NextToken()
 		if p.has_reach_EOF(&reason) {
@@ -496,7 +643,7 @@ func (p *DocoptParser) Consume_Usage_line() error {
 
 		// eat a single Usage_line starting with an Usage_Expr
 		// current_token is already pointing to the next item the lexer got, following PROG_NAME
-		if reason, err = p.Consume_loop(&consume_Expr); err != nil {
+		if reason, err = p.Consume_loop(Usage_Expr); err != nil {
 			return err
 		}
 
@@ -562,6 +709,7 @@ func Consume_Usage_Expr(p *DocoptParser) (Reason, error) {
 			p.NextToken()
 			return Continue, nil
 		case "|":
+			// pipe "|" outside group, create a new outer group to handle parsing alternative
 			if p.current_node.Type != Usage_Expr {
 				err = fmt.Errorf("%s: current node error: %v", p.current_node.Type, p.current_token)
 				return Error, err
@@ -569,27 +717,39 @@ func Consume_Usage_Expr(p *DocoptParser) (Reason, error) {
 
 			parent := p.current_node.Parent
 			if parent.Type == Usage_line {
-				// first node is Prog_name, it wont goes to the Group_alternative
-				group_node := &DocoptAst{
-					Type:     Group_alternative,
-					Token:    p.current_token,
-					Parent:   parent,
-					Children: parent.Children[1:],
+				// create a new Usage_Expr for nested grouping
+				expr_parent_group := &DocoptAst{
+					Type:   Usage_Expr,
+					Parent: parent,
 				}
 
-				// update the Parent
+				// first node is Prog_name, it wont goes to the Group
+				group_node := expr_parent_group.AddNode(Usage_required_group, nil)
+				// Grab all following children (should be an Usage_Expr)
+				group_node.Children = parent.Children[1:]
+
+				// update the Parent for all children
 				for _, c := range group_node.Children {
 					c.Parent = group_node
 				}
 
-				// recreate Children keeping only Prog_name first node and the new group_node
-				parent.Children = []*DocoptAst{parent.Children[0], group_node}
-				// prepare the next new container node
-				expr := group_node.AddNode(Usage_Expr, nil)
-				p.current_node = expr
-			} else {
+				// recreate parent Children keeping only Prog_name first node and the new nested:
+				// Usage_Expr > Usage_required_group
+				parent.Children = []*DocoptAst{
+					parent.Children[0], // PROG_NAME
+					expr_parent_group,
+				}
+
+				p.current_node = group_node
+			} else if parent.Type == Usage_required_group {
 				// token eaten, we create a new Usage_Expr then the next token will continue at this node
 				p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
+			} else {
+				err = fmt.Errorf("%s: current node error, unexpected parent node: %s %v",
+					p.current_node.Type,
+					parent.Type,
+					p.current_token)
+				return Error, err
 			}
 			return Continue, nil
 		default:
@@ -600,14 +760,13 @@ func Consume_Usage_Expr(p *DocoptParser) (Reason, error) {
 		p.ensure_node(Usage_Expr)
 
 		if n == Usage_optional_group || n == Usage_required_group {
-			// try to match a group required or optional
-			if err := p.Consume_group(n); err != nil {
+			if _, err := p.Consume_loop(n); err != nil {
 				return Error, err
 			}
 
 			// assert
 			if p.current_node.Type != Usage_Expr {
-				p.FatalError(fmt.Sprintf("p.Consume_group(%s) did not restore current_node: %s",
+				p.FatalError(fmt.Sprintf("Consume_loop(%s) did not restore current_node: %s",
 					n,
 					p.current_node.Type))
 			}
@@ -687,109 +846,98 @@ func (p *DocoptParser) Consume_ellipsis() error {
 	return nil
 }
 
-// Consume_group assume that we are in a open Group_alternative
-func (p *DocoptParser) Consume_group(group_type DocoptNodeType) error {
-	group := p.current_node.AddNode(group_type, nil)
-	saved_current_node := p.current_node
-	p.current_node = group
+// Consume_group() consume_func for Consume_loop()
+// assume that we are in node Usage_Expr (created by Consume_loop)
+func Consume_group(p *DocoptParser) (Reason, error) {
 	var err error = nil
 	var n DocoptNodeType
-forLoop:
-	for p.run {
-		p.NextToken()
-		switch p.current_token.Type {
-		case lexer.EOF, PROG_NAME:
-			err = fmt.Errorf("%s: %s unexpected, missing closing bracket ']'",
-				p.current_node.Type,
-				p.symbols_name[p.current_token.Type])
-			break forLoop
-		case USAGE:
-			err = fmt.Errorf("%s: USAGE invalid Token: %v", p.current_node.Type, p.current_token)
-			break forLoop
-		case NEWLINE:
-			if p.next_token.Type == NEWLINE {
-				// two consecutive NEWLINE
-				err = fmt.Errorf("%s: 2 consecutive NEWLINE invalid Token: %v", p.current_node.Type, p.current_token)
-				break forLoop
-			}
-			continue
-		case SHORT:
-			n = Usage_short_option
-		case LONG:
-			n = Usage_long_option
-		case ARGUMENT:
-			n = Usage_argument
-		case PUNCT:
-			switch p.current_token.Value {
-			case "[":
-				if err = p.Consume_group(Usage_optional_group); err != nil {
-					break forLoop
-				}
-				continue
-			case "(":
-				if err = p.Consume_group(Usage_required_group); err != nil {
-					break forLoop
-				}
-				continue
-			case "|":
-				if p.current_node.Type != Group_alternative {
-					// move actual Children to a new Group_alternative node
-					alternative := p.current_node.Replace_children_with_group(Group_alternative)
-					p.current_node = alternative
-				}
-				// else will be appended (do we need to create a new node?)
-				continue
-			case "]":
-				if p.current_node.Type == Group_alternative {
-					p.current_node = p.current_node.Parent
-				}
 
-				if !(p.current_node.Type == Usage_optional_group || p.current_node.Parent.Type == Usage_optional_group) {
-					err = fmt.Errorf("%s: closing bracket unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
-				}
-				break forLoop
-			case ")":
-				if p.current_node.Type == Group_alternative {
-					p.current_node = p.current_node.Parent
-				}
-
-				if !(p.current_node.Type == Usage_required_group || p.current_node.Parent.Type == Usage_required_group) {
-					err = fmt.Errorf("%s: closing parenthese unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
-				}
-				break forLoop
-			case "=":
-				if err = p.Consume_assign(p.next_token); err != nil {
-					break forLoop
-				}
-				// consume ARGUMENT assigned
-				p.NextToken()
-				continue
-			case "...":
-				if err = p.Consume_ellipsis(); err != nil {
-					break forLoop
-				}
-				continue
-			}
-
-			// unmatched PUNCT
-			n = Usage_unmatched_punct
-
-		case IDENT:
-			n = Usage_command
-		default:
-			n = Unmatched_node
+	switch p.current_token.Type {
+	case lexer.EOF, PROG_NAME:
+		err = fmt.Errorf("%s: %s unexpected, missing closing bracket ']'",
+			p.current_node.Type,
+			p.symbols_name[p.current_token.Type])
+		return Error, err
+	case USAGE:
+		err = fmt.Errorf("%s: USAGE invalid Token: %v", p.current_node.Type, p.current_token)
+		return Error, err
+	case IDENT:
+		n = Usage_command
+		// TODO: handle options in [options] syntax
+	case NEWLINE:
+		if p.next_token.Type == NEWLINE {
+			// two consecutive NEWLINE
+			err = fmt.Errorf("%s: 2 consecutive NEWLINE invalid Token: %v", p.current_node.Type, p.current_token)
+			return Error, err
 		}
+		return Continue, nil
+	case SHORT:
+		n = Usage_short_option
+	case LONG:
+		n = Usage_long_option
+	case ARGUMENT:
+		n = Usage_argument
+	case PUNCT:
+		switch p.current_token.Value {
+		case "[":
+			if _, err = p.Consume_loop(Usage_optional_group); err != nil {
+				return Error, err
+			}
+			return Continue, nil
+		case "(":
+			if _, err = p.Consume_loop(Usage_required_group); err != nil {
+				return Error, err
+			}
+			return Continue, nil
+		case "|":
+			// pipe inside group
+			if p.current_node.Parent.Type == Usage_optional_group ||
+				p.current_node.Parent.Type == Usage_required_group {
+				p.current_node = p.current_node.Parent.AddNode(Usage_Expr, nil)
+			} else {
+				err = fmt.Errorf("%s: unexpected parent node: %s %v",
+					p.current_node.Type,
+					p.current_node.Parent.Type,
+					p.current_token)
+				return Error, err
+			}
+			return Continue, nil
+		case "]":
+			if p.current_node.Parent.Type != Usage_optional_group {
+				err = fmt.Errorf("%s: closing bracket unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
+				return Error, err
+			}
+			return END_OF_Group, nil
+		case ")":
+			if p.current_node.Parent.Type != Usage_required_group {
+				err = fmt.Errorf("%s: closing parenthese unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
+				return Error, err
+			}
+			return END_OF_Group, nil
+		case "=":
+			if err = p.Consume_assign(p.next_token); err != nil {
+				return Error, err
+			}
+			// consume ARGUMENT assigned
+			p.NextToken()
+			return Continue, nil
+		case "...":
+			if err = p.Consume_ellipsis(); err != nil {
+				return Error, err
+			}
+			return Continue, nil
+		default:
+			err = fmt.Errorf("%s: unmatched PUNCT, invalid Token: %v", p.current_node.Type, p.current_token)
+			return Error, err
+		} // end switch PUNCT
 
-		p.current_node.AddNode(n, p.current_token)
+	default:
+		err = fmt.Errorf("%s: unmatched node, invalid Token: %v", p.current_node.Type, p.current_token)
+		return Error, err
 	}
 
-	if p.run {
-		p.current_node = saved_current_node
-		return err
-	} else {
-		return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
-	}
-
+	p.current_node.AddNode(n, p.current_token)
+	return Continue, nil
 }
 
 func (p *DocoptParser) Consume_First_Program_Usage() error {

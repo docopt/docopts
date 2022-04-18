@@ -27,7 +27,6 @@ const (
 	Usage_optional_group
 	Usage_required_group
 	Usage_Expr
-	Group_alternative
 	Free_section
 	Section_name
 	Section_node

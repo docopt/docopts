@@ -10,20 +10,23 @@ import (
 	// still use legacy embedded docopt lib
 	"github.com/alecthomas/repr"
 	"github.com/docopt/docopts/docopt-go"
+	"strings"
 )
 
 var Usage string = `docopt language grammar analyzer
 
 Usage:
-  docopt-analyze [-s] [-r] FILENAME
+  docopt-analyze [-y] [-r] [-s] FILENAME
 
 Options:
-  -s      Serialize yaml AST for unit testing
+  -y      Serialize yaml AST for unit testing
 	-r      Print AST as repr
+	-s      Simple_print_tree Print using minimalist tree
 `
 
 var Version string = "0.2"
 
+// print_ast() visual print AST for user
 func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	var indent string
 	for i := 0; i < indent_level; i++ {
@@ -84,6 +87,7 @@ func print_ast(current_node *docopt_language.DocoptAst, indent_level int) {
 	}
 }
 
+// nil_parent() put all parent at nil, helper for not poluting output with pointers with repr
 func nil_parent(n *docopt_language.DocoptAst) {
 	if n.Parent != nil {
 		n.Parent = nil
@@ -106,7 +110,8 @@ func main() {
 
 	filename := args["FILENAME"].(string)
 	print_repr := args["-r"].(bool)
-	serialize := args["-s"].(bool)
+	simple_print_tree := args["-s"].(bool)
+	serialize := args["-y"].(bool)
 
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -130,7 +135,11 @@ func main() {
 		nil_parent(ast)
 		repr.Println(ast)
 	} else if serialize {
-		docopt_language.Serialize_DocoptAst(ast, "")
+		var out []string
+		docopt_language.Serialize_DocoptAst(ast, "", nil, &out)
+		fmt.Print(strings.Join(out, ""))
+	} else if simple_print_tree {
+		docopt_language.Simple_print_tree(ast, "")
 	} else {
 		fmt.Printf("Detected Prog_name:%s\n", p.Prog_name)
 

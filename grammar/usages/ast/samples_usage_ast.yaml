@@ -7,6 +7,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "program [ --arg ] [ -A | -V ] [ --long <args> ] FICHIER"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -14,26 +15,33 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--arg" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--arg" }
       - node: Usage_optional_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_short_option
             token: { type: SHORT, value: "-A" }
+        - node: Usage_Expr
+          children:
           - node: Usage_short_option
             token: { type: SHORT, value: "-V" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--long" }
+        - node: Usage_Expr
           children:
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "<args>" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--long" }
+            children:
+            - node: Usage_argument
+              token: { type: ARGUMENT, value: "<args>" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: "FICHIER" }
   - node: Usage_line
+    usage_line_input: "program action [ --verbose ] PARAM"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -43,11 +51,14 @@ children:
         token: { type: IDENT, value: "action" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--verbose" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--verbose" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: "PARAM" }
   - node: Usage_line
+    usage_line_input: "program help"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -56,6 +67,7 @@ children:
       - node: Usage_command
         token: { type: IDENT, value: "help" }
   - node: Usage_line
+    usage_line_input: "program ici ( --par-la | --la-bas )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -65,13 +77,16 @@ children:
         token: { type: IDENT, value: "ici" }
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--par-la" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--la-bas" }
   - node: Usage_line
+    usage_line_input: "program do_something_strange [ --very... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -81,9 +96,12 @@ children:
         token: { type: IDENT, value: "do_something_strange" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--very" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--very" }
   - node: Usage_line
+    usage_line_input: "program stranger_thing [ --very | --strange ]..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -93,13 +111,16 @@ children:
         token: { type: IDENT, value: "stranger_thing" }
       - node: Usage_optional_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--very" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--strange" }
   - node: Usage_line
+    usage_line_input: "program ( one_action | or_this_one ) [ -v... ] FILE..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -107,19 +128,24 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_command
             token: { type: IDENT, value: "one_action" }
+        - node: Usage_Expr
+          children:
           - node: Usage_command
             token: { type: IDENT, value: "or_this_one" }
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-v" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-v" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
+    usage_line_input: "program ( [ -F ] | [ -G ] ) -i INPUT FILE..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -127,16 +153,22 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_optional_group
             children:
-            - node: Usage_short_option
-              token: { type: SHORT, value: "-F" }
+            - node: Usage_Expr
+              children:
+              - node: Usage_short_option
+                token: { type: SHORT, value: "-F" }
+        - node: Usage_Expr
+          children:
           - node: Usage_optional_group
             children:
-            - node: Usage_short_option
-              token: { type: SHORT, value: "-G" }
+            - node: Usage_Expr
+              children:
+              - node: Usage_short_option
+                token: { type: SHORT, value: "-G" }
       - node: Usage_short_option
         token: { type: SHORT, value: "-i" }
       - node: Usage_argument
@@ -144,6 +176,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
+    usage_line_input: "program ( command1 | command2 ) FILE"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -151,15 +184,18 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_command
             token: { type: IDENT, value: "command1" }
+        - node: Usage_Expr
+          children:
           - node: Usage_command
             token: { type: IDENT, value: "command2" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
+    usage_line_input: "program [ command3 ] FILE"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -167,11 +203,14 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "command3" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "command3" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
+    usage_line_input: "program ( run [ --fast ] | jump [ --high ] )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -179,21 +218,28 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_command
             token: { type: IDENT, value: "run" }
           - node: Usage_optional_group
             children:
-            - node: Usage_long_option
-              token: { type: LONG, value: "--fast" }
+            - node: Usage_Expr
+              children:
+              - node: Usage_long_option
+                token: { type: LONG, value: "--fast" }
+        - node: Usage_Expr
+          children:
           - node: Usage_command
             token: { type: IDENT, value: "jump" }
           - node: Usage_optional_group
             children:
-            - node: Usage_long_option
-              token: { type: LONG, value: "--high" }
+            - node: Usage_Expr
+              children:
+              - node: Usage_long_option
+                token: { type: LONG, value: "--high" }
   - node: Usage_line
+    usage_line_input: "program go ( --up | --down | --left | --right )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -203,17 +249,24 @@ children:
         token: { type: IDENT, value: "go" }
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--up" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--down" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--left" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--right" }
   - node: Usage_line
+    usage_line_input: "program [ ( <one-argument> <another-argument> ) ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -221,13 +274,18 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_required_group
+        - node: Usage_Expr
           children:
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "<one-argument>" }
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "<another-argument>" }
+          - node: Usage_required_group
+            children:
+            - node: Usage_Expr
+              children:
+              - node: Usage_argument
+                token: { type: ARGUMENT, value: "<one-argument>" }
+              - node: Usage_argument
+                token: { type: ARGUMENT, value: "<another-argument>" }
   - node: Usage_line
+    usage_line_input: "program ( --either-this <and-that> | <or-this> )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -235,15 +293,18 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--either-this" }
           - node: Usage_argument
             token: { type: ARGUMENT, value: "<and-that>" }
+        - node: Usage_Expr
+          children:
           - node: Usage_argument
             token: { type: ARGUMENT, value: "<or-this>" }
   - node: Usage_line
+    usage_line_input: "program elipsis_on_group ( one | another )..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -253,13 +314,16 @@ children:
         token: { type: IDENT, value: "elipsis_on_group" }
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_command
             token: { type: IDENT, value: "one" }
+        - node: Usage_Expr
+          children:
           - node: Usage_command
             token: { type: IDENT, value: "another" }
   - node: Usage_line
+    usage_line_input: "program two_or_more <file> <file>..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }
@@ -272,6 +336,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<file>" }
   - node: Usage_line
+    usage_line_input: "program"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "program" }

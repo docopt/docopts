@@ -7,6 +7,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "my_program command --option <argument>"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
@@ -19,6 +20,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<argument>" }
   - node: Usage_line
+    usage_line_input: "my_program [ <optional-argument> ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
@@ -26,9 +28,12 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "<optional-argument>" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<optional-argument>" }
   - node: Usage_line
+    usage_line_input: "my_program --another-option <with-argument>"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
@@ -40,6 +45,7 @@ children:
         - node: Usage_argument
           token: { type: ARGUMENT, value: "<with-argument>" }
   - node: Usage_line
+    usage_line_input: "my_program ( --either-that-option | <or-this-argument> )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
@@ -47,13 +53,16 @@ children:
       children:
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--either-that-option" }
+        - node: Usage_Expr
+          children:
           - node: Usage_argument
             token: { type: ARGUMENT, value: "<or-this-argument>" }
   - node: Usage_line
+    usage_line_input: "my_program <repeating-argument> <repeating-argument>..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }

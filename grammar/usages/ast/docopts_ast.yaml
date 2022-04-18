@@ -42,6 +42,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "docopts [ options ] -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
@@ -49,8 +50,10 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "options" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "options" }
       - node: Usage_short_option
         token: { type: SHORT, value: "-h" }
       - node: Usage_argument
@@ -59,9 +62,12 @@ children:
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
         children:
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "<argv>" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
+    usage_line_input: "docopts [ options ] [ --no-declare ] -A <name> -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
@@ -69,12 +75,16 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "options" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "options" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--no-declare" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--no-declare" }
       - node: Usage_short_option
         token: { type: SHORT, value: "-A" }
       - node: Usage_argument
@@ -87,9 +97,12 @@ children:
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
         children:
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "<argv>" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
+    usage_line_input: "docopts [ options ] -G <prefix> -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
@@ -97,8 +110,10 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "options" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "options" }
       - node: Usage_short_option
         token: { type: SHORT, value: "-G" }
       - node: Usage_argument
@@ -111,9 +126,12 @@ children:
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
         children:
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "<argv>" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
+    usage_line_input: "docopts [ options ] --no-mangle -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
@@ -121,8 +139,10 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_command
-          token: { type: IDENT, value: "options" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_command
+            token: { type: IDENT, value: "options" }
       - node: Usage_long_option
         token: { type: LONG, value: "--no-mangle" }
       - node: Usage_short_option
@@ -133,8 +153,10 @@ children:
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
         children:
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "<argv>" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<argv>" }
 - node: Free_section
 - node: Options_section
   children:

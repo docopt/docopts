@@ -34,6 +34,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "test.py <first>... [ --second... PARAM ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "test.py" }
@@ -43,11 +44,13 @@ children:
         token: { type: ARGUMENT, value: "<first>" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--second" }
+        - node: Usage_Expr
           children:
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "PARAM" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--second" }
+            children:
+            - node: Usage_argument
+              token: { type: ARGUMENT, value: "PARAM" }
 - node: Free_section
 - node: Options_section
 - node: Free_section

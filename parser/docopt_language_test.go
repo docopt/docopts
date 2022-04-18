@@ -129,6 +129,56 @@ func Test_transform_Options_section_to_map(t *testing.T) {
 	}
 }
 
+func consume_me(p *DocoptParser) (Reason, error) {
+	p.current_node.AddNode(NONE_node, nil)
+	var dummy Reason_Value = 33
+	return Reason{dummy, true}, nil
+}
+
+func check_first_child_type(t *testing.T, n *DocoptAst, expected DocoptNodeType) bool {
+	if n.Type != expected {
+		t.Errorf("Children[0] wrong type: got %s expected %s", n.Type, expected)
+		return false
+	}
+	return true
+}
+
+func Test_Consume_loop(t *testing.T) {
+	data := []byte("Usage: pipo molo")
+	p, err := ParserInit(data)
+	if err != nil {
+		t.Errorf("ParserInit failed: %s", err)
+	}
+
+	p.CreateNode(Root, nil)
+	if p.ast.Type != Root {
+		t.Errorf("create Root: got %s expected %s", p.ast.Type, Root)
+	}
+
+	var our_def DocoptNodeType = Last_node_type + 1
+	p.Parse_def[our_def] = &Consumer_Definition{
+		create_self_node: true,
+		create_node:      true,
+		toplevel_node:    Usage_Expr,
+		consume_func:     consume_me,
+	}
+
+	reason, err := p.Consume_loop(our_def)
+	if err != nil {
+		t.Errorf("Consume_loop returned err: %s", err)
+	}
+
+	if reason.Value != 33 {
+		t.Errorf("Consume_loop returned reason value: got %d expected %d", reason.Value, 33)
+	}
+
+	c := p.ast.Children[0]
+	if check_first_child_type(t, c, our_def) {
+		c2 := c.Children[0]
+		check_first_child_type(t, c2, Usage_Expr)
+	}
+}
+
 // ensure one Usage section
 // ensure Usage matched case insensitive
 // check p.options_node pointing to Options_section:

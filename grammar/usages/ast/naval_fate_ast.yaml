@@ -18,6 +18,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "naval_fate ship new <name>..."
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }
@@ -30,6 +31,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<name>" }
   - node: Usage_line
+    usage_line_input: "naval_fate ship <name> move <x> <y> [ --speed <kn> ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }
@@ -47,12 +49,15 @@ children:
         token: { type: ARGUMENT, value: "<y>" }
       - node: Usage_optional_group
         children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--speed" }
+        - node: Usage_Expr
           children:
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "<kn>" }
+          - node: Usage_long_option
+            token: { type: LONG, value: "--speed" }
+            children:
+            - node: Usage_argument
+              token: { type: ARGUMENT, value: "<kn>" }
   - node: Usage_line
+    usage_line_input: "naval_fate ship shoot <x> <y>"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }
@@ -67,6 +72,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<y>" }
   - node: Usage_line
+    usage_line_input: "naval_fate mine ( set | remove ) <x> <y> [ --moored | --drifting ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }
@@ -76,10 +82,12 @@ children:
         token: { type: IDENT, value: "mine" }
       - node: Usage_required_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_command
             token: { type: IDENT, value: "set" }
+        - node: Usage_Expr
+          children:
           - node: Usage_command
             token: { type: IDENT, value: "remove" }
       - node: Usage_argument
@@ -88,28 +96,33 @@ children:
         token: { type: ARGUMENT, value: "<y>" }
       - node: Usage_optional_group
         children:
-        - node: Group_alternative
+        - node: Usage_Expr
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--moored" }
+        - node: Usage_Expr
+          children:
           - node: Usage_long_option
             token: { type: LONG, value: "--drifting" }
   - node: Usage_line
+    usage_line_input: "naval_fate ( -h | --help )"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }
-    - node: Group_alternative
-      token: { type: PUNCT, value: "|" }
+    - node: Usage_Expr
       children:
-      - node: Usage_Expr
+      - node: Usage_required_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-h" }
-      - node: Usage_Expr
-        children:
-        - node: Usage_long_option
-          token: { type: LONG, value: "--help" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_long_option
+            token: { type: LONG, value: "--help" }
   - node: Usage_line
+    usage_line_input: "naval_fate --version"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }

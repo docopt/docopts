@@ -28,6 +28,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "code_sanity [ -h ] [ -i ID ] [ -z ] [ -v ] database"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "code_sanity" }
@@ -35,22 +36,30 @@ children:
       children:
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-h" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-i" }
-        - node: Usage_argument
-          token: { type: ARGUMENT, value: "ID" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-i" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "ID" }
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-z" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-z" }
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-v" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-v" }
       - node: Usage_command
         token: { type: IDENT, value: "database" }
 - node: Free_section

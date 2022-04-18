@@ -26,6 +26,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
+    usage_line_input: "myrally gen-track-params --bulk... BULK-SIZE --clients... CLIENTS --directory PATH [ -d ] --challenges... CHALLENGES --shards... SHARDS --logging-volume SIZE --replicas REPLICAS --track TRACK"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "myrally" }
@@ -50,8 +51,10 @@ children:
           token: { type: ARGUMENT, value: "PATH" }
       - node: Usage_optional_group
         children:
-        - node: Usage_short_option
-          token: { type: SHORT, value: "-d" }
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-d" }
       - node: Usage_long_option
         token: { type: LONG, value: "--challenges" }
         children:

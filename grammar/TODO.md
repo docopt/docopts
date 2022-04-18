@@ -18,8 +18,10 @@
 (our branch grammar's PROGRESS.md)
 
 => start building ast from our grammar: `docopt_language.ebnf`
+* refactor AST for group and nested `Usage_optional_group` > `Usage_Expr`
 * matching engine
  * parse AST for match
+ * explore: parseLong() from docopt-legacy
  * compare recieved os.Args to valid argument or option
 * parse Options: default value
 * add some automated testing and unit testing
