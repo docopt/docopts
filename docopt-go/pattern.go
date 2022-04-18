@@ -66,7 +66,7 @@ func (pt patternType) String() string {
 type pattern struct {
 	t patternType
 
-	children patternList
+	children PatternList
 
 	name  string
 	value interface{}
@@ -76,12 +76,12 @@ type pattern struct {
 	argcount int
 }
 
-type patternList []*pattern
+type PatternList []*pattern
 
 func newBranchPattern(t patternType, pl ...*pattern) *pattern {
 	var p pattern
 	p.t = t
-	p.children = make(patternList, len(pl))
+	p.children = make(PatternList, len(pl))
 	copy(p.children, pl)
 	return &p
 }
@@ -151,22 +151,22 @@ func newOption(short, long string, argcount int, value interface{}) *pattern {
 	return &p
 }
 
-func (p *pattern) flat(types patternType) (patternList, error) {
+func (p *pattern) flat(types patternType) (PatternList, error) {
 	if p.t&patternLeaf != 0 {
 		if types == patternDefault {
 			types = patternAll
 		}
 		if p.t&types != 0 {
-			return patternList{p}, nil
+			return PatternList{p}, nil
 		}
-		return patternList{}, nil
+		return PatternList{}, nil
 	}
 
 	if p.t&patternBranch != 0 {
 		if p.t&types != 0 {
-			return patternList{p}, nil
+			return PatternList{p}, nil
 		}
-		result := patternList{}
+		result := PatternList{}
 		for _, child := range p.children {
 			childFlat, err := child.flat(types)
 			if err != nil {
@@ -188,7 +188,7 @@ func (p *pattern) fix() error {
 	return nil
 }
 
-func (p *pattern) fixIdentities(uniq patternList) error {
+func (p *pattern) fixIdentities(uniq PatternList) error {
 	// Make pattern-tree tips point to same object if they are equal.
 	if p.t&patternBranch == 0 {
 		return nil
@@ -219,13 +219,13 @@ func (p *pattern) fixIdentities(uniq patternList) error {
 
 func (p *pattern) fixRepeatingArguments() {
 	// Fix elements that should accumulate/increment values.
-	var either []patternList
+	var either []PatternList
 
 	for _, child := range p.transform().children {
 		either = append(either, child.children)
 	}
 	for _, cas := range either {
-		casMultiple := patternList{}
+		casMultiple := PatternList{}
 		for _, e := range cas {
 			if cas.count(e) > 1 {
 				casMultiple = append(casMultiple, e)
@@ -248,9 +248,9 @@ func (p *pattern) fixRepeatingArguments() {
 	}
 }
 
-func (p *pattern) match(left *patternList, collected *patternList) (bool, *patternList, *patternList) {
+func (p *pattern) match(left *PatternList, collected *PatternList) (bool, *PatternList, *PatternList) {
 	if collected == nil {
-		collected = &patternList{}
+		collected = &PatternList{}
 	}
 	if p.t&patternRequired != 0 {
 		l := left
@@ -274,7 +274,7 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 		}
 		l := left
 		c := collected
-		var lAlt *patternList
+		var lAlt *PatternList
 		matched := true
 		times := 0
 		for matched {
@@ -295,8 +295,8 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 	} else if p.t&patternEither != 0 {
 		type outcomeStruct struct {
 			matched   bool
-			left      *patternList
-			collected *patternList
+			left      *PatternList
+			collected *PatternList
 			length    int
 		}
 		outcomes := []outcomeStruct{}
@@ -324,10 +324,10 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 		if match == nil {
 			return false, left, collected
 		}
-		leftAlt := make(patternList, len((*left)[:pos]), len((*left)[:pos])+len((*left)[pos+1:]))
+		leftAlt := make(PatternList, len((*left)[:pos]), len((*left)[:pos])+len((*left)[pos+1:]))
 		copy(leftAlt, (*left)[:pos])
 		leftAlt = append(leftAlt, (*left)[pos+1:]...)
-		sameName := patternList{}
+		sameName := PatternList{}
 		for _, a := range *collected {
 			if a.name == p.name {
 				sameName = append(sameName, a)
@@ -349,7 +349,7 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 			}
 			if len(sameName) == 0 {
 				match.value = increment
-				collectedMatch := make(patternList, len(*collected), len(*collected)+1)
+				collectedMatch := make(PatternList, len(*collected), len(*collected)+1)
 				copy(collectedMatch, *collected)
 				collectedMatch = append(collectedMatch, match)
 				return true, &leftAlt, &collectedMatch
@@ -362,7 +362,7 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 			}
 			return true, &leftAlt, collected
 		}
-		collectedMatch := make(patternList, len(*collected), len(*collected)+1)
+		collectedMatch := make(PatternList, len(*collected), len(*collected)+1)
 		copy(collectedMatch, *collected)
 		collectedMatch = append(collectedMatch, match)
 		return true, &leftAlt, &collectedMatch
@@ -370,7 +370,7 @@ func (p *pattern) match(left *patternList, collected *patternList) (bool, *patte
 	panic("unmatched type")
 }
 
-func (p *pattern) singleMatch(left *patternList) (int, *pattern) {
+func (p *pattern) singleMatch(left *PatternList) (int, *pattern) {
 	if p.t&patternArgument != 0 {
 		for n, pat := range *left {
 			if pat.t&patternArgument != 0 {
@@ -424,8 +424,8 @@ func (p *pattern) transform() *pattern {
 		Example: ((-a | -b) (-c | -d)) => (-a -c | -a -d | -b -c | -b -d)
 		Quirks: [-a] => (-a), (-a...) => (-a -a)
 	*/
-	result := []patternList{}
-	groups := []patternList{patternList{p}}
+	result := []PatternList{}
+	groups := []PatternList{PatternList{p}}
 	parents := patternRequired +
 		patternOptionAL +
 		patternOptionSSHORTCUT +
@@ -445,18 +445,18 @@ func (p *pattern) transform() *pattern {
 			children.remove(child)
 			if child.t&patternEither != 0 {
 				for _, c := range child.children {
-					r := patternList{}
+					r := PatternList{}
 					r = append(r, c)
 					r = append(r, children...)
 					groups = append(groups, r)
 				}
 			} else if child.t&patternOneOrMore != 0 {
-				r := patternList{}
+				r := PatternList{}
 				r = append(r, child.children.double()...)
 				r = append(r, children...)
 				groups = append(groups, r)
 			} else {
-				r := patternList{}
+				r := PatternList{}
 				r = append(r, child.children...)
 				r = append(r, children...)
 				groups = append(groups, r)
@@ -465,7 +465,7 @@ func (p *pattern) transform() *pattern {
 			result = append(result, children)
 		}
 	}
-	either := patternList{}
+	either := PatternList{}
 	for _, e := range result {
 		either = append(either, newRequired(e...))
 	}
@@ -476,9 +476,9 @@ func (p *pattern) eq(other *pattern) bool {
 	return reflect.DeepEqual(p, other)
 }
 
-func (pl patternList) unique() patternList {
+func (pl PatternList) unique() PatternList {
 	table := make(map[string]bool)
-	result := patternList{}
+	result := PatternList{}
 	for _, v := range pl {
 		if !table[v.String()] {
 			table[v.String()] = true
@@ -488,7 +488,7 @@ func (pl patternList) unique() patternList {
 	return result
 }
 
-func (pl patternList) index(p *pattern) (int, error) {
+func (pl PatternList) index(p *pattern) (int, error) {
 	for i, c := range pl {
 		if c.eq(p) {
 			return i, nil
@@ -497,7 +497,7 @@ func (pl patternList) index(p *pattern) (int, error) {
 	return -1, newError("%s not in list", p)
 }
 
-func (pl patternList) count(p *pattern) int {
+func (pl PatternList) count(p *pattern) int {
 	count := 0
 	for _, c := range pl {
 		if c.eq(p) {
@@ -507,10 +507,10 @@ func (pl patternList) count(p *pattern) int {
 	return count
 }
 
-func (pl patternList) diff(l patternList) patternList {
-	lAlt := make(patternList, len(l))
+func (pl PatternList) diff(l PatternList) PatternList {
+	lAlt := make(PatternList, len(l))
 	copy(lAlt, l)
-	result := make(patternList, 0, len(pl))
+	result := make(PatternList, 0, len(pl))
 	for _, v := range pl {
 		if v != nil {
 			match := false
@@ -529,19 +529,19 @@ func (pl patternList) diff(l patternList) patternList {
 	return result
 }
 
-func (pl patternList) double() patternList {
+func (pl PatternList) double() PatternList {
 	l := len(pl)
-	result := make(patternList, l*2)
+	result := make(PatternList, l*2)
 	copy(result, pl)
 	copy(result[l:2*l], pl)
 	return result
 }
 
-func (pl *patternList) remove(p *pattern) {
-	(*pl) = pl.diff(patternList{p})
+func (pl *PatternList) remove(p *pattern) {
+	(*pl) = pl.diff(PatternList{p})
 }
 
-func (pl patternList) dictionary() map[string]interface{} {
+func (pl PatternList) dictionary() map[string]interface{} {
 	dict := make(map[string]interface{})
 	for _, a := range pl {
 		dict[a.name] = a.value

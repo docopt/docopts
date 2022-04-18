@@ -12,7 +12,7 @@ import (
 
 var Usage string = `explore docopt-go lib function call
 Usage:
-  explore-docopt call <call_method> <argument_for_method> <filename>
+  explore-docopt call <call_method> <argument_for_method> <filename> [<argv>...]
   explore-docopt list_method
 
 Arguments:
@@ -42,6 +42,13 @@ func extract_usage_and_FormalUsage(usage_string string, number_arg string) (stri
 	return usageSections[number], formal
 }
 
+func print_PatternList(pl docopt.PatternList) {
+	fmt.Println("print_PatternList:")
+	for i, p := range pl {
+		fmt.Printf("pat[%d]: %s\n", i, p)
+	}
+}
+
 func call_method(method_name string, argument_for_method string, usage_string string) {
 	fmt.Printf("calling %s...\n", method_name)
 	switch method_name {
@@ -56,12 +63,13 @@ func call_method(method_name string, argument_for_method string, usage_string st
 		fmt.Printf("extrated Usage:\n%s\n", usage)
 		fmt.Printf("FormalUsage: %s\n", formal)
 	case "ParseDefaults", "parseDefaults":
+		// ParseDefaults starts parsing at Options: marker
 		optionSection := docopt.ParseDefaults(usage_string)
 		// returns a list or pattern struct
 		// type pattern struct {
 		// 	t patternType
 		//
-		// 	children patternList
+		// 	children PatternList
 		//
 		// 	name  string
 		// 	value interface{}
@@ -70,9 +78,7 @@ func call_method(method_name string, argument_for_method string, usage_string st
 		// 	long     string
 		// 	argcount int
 		// }
-		for i, p := range optionSection {
-			fmt.Printf("pat[%d]: %s\n", i, p)
-		}
+		print_PatternList(optionSection)
 	case "TokenListFromPattern", "tokenListFromPattern":
 		_, formal := extract_usage_and_FormalUsage(usage_string, argument_for_method)
 		tokens := docopt.TokenListFromPattern(formal)
@@ -80,10 +86,30 @@ func call_method(method_name string, argument_for_method string, usage_string st
 		for i, t := range tokens.GetTokens() {
 			fmt.Printf("%d: '%s'\n", i, t)
 		}
+	case "parseLong", "ParseLong":
+		options := docopt.ParseDefaults(usage_string)
+		print_PatternList(options)
+		// usage, formal := extract_usage_and_FormalUsage(usage_string, argument_for_method)
+
+		// create a tokenList from <argv>
+		// derived from:  patternArgv, err := parseArgv(newTokenList(argv, errorUser), &options, optionsFirst)
+		tokens := docopt.NewTokenList(argv, docopt.ErrorUser)
+		fmt.Printf("GetTokens() from <argv>\n")
+		for i, t := range tokens.GetTokens() {
+			fmt.Printf("%d: '%s'\n", i, t)
+		}
+
+		if pl, err := docopt.ParseLong(tokens, &options); err != nil {
+			fmt.Println(err)
+		} else {
+			print_PatternList(pl)
+		}
 	default:
 		fmt.Printf("unknown method: %s\n", call_method)
 	}
 }
+
+var argv []string
 
 func main() {
 	arguments, err := docopt.ParseDoc(Usage)
@@ -94,7 +120,13 @@ func main() {
 	}
 
 	list_method := arguments["list_method"].(bool)
-	available_method := [...]string{"FormalUsage", "ParseSection", "TokenListFromPattern", "ParseDefaults"}
+	available_method := [...]string{
+		"FormalUsage",
+		"ParseSection",
+		"TokenListFromPattern",
+		"ParseDefaults",
+		"ParseLong",
+	}
 	if list_method {
 		fmt.Printf("supported method: %s\n", available_method)
 		os.Exit(0)
@@ -109,6 +141,7 @@ func main() {
 	method_name := arguments["<call_method>"].(string)
 	argument_for_method := arguments["<argument_for_method>"].(string)
 	filename := arguments["<filename>"].(string)
+	argv = arguments["<argv>"].([]string)
 
 	var data []byte
 	if filename == "-" {

@@ -4,19 +4,19 @@ import (
 	"fmt"
 )
 
-type errorType int
+type ErrorType int
 
 const (
-	errorUser errorType = iota
-	errorLanguage
+	ErrorUser ErrorType = iota
+	ErrorLanguage
 )
 
-func (e errorType) String() string {
+func (e ErrorType) String() string {
 	switch e {
-	case errorUser:
-		return "errorUser"
-	case errorLanguage:
-		return "errorLanguage"
+	case ErrorUser:
+		return "ErrorUser"
+	case ErrorLanguage:
+		return "ErrorLanguage"
 	}
 	return ""
 }

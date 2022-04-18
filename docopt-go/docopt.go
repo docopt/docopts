@@ -150,7 +150,7 @@ func parse(doc string, argv []string, help bool, version string, optionsFirst bo
 		return
 	}
 
-	patternArgv, err := parseArgv(newTokenList(argv, errorUser), &options, optionsFirst)
+	patternArgv, err := parseArgv(NewTokenList(argv, ErrorUser), &options, optionsFirst)
 	if err != nil {
 		output = handleError(err, usage)
 		return
@@ -226,8 +226,8 @@ func ParseSection(name, source string) []string {
 	return s
 }
 
-func ParseDefaults(doc string) patternList {
-	defaults := patternList{}
+func ParseDefaults(doc string) PatternList {
+	defaults := PatternList{}
 	p := regexp.MustCompile(`\n[ \t]*(-\S+?)`)
 	for _, s := range ParseSection("options:", doc) {
 		// FIXME corner case "bla: options: --foo"
@@ -244,7 +244,7 @@ func ParseDefaults(doc string) patternList {
 	return defaults
 }
 
-func ParsePattern(source string, options *patternList) (*pattern, error) {
+func ParsePattern(source string, options *PatternList) (*pattern, error) {
 	tokens := TokenListFromPattern(source)
 	result, err := ParseExpr(tokens, options)
 	if err != nil {
@@ -256,7 +256,7 @@ func ParsePattern(source string, options *patternList) (*pattern, error) {
 	return newRequired(result...), nil
 }
 
-func parseArgv(tokens *tokenList, options *patternList, optionsFirst bool) (patternList, error) {
+func parseArgv(tokens *tokenList, options *PatternList, optionsFirst bool) (PatternList, error) {
 	/*
 		Parse command-line argument vector.
 
@@ -265,7 +265,7 @@ func parseArgv(tokens *tokenList, options *patternList, optionsFirst bool) (patt
 		else:
 			argv ::= [ long | shorts | argument ]* [ '--' [ argument ]* ] ;
 	*/
-	parsed := patternList{}
+	parsed := PatternList{}
 	for tokens.current() != nil {
 		if tokens.current().eq("--") {
 			for _, v := range tokens.tokens {
@@ -273,7 +273,7 @@ func parseArgv(tokens *tokenList, options *patternList, optionsFirst bool) (patt
 			}
 			return parsed, nil
 		} else if tokens.current().hasPrefix("--") {
-			pl, err := parseLong(tokens, options)
+			pl, err := ParseLong(tokens, options)
 			if err != nil {
 				return nil, err
 			}
@@ -329,7 +329,7 @@ func parseOption(optionDescription string) *pattern {
 	return newOption(short, long, argcount, value)
 }
 
-func ParseExpr(tokens *tokenList, options *patternList) (patternList, error) {
+func ParseExpr(tokens *tokenList, options *PatternList) (PatternList, error) {
 	// expr ::= seq ( '|' seq )* ;
 	seq, err := parseSeq(tokens, options)
 	if err != nil {
@@ -338,9 +338,9 @@ func ParseExpr(tokens *tokenList, options *patternList) (patternList, error) {
 	if !tokens.current().eq("|") {
 		return seq, nil
 	}
-	var result patternList
+	var result PatternList
 	if len(seq) > 1 {
-		result = patternList{newRequired(seq...)}
+		result = PatternList{newRequired(seq...)}
 	} else {
 		result = seq
 	}
@@ -357,21 +357,21 @@ func ParseExpr(tokens *tokenList, options *patternList) (patternList, error) {
 		}
 	}
 	if len(result) > 1 {
-		return patternList{newEither(result...)}, nil
+		return PatternList{newEither(result...)}, nil
 	}
 	return result, nil
 }
 
-func parseSeq(tokens *tokenList, options *patternList) (patternList, error) {
+func parseSeq(tokens *tokenList, options *PatternList) (PatternList, error) {
 	// seq ::= ( atom [ '...' ] )* ;
-	result := patternList{}
+	result := PatternList{}
 	for !tokens.current().match(true, "]", ")", "|") {
 		atom, err := parseAtom(tokens, options)
 		if err != nil {
 			return nil, err
 		}
 		if tokens.current().eq("...") {
-			atom = patternList{newOneOrMore(atom...)}
+			atom = PatternList{newOneOrMore(atom...)}
 			tokens.move()
 		}
 		result = append(result, atom...)
@@ -379,10 +379,10 @@ func parseSeq(tokens *tokenList, options *patternList) (patternList, error) {
 	return result, nil
 }
 
-func parseAtom(tokens *tokenList, options *patternList) (patternList, error) {
+func parseAtom(tokens *tokenList, options *PatternList) (PatternList, error) {
 	// atom ::= '(' expr ')' | '[' expr ']' | 'options' | long | shorts | argument | command ;
 	tok := tokens.current()
-	result := patternList{}
+	result := PatternList{}
 	if tokens.current().match(false, "(", "[") {
 		tokens.move()
 		var matching string
@@ -392,10 +392,10 @@ func parseAtom(tokens *tokenList, options *patternList) (patternList, error) {
 		}
 		if tok.eq("(") {
 			matching = ")"
-			result = patternList{newRequired(pl...)}
+			result = PatternList{newRequired(pl...)}
 		} else if tok.eq("[") {
 			matching = "]"
-			result = patternList{newOptional(pl...)}
+			result = PatternList{newOptional(pl...)}
 		}
 		moved := tokens.move()
 		if !moved.eq(matching) {
@@ -404,18 +404,18 @@ func parseAtom(tokens *tokenList, options *patternList) (patternList, error) {
 		return result, nil
 	} else if tok.eq("options") {
 		tokens.move()
-		return patternList{newOptionsShortcut()}, nil
+		return PatternList{newOptionsShortcut()}, nil
 	} else if tok.hasPrefix("--") && !tok.eq("--") {
-		return parseLong(tokens, options)
+		return ParseLong(tokens, options)
 	} else if tok.hasPrefix("-") && !tok.eq("-") && !tok.eq("--") {
 		return parseShorts(tokens, options)
 	} else if tok.hasPrefix("<") && tok.hasSuffix(">") || tok.isUpper() {
-		return patternList{newArgument(tokens.move().String(), nil)}, nil
+		return PatternList{newArgument(tokens.move().String(), nil)}, nil
 	}
-	return patternList{newCommand(tokens.move().String(), false)}, nil
+	return PatternList{newCommand(tokens.move().String(), false)}, nil
 }
 
-func parseLong(tokens *tokenList, options *patternList) (patternList, error) {
+func ParseLong(tokens *tokenList, options *PatternList) (PatternList, error) {
 	// long ::= '--' chars [ ( ' ' | '=' ) chars ] ;
 	long, eq, v := stringPartition(tokens.move().String(), "=")
 	var value interface{}
@@ -429,14 +429,14 @@ func parseLong(tokens *tokenList, options *patternList) (patternList, error) {
 	if !strings.HasPrefix(long, "--") {
 		return nil, newError("long option '%s' doesn't start with --", long)
 	}
-	similar := patternList{}
+	similar := PatternList{}
 	for _, o := range *options {
 		if o.long == long {
 			similar = append(similar, o)
 		}
 	}
-	if tokens.err == errorUser && len(similar) == 0 { // if no exact match
-		similar = patternList{}
+	if tokens.err == ErrorUser && len(similar) == 0 { // if no exact match
+		similar = PatternList{}
 		for _, o := range *options {
 			if strings.HasPrefix(o.long, long) {
 				similar = append(similar, o)
@@ -456,7 +456,7 @@ func parseLong(tokens *tokenList, options *patternList) (patternList, error) {
 		}
 		opt = newOption("", long, argcount, false)
 		*options = append(*options, opt)
-		if tokens.err == errorUser {
+		if tokens.err == ErrorUser {
 			var val interface{}
 			if argcount > 0 {
 				val = value
@@ -482,7 +482,7 @@ func parseLong(tokens *tokenList, options *patternList) (patternList, error) {
 				}
 			}
 		}
-		if tokens.err == errorUser {
+		if tokens.err == ErrorUser {
 			if value != nil {
 				opt.value = value
 			} else {
@@ -491,22 +491,22 @@ func parseLong(tokens *tokenList, options *patternList) (patternList, error) {
 		}
 	}
 
-	return patternList{opt}, nil
+	return PatternList{opt}, nil
 }
 
-func parseShorts(tokens *tokenList, options *patternList) (patternList, error) {
+func parseShorts(tokens *tokenList, options *PatternList) (PatternList, error) {
 	// shorts ::= '-' ( chars )* [ [ ' ' ] chars ] ;
 	tok := tokens.move()
 	if !tok.hasPrefix("-") || tok.hasPrefix("--") {
 		return nil, newError("short option '%s' doesn't start with -", tok)
 	}
 	left := strings.TrimLeft(tok.String(), "-")
-	parsed := patternList{}
+	parsed := PatternList{}
 	for left != "" {
 		var opt *pattern
 		short := "-" + left[0:1]
 		left = left[1:]
-		similar := patternList{}
+		similar := PatternList{}
 		for _, o := range *options {
 			if o.short == short {
 				similar = append(similar, o)
@@ -517,7 +517,7 @@ func parseShorts(tokens *tokenList, options *patternList) (patternList, error) {
 		} else if len(similar) < 1 {
 			opt = newOption(short, "", 0, false)
 			*options = append(*options, opt)
-			if tokens.err == errorUser {
+			if tokens.err == ErrorUser {
 				opt = newOption(short, "", 0, true)
 			}
 		} else { // why copying is necessary here?
@@ -534,7 +534,7 @@ func parseShorts(tokens *tokenList, options *patternList) (patternList, error) {
 					left = ""
 				}
 			}
-			if tokens.err == errorUser {
+			if tokens.err == ErrorUser {
 				if value != nil {
 					opt.value = value
 				} else {
@@ -568,7 +568,7 @@ func FormalUsage(section string) (string, error) {
 	return result, nil
 }
 
-func extras(help bool, version string, options patternList, doc string) string {
+func extras(help bool, version string, options PatternList, doc string) string {
 	if help {
 		for _, o := range options {
 			if (o.name == "-h" || o.name == "--help") && o.value == true {

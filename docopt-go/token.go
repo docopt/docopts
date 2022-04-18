@@ -9,22 +9,22 @@ import (
 type tokenList struct {
 	tokens    []string
 	errorFunc func(string, ...interface{}) error
-	err       errorType
+	err       ErrorType
 }
 type token string
 
-func newTokenList(source []string, err errorType) *tokenList {
+func NewTokenList(source []string, err ErrorType) *tokenList {
 	errorFunc := newError
-	if err == errorUser {
+	if err == ErrorUser {
 		errorFunc = newUserError
-	} else if err == errorLanguage {
+	} else if err == ErrorLanguage {
 		errorFunc = newLanguageError
 	}
 	return &tokenList{source, errorFunc, err}
 }
 
 func tokenListFromString(source string) *tokenList {
-	return newTokenList(strings.Fields(source), errorUser)
+	return NewTokenList(strings.Fields(source), ErrorUser)
 }
 
 func TokenListFromPattern(source string) *tokenList {
@@ -43,7 +43,7 @@ func TokenListFromPattern(source string) *tokenList {
 			result = append(result, match[i][1])
 		}
 	}
-	return newTokenList(result, errorLanguage)
+	return NewTokenList(result, ErrorLanguage)
 }
 
 func (t *token) eq(s string) bool {
