@@ -1,0 +1,30 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    usage_line_input: "myprog cat [ -c COLOR ] FILENAME"
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "myprog" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "cat" }
+      - node: Usage_optional_group
+        children:
+        - node: Usage_Expr
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-c" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "COLOR" }
+      - node: Usage_argument
+        token: { type: ARGUMENT, value: "FILENAME" }
+- node: Free_section
+- node: Options_section
+- node: Free_section
