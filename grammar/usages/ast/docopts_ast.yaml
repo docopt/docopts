@@ -65,6 +65,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
     usage_line_input: "docopts [ options ] [ --no-declare ] -A <name> -h <msg> : [ <argv>... ]"
@@ -100,6 +101,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
     usage_line_input: "docopts [ options ] -G <prefix> -h <msg> : [ <argv>... ]"
@@ -129,6 +131,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
     usage_line_input: "docopts [ options ] --no-mangle -h <msg> : [ <argv>... ]"
@@ -156,6 +159,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
 - node: Free_section
 - node: Options_section

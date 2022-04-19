@@ -151,8 +151,10 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "INPUT" }
       - node: Usage_optional_group
+        repeat: true
         children:
         - node: Usage_Expr
           children:

@@ -16,6 +16,7 @@ type AstNode struct {
 	Children         []*AstNode
 	Token            *AstToken
 	Usage_line_input *string
+	Repeat           *string
 }
 
 type AstToken struct {
@@ -52,6 +53,10 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 	} else {
 		*out = append(*out, fmt.Sprintf("%s- node: %s\n", indent, n.Type))
 		indent += "  "
+	}
+
+	if n.Repeat {
+		*out = append(*out, fmt.Sprintf("%srepeat: true\n", indent))
 	}
 
 	if n.Type == Usage_line {
@@ -96,6 +101,7 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 		}
 
 		if close_token != "" {
+			// group Repeat
 			if n.Repeat {
 				usage_string.collected = append(usage_string.collected, close_token+"...")
 			} else {
@@ -131,6 +137,9 @@ func Serialize_ast(n *AstNode, indent string) {
 		fmt.Printf("%susage_line_input: %q\n", indent, *n.Usage_line_input)
 	}
 
+	if n.Repeat != nil {
+		fmt.Printf("%srepeat: true\n", indent)
+	}
 	if n.Token != nil {
 		fmt.Printf("%stoken: { type: %s, value: %q }\n", indent, n.Token.Type, n.Token.Value)
 	}
@@ -157,18 +166,32 @@ func Load_ast_from_yaml(filename string) (*AstNode, error) {
 	return &ast, nil
 }
 
+// light AST print to stdout omiting descending nodes:
+// Prologue, Free_section, Option_description
 func Simple_print_tree(n *DocoptAst, indent string) {
 	nb_children := len(n.Children)
 	fmt.Printf("%s%s", indent, n.Type)
 
 	if n.Token != nil {
 		fmt.Printf(" %q", n.Token.Value)
+		if n.Repeat {
+			fmt.Printf("...")
+		}
 	}
 
 	if nb_children > 0 {
-		fmt.Printf(" [%d]\n", nb_children)
-		for i := 0; i < nb_children; i++ {
-			Simple_print_tree(n.Children[i], indent+"  ")
+		if n.Repeat {
+			fmt.Printf(" [%d]...\n", nb_children)
+		} else {
+			fmt.Printf(" [%d]\n", nb_children)
+		}
+		if n.Type == Prologue || n.Type == Free_section || n.Type == Option_description {
+			// skip those nodes
+			return
+		} else {
+			for i := 0; i < nb_children; i++ {
+				Simple_print_tree(n.Children[i], indent+"  ")
+			}
 		}
 	} else {
 		fmt.Printf("\n")

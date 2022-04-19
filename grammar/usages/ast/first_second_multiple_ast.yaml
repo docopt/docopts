@@ -41,12 +41,14 @@ children:
     - node: Usage_Expr
       children:
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "<first>" }
       - node: Usage_optional_group
         children:
         - node: Usage_Expr
           children:
           - node: Usage_long_option
+            repeat: true
             token: { type: LONG, value: "--second" }
             children:
             - node: Usage_argument

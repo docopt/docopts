@@ -18,7 +18,6 @@
 (our branch grammar's PROGRESS.md)
 
 => start building ast from our grammar: `docopt_language.ebnf`
-* refactor AST for group and nested `Usage_optional_group` > `Usage_Expr`
 * matching engine
  * parse AST for match
  * explore: parseLong() from docopt-legacy
@@ -216,4 +215,121 @@ docopts:
             name: "<argv>"
 ```
 
+### `Simple_print_tree`
 
+It doesn't display descriptive node content.
+
+```vim
+:r! cmd/docopt-analyze/docopt-analyze -s grammar/usages/valid/docopts.docopt
+```
+
+parsing: grammar/usages/valid/docopts.docopt
+Root [5]
+  Prologue [17]
+  Usage_section [5]
+    Usage "Usage:"
+    Usage_line [2]
+      Prog_name "docopts"
+      Usage_Expr [5]
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_command "options"
+        Usage_short_option "-h"
+        Usage_argument "<msg>"
+        Usage_argument ":"
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_argument "<argv>"...
+    Usage_line [2]
+      Prog_name "docopts"
+      Usage_Expr [8]
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_command "options"
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_long_option "--no-declare"
+        Usage_short_option "-A"
+        Usage_argument "<name>"
+        Usage_short_option "-h"
+        Usage_argument "<msg>"
+        Usage_argument ":"
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_argument "<argv>"...
+    Usage_line [2]
+      Prog_name "docopts"
+      Usage_Expr [7]
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_command "options"
+        Usage_short_option "-G"
+        Usage_argument "<prefix>"
+        Usage_short_option "-h"
+        Usage_argument "<msg>"
+        Usage_argument ":"
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_argument "<argv>"...
+    Usage_line [2]
+      Prog_name "docopts"
+      Usage_Expr [6]
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_command "options"
+        Usage_long_option "--no-mangle"
+        Usage_short_option "-h"
+        Usage_argument "<msg>"
+        Usage_argument ":"
+        Usage_optional_group [1]
+          Usage_Expr [1]
+            Usage_argument "<argv>"...
+  Free_section
+  Options_section [13]
+    Section_name "Options:"
+    Option_line [3]
+      Option_short "-h" [1]
+        Option_argument "<msg>"
+      Option_long "--help" [1]
+        Option_argument "<msg>"
+      Option_description [17]
+    Option_line [3]
+      Option_short "-V" [1]
+        Option_argument "<msg>"
+      Option_long "--version" [1]
+        Option_argument "<msg>"
+      Option_description [17]
+    Option_line [3]
+      Option_short "-s" [1]
+        Option_argument "<str>"
+      Option_long "--separator" [1]
+        Option_argument "<str>"
+      Option_description [8]
+    Options_node "----"
+    Options_node "]"
+    Option_line [3]
+      Option_short "-O"
+      Option_long "--options-first"
+      Option_description [11]
+    Option_line [3]
+      Option_short "-H"
+      Option_long "--no-help"
+      Option_description [2]
+    Option_line [2]
+      Option_short "-A" [1]
+        Option_argument "<name>"
+      Option_description [5]
+    Option_line [2]
+      Option_short "-G" [1]
+        Option_argument "<prefix>"
+      Option_description [15]
+    Option_line [2]
+      Option_long "--no-mangle"
+      Option_description [8]
+    Option_line [2]
+      Option_long "--no-declare"
+      Option_description [5]
+    Option_line [2]
+      Option_long "--debug"
+      Option_description [5]
+  Free_section

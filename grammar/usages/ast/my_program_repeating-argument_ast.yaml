@@ -71,6 +71,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<repeating-argument>" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "<repeating-argument>" }
 - node: Free_section
 - node: Options_section

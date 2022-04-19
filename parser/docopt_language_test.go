@@ -5,6 +5,7 @@
 package docopt_language
 
 import (
+	"github.com/docopt/docopts/grammar/lexer"
 	"os"
 	"path/filepath"
 	"strings"
@@ -176,6 +177,38 @@ func Test_Consume_loop(t *testing.T) {
 	if check_first_child_type(t, c, our_def) {
 		c2 := c.Children[0]
 		check_first_child_type(t, c2, Usage_Expr)
+	}
+}
+
+func Test_Match_Usage_node(t *testing.T) {
+	node := &DocoptAst{
+		Type: Usage_command,
+		Token: &lexer.Token{
+			Type:       IDENT,
+			Value:      "run",
+			Pos:        lexer.Position{Filename: "non-filename"},
+			Regex_name: "a regex",
+			State_name: "a state",
+		},
+	}
+
+	if node.Type != Usage_command {
+		t.Errorf("node Type error: got %s expected %s", node.Type, Usage_command)
+	}
+
+	// map
+	args := DocoptOpts{}
+	argument := "run"
+
+	matched, err := Match_Usage_node(node, argument, &args)
+	if err != nil {
+		t.Errorf("Match_Usage_node: error %s", err)
+	}
+	if !matched {
+		t.Errorf("Match_Usage_node: not matched, node %s arg %s", node, argument)
+	}
+	if len(args) != 1 {
+		t.Errorf("Match_Usage_node: args map wrong size, got %d expect %d", len(args), 1)
 	}
 }
 

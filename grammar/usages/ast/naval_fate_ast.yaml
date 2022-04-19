@@ -29,6 +29,7 @@ children:
       - node: Usage_command
         token: { type: IDENT, value: "new" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "<name>" }
   - node: Usage_line
     usage_line_input: "naval_fate ship <name> move <x> <y> [ --speed <kn> ]"

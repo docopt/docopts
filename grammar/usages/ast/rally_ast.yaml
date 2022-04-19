@@ -35,11 +35,13 @@ children:
       - node: Usage_command
         token: { type: IDENT, value: "gen-track-params" }
       - node: Usage_long_option
+        repeat: true
         token: { type: LONG, value: "--bulk" }
         children:
         - node: Usage_argument
           token: { type: ARGUMENT, value: "BULK-SIZE" }
       - node: Usage_long_option
+        repeat: true
         token: { type: LONG, value: "--clients" }
         children:
         - node: Usage_argument
@@ -56,11 +58,13 @@ children:
           - node: Usage_short_option
             token: { type: SHORT, value: "-d" }
       - node: Usage_long_option
+        repeat: true
         token: { type: LONG, value: "--challenges" }
         children:
         - node: Usage_argument
           token: { type: ARGUMENT, value: "CHALLENGES" }
       - node: Usage_long_option
+        repeat: true
         token: { type: LONG, value: "--shards" }
         children:
         - node: Usage_argument

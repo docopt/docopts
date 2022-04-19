@@ -36,6 +36,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_argument
+            repeat: true
             token: { type: ARGUMENT, value: "<etc>" }
   - node: Usage_line
     usage_line_input: "Program_string another-action [ --which-support <argument> ] WITH_OTHER_SYNTAX_ARGUMENT"
@@ -83,6 +84,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<extra-argument1>" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "<extra-argument2>" }
 - node: Free_section
   children:

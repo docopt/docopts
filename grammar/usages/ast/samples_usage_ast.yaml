@@ -99,6 +99,7 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_long_option
+            repeat: true
             token: { type: LONG, value: "--very" }
   - node: Usage_line
     usage_line_input: "program stranger_thing [ --very | --strange ]..."
@@ -110,6 +111,7 @@ children:
       - node: Usage_command
         token: { type: IDENT, value: "stranger_thing" }
       - node: Usage_optional_group
+        repeat: true
         children:
         - node: Usage_Expr
           children:
@@ -141,8 +143,10 @@ children:
         - node: Usage_Expr
           children:
           - node: Usage_short_option
+            repeat: true
             token: { type: SHORT, value: "-v" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
     usage_line_input: "program ( [ -F ] | [ -G ] ) -i INPUT FILE..."
@@ -174,6 +178,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "INPUT" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "FILE" }
   - node: Usage_line
     usage_line_input: "program ( command1 | command2 ) FILE"
@@ -313,6 +318,7 @@ children:
       - node: Usage_command
         token: { type: IDENT, value: "elipsis_on_group" }
       - node: Usage_required_group
+        repeat: true
         children:
         - node: Usage_Expr
           children:
@@ -334,6 +340,7 @@ children:
       - node: Usage_argument
         token: { type: ARGUMENT, value: "<file>" }
       - node: Usage_argument
+        repeat: true
         token: { type: ARGUMENT, value: "<file>" }
   - node: Usage_line
     usage_line_input: "program"
