@@ -5,3 +5,12 @@ build/docopts_*
 build/docopts.go
 tags
 .~lock.*.odg#
+# un deleted garbage
+bug/
+draft/
+examples/function_docopts.sh
+extract_token/extract_token
+grammar/docopts.ast
+grammar/regexp_FindSubmatchIndex/
+realpath.sh
+run_cmd/

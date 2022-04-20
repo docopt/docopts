@@ -8,6 +8,8 @@ import (
 	"github.com/docopt/docopts/grammar/lexer"
 	"os"
 	"path/filepath"
+	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -180,15 +182,35 @@ func Test_Consume_loop(t *testing.T) {
 	}
 }
 
+// helper for DRY code
+type Match_func func(*DocoptAst, *[]string, *int, *DocoptOpts) (bool, error)
+
+func GetFunctionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+}
+
+func helper_ensure_matched(t *testing.T, f Match_func, node *DocoptAst, argv *[]string, i *int, args *DocoptOpts) {
+	matched, err := f(node, argv, i, args)
+	funcname := GetFunctionName(f)
+	if err != nil {
+		t.Errorf("%s: error %s", funcname, err)
+	}
+	if !matched {
+		t.Errorf("%s: not matched node: %v", funcname, node)
+	}
+}
+
 func Test_Match_Usage_node(t *testing.T) {
+	// ============================================================== Usage_command
 	node := &DocoptAst{
 		Type: Usage_command,
 		Token: &lexer.Token{
-			Type:       IDENT,
-			Value:      "run",
-			Pos:        lexer.Position{Filename: "non-filename"},
-			Regex_name: "a regex",
-			State_name: "a state",
+			Type:  IDENT,
+			Value: "run",
+			// not used in this context yet
+			//Pos:        lexer.Position{Filename: "non-filename"},
+			//Regex_name: "a regex",
+			//State_name: "a state",
 		},
 	}
 
@@ -198,20 +220,97 @@ func Test_Match_Usage_node(t *testing.T) {
 
 	// map
 	args := DocoptOpts{}
-	argument := "run"
+	argument := []string{"run"}
+	i := 0
 
-	matched, err := Match_Usage_node(node, argument, &args)
-	if err != nil {
-		t.Errorf("Match_Usage_node: error %s", err)
-	}
-	if !matched {
-		t.Errorf("Match_Usage_node: not matched, node %s arg %s", node, argument)
-	}
+	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
 	if len(args) != 1 {
 		t.Errorf("Match_Usage_node: args map wrong size, got %d expect %d", len(args), 1)
 	}
+	if val, present := args[argument[0]]; !present {
+		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+	} else {
+		if val != true {
+			t.Errorf("Match_Usage_node: args[%s] got %s expected true", argument[0], val)
+		}
+	}
+	if i != 1 {
+		t.Errorf("Match_Usage_node: i should have increased got %d expected %d", i, 1)
+	}
+
+	// --------------------------------------- retest as Repeat-able argument
+	node.Repeat = true
+	i = 0
+	// reset map
+	args = DocoptOpts{}
+	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
+	if len(args) != 1 {
+		t.Errorf("Match_Usage_node: args map wrong size, got %d expect %d", len(args), 1)
+	}
+	if val, present := args[argument[0]]; !present {
+		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+	} else {
+		if val != 1 {
+			t.Errorf("Match_Usage_node: args[%s] got %s expected 1", argument[0], val)
+		}
+	}
+	if i != 1 {
+		t.Errorf("Match_Usage_node: i should have increased got %d expected %d", i, 1)
+	}
+
+	// Repeat-able counted 2 times
+	// another time (we rewind the argument index)
+	i = 0
+	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
+	if val, present := args[argument[0]]; !present {
+		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+	} else {
+		if val != 2 {
+			t.Errorf("Match_Usage_node: args[%s] got %v expected %d", argument[0], val, 2)
+		}
+	}
+
+	// ============================================================== Usage_argument
+	name := "FILE"
+	node = &DocoptAst{
+		Type: Usage_argument,
+		Token: &lexer.Token{
+			Type:  IDENT,
+			Value: name,
+		},
+	}
+
+	i = 0
+	// reset map
+	args = DocoptOpts{}
+	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
+	if val, present := args[name]; !present {
+		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", name)
+	} else {
+		if val != argument[0] {
+			t.Errorf("Match_Usage_node: args[%s] got %v expected '%s'", name, val, argument[0])
+		}
+	}
+
+	// -------------------------------- Repeat-able Usage_argument
+	node.Repeat = true
+	i = 0
+	// reset map
+	args = DocoptOpts{}
+	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
+	if val, present := args[name].([]string); !present {
+		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", name)
+	} else {
+		if len(val) != 1 {
+			t.Errorf("Match_Usage_node: args[%s] len([]string) got %d expected 1", name, len(val))
+		}
+		if val[0] != argument[0] {
+			t.Errorf("Match_Usage_node: args[%s][0] got %v expected '%s'", name, val[0], argument[0])
+		}
+	}
 }
 
+// TODO:
 // ensure one Usage section
 // ensure Usage matched case insensitive
 // check p.options_node pointing to Options_section:
