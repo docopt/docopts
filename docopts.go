@@ -5,6 +5,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"io"
@@ -43,6 +44,7 @@ Usage:
   docopts [options] [--no-declare] -A <name>   -h <msg> : [<argv>...]
   docopts [options] -G <prefix>  -h <msg> : [<argv>...]
   docopts [options] --no-mangle  -h <msg> : [<argv>...]
+  docopts get-wrapper docopts.sh
 
 Options:
   -h <msg>, --help=<msg>        The help message in docopt format.
@@ -79,11 +81,18 @@ Options:
                                 with -A argument.
   --debug                       Output extra parsing information for debugging.
                                 Output cannot be used in bash eval.
+
+Actions:
+  get-wrapper docopts.sh        Print docopts.sh source content on stdout and quit.
 `
 
 // testing trick, out can be mocked to catch stdout and validate
 // https://stackoverflow.com/questions/34462355/how-to-deal-with-the-fmt-golang-library-package-for-cli-testing
 var out io.Writer = os.Stdout
+
+// load the entire file into a string at compile time
+//go:embed docopts.sh
+var docopts_sh string
 
 // debug helper
 func print_args(args docopt.Opts, message string) {
@@ -389,6 +398,11 @@ func main() {
 	if err != nil {
 		msg := fmt.Sprintf("mypanic: %v\n", err)
 		panic(msg)
+	}
+
+	if arguments["get-wrapper"].(bool) {
+		fmt.Print(docopts_sh)
+		os.Exit(0)
 	}
 
 	debug := arguments["--debug"].(bool)
