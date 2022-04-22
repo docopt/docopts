@@ -183,14 +183,14 @@ func Test_Consume_loop(t *testing.T) {
 }
 
 // helper for DRY code
-type Match_func func(*DocoptAst, *[]string, *int, *DocoptOpts) (bool, error)
+type Match_func func(*DocoptAst) (bool, error)
 
 func GetFunctionName(i interface{}) string {
 	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
 }
 
-func helper_ensure_matched(t *testing.T, f Match_func, node *DocoptAst, argv *[]string, i *int, args *DocoptOpts) {
-	matched, err := f(node, argv, i, args)
+func helper_ensure_matched(t *testing.T, f Match_func, node *DocoptAst) {
+	matched, err := f(node)
 	funcname := GetFunctionName(f)
 	if err != nil {
 		t.Errorf("%s: error %s", funcname, err)
@@ -218,55 +218,57 @@ func Test_Match_Usage_node(t *testing.T) {
 		t.Errorf("node Type error: got %s expected %s", node.Type, Usage_command)
 	}
 
-	// map
-	args := DocoptOpts{}
-	argument := []string{"run"}
-	i := 0
-
-	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
-	if len(args) != 1 {
-		t.Errorf("Match_Usage_node: args map wrong size, got %d expect %d", len(args), 1)
+	command := "run"
+	m := &MatchEngine{
+		opts: DocoptOpts{},
+		i:    0,
+		argv: []string{command},
 	}
-	if val, present := args[argument[0]]; !present {
-		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if len(m.opts) != 1 {
+		t.Errorf("Match_Usage_node: m.opts map wrong size, got %d expect %d", len(m.opts), 1)
+	}
+	if val, present := m.opts[command]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", command)
 	} else {
 		if val != true {
-			t.Errorf("Match_Usage_node: args[%s] got %s expected true", argument[0], val)
+			t.Errorf("Match_Usage_node: m.opts[%s] got %s expected true", command, val)
 		}
 	}
-	if i != 1 {
-		t.Errorf("Match_Usage_node: i should have increased got %d expected %d", i, 1)
+	if m.i != 1 {
+		t.Errorf("Match_Usage_node: i should have increased got %d expected %d", m.i, 1)
 	}
 
 	// --------------------------------------- retest as Repeat-able argument
 	node.Repeat = true
-	i = 0
+	m.i = 0
 	// reset map
-	args = DocoptOpts{}
-	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
-	if len(args) != 1 {
-		t.Errorf("Match_Usage_node: args map wrong size, got %d expect %d", len(args), 1)
+	m.opts = DocoptOpts{}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if len(m.opts) != 1 {
+		t.Errorf("Match_Usage_node: m.opts map wrong size, got %d expect %d", len(m.opts), 1)
 	}
-	if val, present := args[argument[0]]; !present {
-		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+	if val, present := m.opts[command]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", command)
 	} else {
 		if val != 1 {
-			t.Errorf("Match_Usage_node: args[%s] got %s expected 1", argument[0], val)
+			t.Errorf("Match_Usage_node: m.opts[%s] got %s expected 1", command, val)
 		}
 	}
-	if i != 1 {
-		t.Errorf("Match_Usage_node: i should have increased got %d expected %d", i, 1)
+	if m.i != 1 {
+		t.Errorf("Match_Usage_node: m.i should have increased got %d expected %d", m.i, 1)
 	}
 
 	// Repeat-able counted 2 times
-	// another time (we rewind the argument index)
-	i = 0
-	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
-	if val, present := args[argument[0]]; !present {
-		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", argument[0])
+	// another time (we rewind the m.argv index)
+	m.i = 0
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if val, present := m.opts[command]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", command)
 	} else {
 		if val != 2 {
-			t.Errorf("Match_Usage_node: args[%s] got %v expected %d", argument[0], val, 2)
+			t.Errorf("Match_Usage_node: m.opts[%s] got %v expected %d", command, val, 2)
 		}
 	}
 
@@ -280,32 +282,90 @@ func Test_Match_Usage_node(t *testing.T) {
 		},
 	}
 
-	i = 0
+	m.i = 0
 	// reset map
-	args = DocoptOpts{}
-	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
-	if val, present := args[name]; !present {
-		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", name)
+	m.opts = DocoptOpts{}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if val, present := m.opts[name]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", name)
 	} else {
-		if val != argument[0] {
-			t.Errorf("Match_Usage_node: args[%s] got %v expected '%s'", name, val, argument[0])
+		if val != m.argv[0] {
+			t.Errorf("Match_Usage_node: m.opts[%s] got %v expected '%s'", name, val, m.argv[0])
 		}
 	}
 
 	// -------------------------------- Repeat-able Usage_argument
 	node.Repeat = true
-	i = 0
+	m.i = 0
 	// reset map
-	args = DocoptOpts{}
-	helper_ensure_matched(t, Match_Usage_node, node, &argument, &i, &args)
-	if val, present := args[name].([]string); !present {
-		t.Errorf("Match_Usage_node: map args[%s] doesn't exists ", name)
+	m.opts = DocoptOpts{}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if val, present := m.opts[name].([]string); !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", name)
 	} else {
 		if len(val) != 1 {
-			t.Errorf("Match_Usage_node: args[%s] len([]string) got %d expected 1", name, len(val))
+			t.Errorf("Match_Usage_node: m.opts[%s] size got %d expected %d", name, len(val), 1)
 		}
-		if val[0] != argument[0] {
-			t.Errorf("Match_Usage_node: args[%s][0] got %v expected '%s'", name, val[0], argument[0])
+		if val[0] != m.argv[0] {
+			t.Errorf("Match_Usage_node: m.opts[%s] => val[0] got %v expected %s", name, val[0], m.argv[0])
+		}
+	}
+}
+
+func Test_Match_Usage_node_Usage_long_option(t *testing.T) {
+	option_name := "--myopt"
+	m := &MatchEngine{
+		opts: DocoptOpts{},
+		i:    0,
+		argv: []string{option_name},
+	}
+
+	// ========================================== node  Usage_long_option without child
+	node := &DocoptAst{
+		Type: Usage_long_option,
+		Token: &lexer.Token{
+			Type:  LONG,
+			Value: option_name,
+		},
+	}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if val, present := m.opts[option_name].(bool); !present {
+		t.Errorf("Match_Usage_node: m.opts[%s] doesn't exists ", option_name)
+	} else {
+		if !val {
+			t.Errorf("Match_Usage_node: m.opts[%s] got %v expected true", option_name, val)
+		}
+	}
+
+	// --------------------------------------- retest as Repeat-able Usage_long_option
+	node.Repeat = true
+	m.i = 0
+	// reset map
+	m.opts = DocoptOpts{}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if len(m.opts) != 1 {
+		t.Errorf("Match_Usage_node: m.opts map wrong size, got %d expect %d", len(m.opts), 1)
+	}
+	if val, present := m.opts[option_name]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", option_name)
+	} else {
+		if val != 1 {
+			t.Errorf("Match_Usage_node: m.opts[%s] got %s expected 1", option_name, val)
+		}
+	}
+	if m.i != 1 {
+		t.Errorf("Match_Usage_node: m.i should have increased got %d expected %d", m.i, 1)
+	}
+
+	// Repeat-able counted 2 times
+	// another time (we rewind the argument index)
+	m.i = 0
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	if val, present := m.opts[option_name]; !present {
+		t.Errorf("Match_Usage_node: map m.opts[%s] doesn't exists ", option_name)
+	} else {
+		if val != 2 {
+			t.Errorf("Match_Usage_node: m.opts[%s] got %v expected %d", option_name, val, 2)
 		}
 	}
 }

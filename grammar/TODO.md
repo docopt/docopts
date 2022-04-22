@@ -21,6 +21,7 @@
 * matching engine
  * parse AST for match
  * explore: parseLong() from docopt-legacy
+  * match options --option ≠ ARGUMENT <=
  * compare recieved os.Args to valid argument or option
 * parse Options: default value
 * add some automated testing and unit testing

@@ -88,6 +88,12 @@ func Match_Usage_Expr(expr *DocoptAst, argv *[]string, i int) (matched bool, arg
 	//      - Usage_argument: "COLOR"
 	//    - Usage_argument: "FILENAME"
 
+	m := &MatchEngine{
+		opts: DocoptOpts{},
+		i:    0,
+		argv: []string{"run"},
+	}
+
 	matched = false
 	nb := len(*argv)
 	if nb == 0 {
@@ -123,7 +129,7 @@ forLoopMatch_Usage_Expr:
 			Usage_short_option,
 			Usage_long_option,
 			Usage_argument:
-			matched, err = Match_Usage_node(c, argv, &i, &args)
+			matched, err = m.Match_Usage_node(c)
 			if err == nil {
 				if matched {
 					i++
@@ -156,60 +162,119 @@ func Match_Usage_Group(g *DocoptAst, argv *[]string, i int) (matched bool, args 
 	return
 }
 
-func Match_Usage_node(n *DocoptAst, argv *[]string, i *int, opts *DocoptOpts) (matched bool, err error) {
-	matched = false
-	a := (*argv)[*i]
-	k := n.Token.Value
-	switch n.Type {
-	case Usage_command:
-		if a == k {
-			matched = true
-			if n.Repeat {
-				//  command take no value (as option without argument)
-				// check key exists
-				if val, present := (*opts)[a].(int); present {
-					(*opts)[k] = val + 1
-				} else {
-					(*opts)[k] = 1
-				}
-			} else {
-				// Single
-				(*opts)[k] = true
+type MatchEngine struct {
+	i    int
+	argv []string
+	opts DocoptOpts
+}
+
+type MachAssignType int
+
+const (
+	String_type MachAssignType = 1 + iota
+	Bool_type
+)
+
+func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bool, error) {
+	matched := false
+	if len(n.Children) > 0 && n.Children[0].Type == Usage_argument {
+		// option has a required argument
+		if len(m.argv)-(m.i+1) > 0 {
+			old_i := m.i
+			// will also be moved +1 at the end eating 2 argv
+			m.i++
+
+			// we force the key assignment with the option's name k
+			if err := m.Match_Assign(String_type, n.Children[0], k); err != nil {
+				m.i = old_i
+				return false, err
 			}
+			matched = true
 		} else {
-			(*opts)[k] = false
+			// no more argument in argv[]
+			return false, fmt.Errorf("option: %s require an argument", *k)
 		}
-	case Usage_argument:
+	} else {
+		// option has no argument (true or false)
+		if err := m.Match_Assign(Bool_type, n, nil); err != nil {
+			return false, err
+		}
 		matched = true
+	}
+	return matched, nil
+}
+
+func (m *MatchEngine) Match_Assign(t MachAssignType, n *DocoptAst, force_key *string) error {
+	var k *string
+	if force_key != nil {
+		k = force_key
+	} else {
+		k = &n.Token.Value
+	}
+	switch t {
+	case String_type:
+		a := m.argv[m.i]
 		if n.Repeat {
-			if val, present := (*opts)[a].([]string); present {
-				(*opts)[k] = append(val, a)
+			if val, present := m.opts[*k].([]string); present {
+				m.opts[*k] = append(val, a)
 			} else {
-				(*opts)[k] = []string{a}
+				m.opts[*k] = []string{a}
 			}
 		} else {
 			// Single
-			(*opts)[k] = a
+			m.opts[*k] = a
+		}
+	case Bool_type:
+		if n.Repeat {
+			//  command take no value (as option without argument)
+			// check key exists
+			if val, present := m.opts[*k].(int); present {
+				m.opts[*k] = val + 1
+			} else {
+				m.opts[*k] = 1
+			}
+		} else {
+			// Single
+			m.opts[*k] = true
+		}
+	default:
+		return fmt.Errorf("Match_Assign: unsupported MachAssignType: %d", t)
+	}
+
+	return nil
+}
+
+func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
+	matched = false
+	a := m.argv[m.i]
+	k := n.Token.Value
+	// TODO: handle option default value
+	switch n.Type {
+	case Usage_command:
+		if a == k {
+			err = m.Match_Assign(Bool_type, n, nil)
+			if err != nil {
+				return
+			}
+			matched = true
+		} else {
+			m.opts[k] = false
+		}
+	case Usage_argument:
+		err = m.Match_Assign(String_type, n, nil)
+		if err != nil {
+			return
+		}
+		matched = true
+	case Usage_long_option:
+		start_with_2dash := a[0] == '-' && a[1] == '-'
+		if start_with_2dash && a == k {
+			matched, err = m.Match_Usage_option(n, &a, &k)
+		} else {
+			// not matched
+			m.opts[k] = false
 		}
 	case Usage_short_option:
-		err = fmt.Errorf("unhandled node Type: %s", n.Type)
-		//if (*argv)[*i] == n.Token.Value {
-		//	matched = true
-		//	(*opts)[a] = true
-		//	if len(n.Children) > 0 {
-		//		c := n.Children[0]
-		//		if c.Type == Usage_argument {
-		//			// check key exists
-		//			if _, present := (*opts)[c.Token.Value]; ! present {
-		//				(*opts)[c.Token.Value] = true
-		//			} else {
-		//				err = fmt.Errorf("key '%s' already exists for")
-		//		}
-		//	}
-		//} else {
-		//	(*opts)[a] = false
-		//}
-	case Usage_long_option:
 		err = fmt.Errorf("unhandled node Type: %s", n.Type)
 	default:
 		err = fmt.Errorf("unhandled node Type: %s", n.Type)
@@ -217,7 +282,7 @@ func Match_Usage_node(n *DocoptAst, argv *[]string, i *int, opts *DocoptOpts) (m
 
 	if matched {
 		// move argv index
-		*i++
+		m.i++
 	}
 
 	return
