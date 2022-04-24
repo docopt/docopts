@@ -5,7 +5,7 @@
 # Usage: cat-n_wrapper_example.sh [--count=N] FILE...
 #
 # Arguments:
-#   FILE     input file, if FILLE equal - stdin is used instead.
+#   FILE     input file, if FILE equal - stdin is used instead.
 #
 # Options:
 #   --count=N   limit the number of line to display
