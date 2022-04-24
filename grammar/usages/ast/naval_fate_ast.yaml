@@ -32,7 +32,7 @@ children:
         repeat: true
         token: { type: ARGUMENT, value: "<name>" }
   - node: Usage_line
-    usage_line_input: "naval_fate ship <name> move <x> <y> [ --speed <kn> ]"
+    usage_line_input: "naval_fate ship <name> move <x> <y> [ --speed = <kn> ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "naval_fate" }

@@ -70,10 +70,13 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 				fmt.Sprintf("USAGE WILL GO HERE: %d", usage_string.insert_index)))
 	}
 
+	nb_children := len(n.Children)
+
 	if n.Token != nil {
 		*out = append(*out, fmt.Sprintf("%stoken: { type: %s, value: %q }\n", indent, n.Token.Regex_name, n.Token.Value))
 		if usage_string != nil {
-			if n.Repeat {
+			// repeat-able long option with argument the elipsis will be put at the end of the children loop
+			if n.Repeat && nb_children == 0 {
 				usage_string.collected = append(usage_string.collected, n.Token.Value+"...")
 			} else {
 				usage_string.collected = append(usage_string.collected, n.Token.Value)
@@ -81,7 +84,6 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 		}
 	}
 
-	nb_children := len(n.Children)
 	if nb_children > 0 {
 		close_token := ""
 		if n.Type == Usage_optional_group {
@@ -92,6 +94,10 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 			usage_string.collected = append(usage_string.collected, "(")
 			close_token = ")"
 		}
+		if n.Type == Usage_long_option {
+			usage_string.collected = append(usage_string.collected, "=")
+		}
+
 		*out = append(*out, fmt.Sprintf("%schildren:\n", indent))
 		for i := 0; i < nb_children; i++ {
 			Serialize_DocoptAst(n.Children[i], indent, usage_string, out)
@@ -107,6 +113,10 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 			} else {
 				usage_string.collected = append(usage_string.collected, close_token)
 			}
+		}
+		// repeat-able long option with argument put the elipsis at the end
+		if n.Type == Usage_long_option && n.Repeat {
+			usage_string.collected = append(usage_string.collected, close_token+"...")
 		}
 	}
 

@@ -26,7 +26,7 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
-    usage_line_input: "myrally gen-track-params --bulk... BULK-SIZE --clients... CLIENTS --directory PATH [ -d ] --challenges... CHALLENGES --shards... SHARDS --logging-volume SIZE --replicas REPLICAS --track TRACK"
+    usage_line_input: "myrally gen-track-params --bulk = BULK-SIZE ... --clients = CLIENTS ... --directory = PATH [ -d ] --challenges = CHALLENGES ... --shards = SHARDS ... --logging-volume = SIZE --replicas = REPLICAS --track = TRACK"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "myrally" }

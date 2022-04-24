@@ -39,7 +39,7 @@ children:
             repeat: true
             token: { type: ARGUMENT, value: "<etc>" }
   - node: Usage_line
-    usage_line_input: "Program_string another-action [ --which-support <argument> ] WITH_OTHER_SYNTAX_ARGUMENT"
+    usage_line_input: "Program_string another-action [ --which-support = <argument> ] WITH_OTHER_SYNTAX_ARGUMENT"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "Program_string" }

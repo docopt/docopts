@@ -33,7 +33,7 @@ children:
           - node: Usage_argument
             token: { type: ARGUMENT, value: "<optional-argument>" }
   - node: Usage_line
-    usage_line_input: "my_program --another-option <with-argument>"
+    usage_line_input: "my_program --another-option = <with-argument>"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "my_program" }
