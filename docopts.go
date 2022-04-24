@@ -26,7 +26,7 @@ var (
 )
 
 var copyleft = `
-Copyleft (Ɔ)  2021 Sylvain Viart (golang version).
+Copyleft (Ɔ)  2022 Sylvain Viart (golang version).
 Copyright (C) 2013 Vladimir Keleshev, Lari Rasku.
 License MIT <http://opensource.org/licenses/MIT>.
 This is free software: you are free to change and redistribute it.
