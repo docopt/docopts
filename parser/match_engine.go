@@ -163,20 +163,33 @@ func Match_Usage_Group(g *DocoptAst, argv *[]string, i int) (matched bool, args 
 }
 
 type MatchEngine struct {
-	i    int
-	argv []string
-	opts DocoptOpts
+	i       int
+	argv    []string
+	opts    DocoptOpts
+	options *OptionsMap
+}
+
+func (m *MatchEngine) Get_OptionRule(k string) (*OptionRule, bool) {
+	if m.options != nil {
+		if o, ok := (*m.options)[k]; ok {
+			return o, true
+		}
+	}
+	return nil, false
 }
 
 type MachAssignType int
 
 const (
 	String_type MachAssignType = 1 + iota
+	String_repeat
 	Bool_type
+	Bool_repeat
 )
 
 func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bool, error) {
 	matched := false
+	var t MachAssignType
 	if len(n.Children) > 0 && n.Children[0].Type == Usage_argument {
 		// option has a required argument
 		if len(m.argv)-(m.i+1) > 0 {
@@ -184,8 +197,13 @@ func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bo
 			// will also be moved +1 at the end eating 2 argv
 			m.i++
 
+			if n.Repeat {
+				t = String_repeat
+			} else {
+				t = String_type
+			}
 			// we force the key assignment with the option's name k
-			if err := m.Match_Assign(String_type, n.Children[0], k); err != nil {
+			if err := m.Match_Assign(t, n.Children[0], k); err != nil {
 				m.i = old_i
 				return false, err
 			}
@@ -196,7 +214,12 @@ func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bo
 		}
 	} else {
 		// option has no argument (true or false)
-		if err := m.Match_Assign(Bool_type, n, nil); err != nil {
+		if n.Repeat {
+			t = Bool_repeat
+		} else {
+			t = Bool_type
+		}
+		if err := m.Match_Assign(t, n, k); err != nil {
 			return false, err
 		}
 		matched = true
@@ -212,9 +235,9 @@ func (m *MatchEngine) Match_Assign(t MachAssignType, n *DocoptAst, force_key *st
 		k = &n.Token.Value
 	}
 	switch t {
-	case String_type:
+	case String_type, String_repeat:
 		a := m.argv[m.i]
-		if n.Repeat {
+		if n.Repeat || t == String_repeat {
 			if val, present := m.opts[*k].([]string); present {
 				m.opts[*k] = append(val, a)
 			} else {
@@ -224,8 +247,8 @@ func (m *MatchEngine) Match_Assign(t MachAssignType, n *DocoptAst, force_key *st
 			// Single
 			m.opts[*k] = a
 		}
-	case Bool_type:
-		if n.Repeat {
+	case Bool_type, Bool_repeat:
+		if n.Repeat || t == Bool_repeat {
 			//  command take no value (as option without argument)
 			// check key exists
 			if val, present := m.opts[*k].(int); present {
@@ -275,7 +298,23 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 			m.opts[k] = false
 		}
 	case Usage_short_option:
-		err = fmt.Errorf("unhandled node Type: %s", n.Type)
+		is_short := len(a) == 2 && a[0] == '-' && a[1] != '-'
+		if is_short && a == k {
+			// replace short option by its long version if it exists
+			if alternative, ok := m.Get_OptionRule(k); ok {
+				matched, err = m.Match_Usage_option(n, &a, alternative.Long)
+			} else {
+				matched, err = m.Match_Usage_option(n, &a, &k)
+			}
+			matched = true
+		} else {
+			// not matched
+			if alternative, ok := m.Get_OptionRule(k); ok {
+				m.opts[*alternative.Long] = false
+			} else {
+				m.opts[k] = false
+			}
+		}
 	default:
 		err = fmt.Errorf("unhandled node Type: %s", n.Type)
 	}

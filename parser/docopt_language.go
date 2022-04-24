@@ -80,6 +80,8 @@ type Consume_func struct {
 	consume Consume_method
 }
 
+// Token.Type assign for convinience in ParserInit()
+// TODO: will be refactored with lexer refactor
 var (
 	NEWLINE    rune
 	SECTION    rune
@@ -961,7 +963,7 @@ func (p *DocoptParser) Consume_Options() error {
 	return fmt.Errorf("%s: parser stoped: %s", p.current_node.Type, err)
 }
 
-// consume the next token which must be ARGUMENT as the argument of the last
+// Consume_assign() consume the token which must be ARGUMENT as the argument of the last
 // node added.
 func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
 	if argument.Type != ARGUMENT {

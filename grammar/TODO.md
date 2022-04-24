@@ -20,15 +20,18 @@
 => start building ast from our grammar: `docopt_language.ebnf`
 * matching engine
  * parse AST for match
- * explore: parseLong() from docopt-legacy
-  * match options --option ≠ ARGUMENT <=
+	* handle --option=argument as a single argv[] element (must be splited) also work without equal sign <==
  * compare recieved os.Args to valid argument or option
+* put --option=ARGUMENT `Usage_argument` as child of `Usage_long_option`
 * parse Options: default value
-* add some automated testing and unit testing
 * Refactor String() method to our token with a go generate? => can use GoString()
 * full error handling support  and reporting
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
-* add unit test
+* refactor test with assert package + assert failure code path
+* Options: parsing section allow `LONG_BLANK` after comma if followed by `Option_short` or `Option_long` ?
+  *  -m,  --merge   Desctiption
+  * or warning?: `LONG_BLANK` found followed by `LONG` remove extra space or Start description with a word not looking
+    like an option
 
 ## TODO
 * container/list (double linked list) handle parsed token list?

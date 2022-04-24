@@ -1,0 +1,6 @@
+This is input for unit testing
+
+Usage: myprog  -m <pipo>
+
+Options:
+  -m, --merge  some option with long alernative without argument
