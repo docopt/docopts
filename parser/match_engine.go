@@ -2,10 +2,31 @@ package docopt_language
 
 import (
 	"fmt"
+	"strings"
 )
 
 // same as Opts in legacy docopt-go
 type DocoptOpts map[string]interface{}
+
+// Split_argv() transforms an argv vector by spliting long option assigned:
+// --long=ARGUMENT ==> "--long", "ARGUMENT"
+func Split_argv(argv []string) []string {
+	n_argv := len(argv)
+	// at most we will double the size
+	splited := make([]string, 0, 2*n_argv)
+	for _, a := range argv {
+		if e := strings.IndexByte(a, '='); e != -1 {
+			n := len(a)
+			if n > 3 && a[0] == '-' && a[1] == '-' && e < n-2 {
+				splited = append(splited, a[0:e], a[e+1:n])
+				continue
+			}
+		}
+		// keep unchanged
+		splited = append(splited, a)
+	}
+	return splited
+}
 
 // MatchArgs() associate argv (os.Args) to parsed Options / Argument
 // algorithm derive from docopt.ParseArgs() docopt-go/docopt.go
@@ -64,6 +85,11 @@ func Match_Usage_line(u *DocoptAst, argv *[]string, i int) (matched bool, args D
 	//     Usage_Expr [6]
 	// So Usage_Expr is always the 2nd child
 
+	m := &MatchEngine{
+		opts: DocoptOpts{},
+		i:    i,
+		argv: Split_argv(*argv),
+	}
 	matched = false
 	expr := u.Children[1]
 	if expr.Type != Usage_Expr {
@@ -71,11 +97,11 @@ func Match_Usage_line(u *DocoptAst, argv *[]string, i int) (matched bool, args D
 		return
 	}
 
-	matched, args, err = Match_Usage_Expr(expr, argv, i)
+	matched, err = m.Match_Usage_Expr(expr)
 	return
 }
 
-func Match_Usage_Expr(expr *DocoptAst, argv *[]string, i int) (matched bool, args DocoptOpts, err error) {
+func (m *MatchEngine) Match_Usage_Expr(expr *DocoptAst) (matched bool, err error) {
 	// docopts [options] -h <msg> : [<argv>...]
 	// docopts -h "Usage: myprog cat [-c COLOR] FILENAME" : cat pipo
 	//   Usage_Expr: cat [-c COLOR] STRING
@@ -88,16 +114,10 @@ func Match_Usage_Expr(expr *DocoptAst, argv *[]string, i int) (matched bool, arg
 	//      - Usage_argument: "COLOR"
 	//    - Usage_argument: "FILENAME"
 
-	m := &MatchEngine{
-		opts: DocoptOpts{},
-		i:    0,
-		argv: []string{"run"},
-	}
-
 	matched = false
-	nb := len(*argv)
+	nb := len(m.argv)
 	if nb == 0 {
-		matched, err = Match_empty_argv(expr)
+		matched, err = m.Match_empty_argv(expr)
 		return
 	}
 
@@ -105,23 +125,19 @@ forLoopMatch_Usage_Expr:
 	for _, c := range expr.Children {
 		switch c.Type {
 		case Usage_optional_group, Usage_required_group:
-			matched, args, err = Match_Usage_Group(c, argv, i)
+			matched, err = m.Match_Usage_Group(c)
 			if err == nil {
-				if c.Type == Usage_optional_group {
-					// optional
-					if matched {
-						i++
-					}
-					continue
-				} else {
+				if c.Type == Usage_required_group {
 					// required
 					if matched {
-						i++
 						continue
 					} else {
-						err = fmt.Errorf("expected Usage_command %s, faild to match '%s'", c.Token.Value, (*argv)[i])
+						err = fmt.Errorf("expected Usage_required_group, faild to match '%s'", m.argv[m.i])
+						return
 					}
 				}
+				// optional can continue
+				continue
 			}
 			// some errors
 			break forLoopMatch_Usage_Expr
@@ -132,10 +148,9 @@ forLoopMatch_Usage_Expr:
 			matched, err = m.Match_Usage_node(c)
 			if err == nil {
 				if matched {
-					i++
 					continue
 				} else {
-					err = fmt.Errorf("expected Usage_command %s, faild to match '%s'", c.Token.Value, (*argv)[i])
+					err = fmt.Errorf("expected Usage_command %s, faild to match '%s'", c.Token.Value, m.argv[m.i])
 				}
 			}
 			// some errors
@@ -153,12 +168,59 @@ forLoopMatch_Usage_Expr:
 	return
 }
 
-func Match_empty_argv(expr *DocoptAst) (bool, error) {
-	return false, fmt.Errorf("unfinished method Match_empty_argv")
+// Match_empty_argv() `expr` is pointing to an Usage_Expr, we validate that this Expr
+// accept empty arg = no mandatory argument
+func (m *MatchEngine) Match_empty_argv(expr *DocoptAst) (bool, error) {
+	if expr.Type != Usage_Expr {
+		return false, fmt.Errorf("Match_empty_argv only accept Usage_Expr node as arugment, got %s", expr.Type)
+	}
+
+	if len(expr.Children) == 0 {
+		return true, nil
+	}
+
+	// should only have optional group
+	for _, c := range expr.Children {
+		if c.Type == Usage_optional_group {
+			continue
+		}
+		return false, nil
+	}
+
+	return true, nil
 }
 
-func Match_Usage_Group(g *DocoptAst, argv *[]string, i int) (matched bool, args DocoptOpts, err error) {
-	err = fmt.Errorf("unfinished method Match_Usage_Group")
+func (m *MatchEngine) Match_options() (bool, error) {
+	return false, fmt.Errorf("Match_options not implemented")
+}
+
+func (m *MatchEngine) Match_Usage_Group(g *DocoptAst) (matched bool, err error) {
+	if g.Type != Usage_optional_group && g.Type != Usage_required_group {
+		err = fmt.Errorf("unsupported node, expecting Usage_optional_group or Usage_required_group, got %s", g.Type)
+		return
+	}
+
+	nb := len(g.Children)
+	if nb != 1 {
+		err = fmt.Errorf("Expected only one Children got %d, for Group: %s", nb, g.Type)
+		return
+	}
+
+	expr := g.Children[0]
+	old_i := m.i
+
+	// [options]
+	if g.Type == Usage_optional_group &&
+		len(expr.Children) == 1 &&
+		expr.Children[0].Type == Usage_argument &&
+		expr.Children[0].Token.Value == "options" {
+		matched, err = m.Match_options()
+	} else {
+		matched, err = m.Match_Usage_Expr(expr)
+	}
+	if !matched {
+		m.i = old_i
+	}
 	return
 }
 

@@ -6,6 +6,7 @@ package docopt_language
 
 import (
 	"github.com/docopt/docopts/grammar/lexer"
+	// https://pkg.go.dev/github.com/stretchr/testify@v1.7.1/assert#pkg-functions
 	"github.com/stretchr/testify/assert"
 	"os"
 	"path/filepath"
@@ -505,6 +506,99 @@ func Test_Match_Usage_node_Usage_short_option(t *testing.T) {
 	//// move to one option
 	//assert.Equal(2, m.i, "m.i invalid index")
 	//assert.Equal([]string{option_argument}, m.opts[option_name].([]string), "Repeat-able Usage_long_option must have []string arguments")
+}
+
+func Test_Split_argv(t *testing.T) {
+	input := []string{
+		"pipo",
+		"molo",
+		"--",
+		"=",
+		"--opt",
+		"--opt2=value",
+		"--opt3=",
+		"--opt4=\"value\"",
+		"-S",
+		"============",
+		"pipo=molo",
+		"--=",
+	}
+
+	expected := []string{
+		"pipo",
+		"molo",
+		"--",
+		"=",
+		"--opt",
+		"--opt2", "value",
+		"--opt3=",
+		"--opt4", "\"value\"",
+		"-S",
+		"============",
+		"pipo=molo",
+		"--=",
+	}
+
+	splited := Split_argv(input)
+	assert.Equal(t, expected, splited, "argv spliting failed")
+}
+
+func Test_Match_empty_argv(t *testing.T) {
+	assert := assert.New(t)
+	_, p, err := helper_load_usage(t, "test_input_allow_empty_argv.docopt")
+	assert.Nil(err)
+	assert.NotNil(p)
+	node := p.usage_node.Children[1]
+	assert.Equal(Usage_line, node.Type)
+	expr := node.Children[1]
+	assert.Equal(Usage_Expr, expr.Type)
+
+	m := &MatchEngine{}
+
+	matched, err := m.Match_empty_argv(expr)
+	assert.Nil(err)
+	assert.True(matched)
+
+	// test with Usage_line 2
+	expr = p.usage_node.Children[2].Children[1]
+	assert.Equal(Usage_Expr, expr.Type)
+	assert.Len(expr.Children, 0)
+
+	matched, err = m.Match_empty_argv(expr)
+	assert.Nil(err)
+	assert.True(matched)
+
+	// test with Usage_line 3: fail
+	expr = p.usage_node.Children[3].Children[1]
+	assert.Equal(Usage_Expr, expr.Type)
+	assert.Greater(len(expr.Children), 0, "Usage_Expr must have children")
+	matched, err = m.Match_empty_argv(expr)
+	assert.Nil(err)
+	assert.False(matched, "Match_empty_argv must fail on mandatory argument")
+}
+
+func Test_Match_Usage_Expr(t *testing.T) {
+	assert := assert.New(t)
+	_, p, err := helper_load_usage(t, "docopts.docopt")
+	assert.Nil(err)
+	assert.NotNil(p)
+
+	expr := p.usage_node.Children[1].Children[1]
+	m := &MatchEngine{
+		opts: DocoptOpts{},
+		i:    0,
+		argv: Split_argv([]string{"pipo", "molo"}),
+	}
+	matched, err := m.Match_Usage_Expr(expr)
+	assert.Nil(err)
+	assert.False(matched, "Match_Usage_Expr must fail on invalid argument")
+	assert.Equal(0, m.i, "m.i should not change if matched is false && err == nil")
+
+	m.argv = Split_argv([]string{"-h", "Usage: prog", ":"})
+	m.i = 0
+	matched, err = m.Match_Usage_Expr(expr)
+	assert.Nil(err)
+	assert.True(matched, "Match_Usage_Expr must succed")
 }
 
 // TODO:

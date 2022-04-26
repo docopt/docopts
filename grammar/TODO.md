@@ -20,9 +20,10 @@
 => start building ast from our grammar: `docopt_language.ebnf`
 * matching engine
  * parse AST for match
-	* handle --option=argument as a single argv[] element (must be splited) also work without equal sign <==
+  * Match_Usage_Expr / Match_Usage_Group <==
+   * reduce == Usage_options
+        Usage_optional_group > Usage_Expr >  Usage_command > token: { type: IDENT, value: "options" }
  * compare recieved os.Args to valid argument or option
-* put --option=ARGUMENT `Usage_argument` as child of `Usage_long_option`
 * parse Options: default value
 * Refactor String() method to our token with a go generate? => can use GoString()
 * full error handling support  and reporting
@@ -32,6 +33,7 @@
   *  -m,  --merge   Desctiption
   * or warning?: `LONG_BLANK` found followed by `LONG` remove extra space or Start description with a word not looking
     like an option
+* explore ParseLong with option that start with the same prefix? what does it mean?
 
 ## TODO
 * container/list (double linked list) handle parsed token list?

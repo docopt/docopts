@@ -1,0 +1,11 @@
+This is input for unit testing:
+allow a empty argument vector to be matched
+
+Usage:
+       myprog [empty]
+       myprog
+       myprog fail mandatory --argument
+
+Commands:
+  empty        optional just for testing Match_empty_argv
+  fail         Will make Match_empty_argv to fail
