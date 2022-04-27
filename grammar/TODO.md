@@ -21,8 +21,6 @@
 * matching engine
  * parse AST for match
   * Match_Usage_Expr / Match_Usage_Group <==
-   * reduce == Usage_options
-        Usage_optional_group > Usage_Expr >  Usage_command > token: { type: IDENT, value: "options" }
  * compare recieved os.Args to valid argument or option
 * parse Options: default value
 * Refactor String() method to our token with a go generate? => can use GoString()

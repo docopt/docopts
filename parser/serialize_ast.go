@@ -84,6 +84,11 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 		}
 	}
 
+	// node is now reduced
+	if n.Type == Usage_options_shortcut {
+		usage_string.collected = append(usage_string.collected, "[options]")
+	}
+
 	if nb_children > 0 {
 		close_token := ""
 		if n.Type == Usage_optional_group {

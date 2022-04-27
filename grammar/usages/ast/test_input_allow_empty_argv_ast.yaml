@@ -84,6 +84,19 @@ children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "myprog" }
     - node: Usage_Expr
+  - node: Usage_line
+    usage_line_input: "myprog fail mandatory --argument"
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "myprog" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_command
+        token: { type: IDENT, value: "fail" }
+      - node: Usage_command
+        token: { type: IDENT, value: "mandatory" }
+      - node: Usage_long_option
+        token: { type: LONG, value: "--argument" }
 - node: Free_section
   children:
   - node: Section_name
@@ -92,6 +105,10 @@ children:
     token: { type: NEWLINE, value: "\n" }
   - node: Section_node
     token: { type: LINE_OF_TEXT, value: "  empty        optional just for testing Match_empty_argv" }
+  - node: Section_node
+    token: { type: NEWLINE, value: "\n" }
+  - node: Section_node
+    token: { type: LINE_OF_TEXT, value: "  fail         Will make Match_empty_argv to fail" }
   - node: Section_node
     token: { type: NEWLINE, value: "\n" }
 - node: Options_section

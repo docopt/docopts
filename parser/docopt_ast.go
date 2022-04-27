@@ -27,6 +27,7 @@ const (
 	Usage_optional_group
 	Usage_required_group
 	Usage_Expr
+	Usage_options_shortcut
 	Free_section
 	Section_name
 	Section_node
@@ -48,6 +49,20 @@ type DocoptAst struct {
 	Children []*DocoptAst
 	Parent   *DocoptAst
 	Repeat   bool
+}
+
+var DocoptNodes map[string]DocoptNodeType
+
+// make a reverse map of nodes name to their DocoptNodeType
+func DocoptNodes_init_reverse_map() {
+	if len(DocoptNodes) > 0 {
+		// already initialized
+		return
+	}
+	DocoptNodes = make(map[string]DocoptNodeType)
+	for t := Root; t < Last_node_type; t++ {
+		DocoptNodes[t.String()] = t
+	}
 }
 
 func (n *DocoptAst) AddNode(node_type DocoptNodeType, t *lexer.Token) *DocoptAst {
@@ -85,7 +100,24 @@ func (parent *DocoptAst) Replace_children_with_group(node_type DocoptNodeType) *
 
 func (n *DocoptAst) Detach_child(child_index int) *DocoptAst {
 	detached := n.Children[child_index]
+	// replace Children with a new slice without child_index
 	n.Children = append(n.Children[:child_index], n.Children[child_index+1:]...)
 	detached.Parent = nil
 	return detached
+}
+
+func (n *DocoptAst) Detach_from_parent() bool {
+	parent := n.Parent
+	if parent == nil {
+		return false
+	}
+	found := false
+	for i, c := range parent.Children {
+		if c == n {
+			parent.Detach_child(i)
+			found = true
+			break
+		}
+	}
+	return found
 }

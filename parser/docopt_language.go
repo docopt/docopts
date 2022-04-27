@@ -489,17 +489,17 @@ func (p *DocoptParser) Consume_Usage_line() error {
 		if p.current_token.Type == PROG_NAME {
 			if p.Prog_name != p.current_token.Value {
 				return fmt.Errorf(
-					"Consume_Usage_line:(%s) PROG_NAME encountered with a distinct value:%s, invalid Token: '%v' extracted with: %s",
+					"Consume_Usage_line:(%s) PROG_NAME encountered with a distinct value:%s, invalid Token: %s extracted with: %s",
 					p.s.Current_state.State_name,
 					p.Prog_name,
-					p.current_token,
+					p.current_token.GoString(),
 					p.current_token.State_name)
 			}
 			continue
 		}
 
 		if p.current_token.Type == USAGE {
-			return fmt.Errorf("Consume_Usage_line: USAGE invalid Token: %v", p.current_token)
+			return fmt.Errorf("Consume_Usage_line: USAGE invalid Token: %s", p.current_token.GoString())
 		}
 
 		// eat a single Usage_line starting with an Usage_Expr
@@ -701,8 +701,8 @@ func (p *DocoptParser) Consume_ellipsis() error {
 	if nb > 0 {
 		p.current_node.Children[nb-1].Repeat = true
 	} else {
-		return fmt.Errorf("%s: elipsis not expected on such node without Children, invalid Token: %v",
-			p.current_node.Type, p.current_token)
+		return fmt.Errorf("%s: elipsis not expected on such node without Children, invalid Token: %s",
+			p.current_node.Type, p.current_token.GoString())
 	}
 	return nil
 }
@@ -720,15 +720,30 @@ func Consume_group(p *DocoptParser) (Reason, error) {
 			p.symbols_name[p.current_token.Type])
 		return Error, err
 	case USAGE:
-		err = fmt.Errorf("%s: USAGE invalid Token: %v", p.current_node.Type, p.current_token)
+		err = fmt.Errorf("%s: USAGE invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 		return Error, err
 	case IDENT:
 		n = Usage_command
-		// TODO: handle options in [options] syntax
+		// handle options shortcut in [options] syntax
+		if p.current_token.Value == "options" {
+			if p.current_node.Parent.Type == Usage_optional_group &&
+				p.next_token.Type == PUNCT && p.next_token.Value == "]" {
+				if parent, err := Reduce_node(p.current_node.Parent, Usage_options_shortcut); err != nil {
+					return Error, err
+				} else {
+					p.current_node = parent
+				}
+				// eat ']' for the curren group
+				p.NextToken()
+				return END_OF_Group, nil
+			} else {
+				return Error, fmt.Errorf("%s: reserved token, must be: [options]", p.current_node.Type)
+			}
+		}
 	case NEWLINE:
 		if p.next_token.Type == NEWLINE {
 			// two consecutive NEWLINE
-			err = fmt.Errorf("%s: 2 consecutive NEWLINE invalid Token: %v", p.current_node.Type, p.current_token)
+			err = fmt.Errorf("%s: 2 consecutive NEWLINE invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 			return Error, err
 		}
 		return Continue, nil
@@ -765,13 +780,13 @@ func Consume_group(p *DocoptParser) (Reason, error) {
 			return Continue, nil
 		case "]":
 			if p.current_node.Parent.Type != Usage_optional_group {
-				err = fmt.Errorf("%s: closing bracket unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
+				err = fmt.Errorf("%s: closing bracket unexpected, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 				return Error, err
 			}
 			return END_OF_Group, nil
 		case ")":
 			if p.current_node.Parent.Type != Usage_required_group {
-				err = fmt.Errorf("%s: closing parenthese unexpected, invalid Token: %v", p.current_node.Type, p.current_token)
+				err = fmt.Errorf("%s: closing parenthese unexpected, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 				return Error, err
 			}
 			return END_OF_Group, nil
@@ -788,12 +803,12 @@ func Consume_group(p *DocoptParser) (Reason, error) {
 			}
 			return Continue, nil
 		default:
-			err = fmt.Errorf("%s: unmatched PUNCT, invalid Token: %v", p.current_node.Type, p.current_token)
+			err = fmt.Errorf("%s: unmatched PUNCT, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 			return Error, err
 		} // end switch PUNCT
 
 	default:
-		err = fmt.Errorf("%s: unmatched node, invalid Token: %v", p.current_node.Type, p.current_token)
+		err = fmt.Errorf("%s: unmatched node, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 		return Error, err
 	}
 
@@ -975,7 +990,7 @@ func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
 	if nb_children == 0 {
 		// Consume_assign must called after having assigned a option LONG in Usage_Expr
 		// or any option in Options_line called with oe without equal sign
-		return fmt.Errorf("Consume_assign: current_node must have an option child, invalid Token: %v", p.current_token)
+		return fmt.Errorf("Consume_assign: current_node must have an option child, invalid Token: %s", p.current_token.GoString())
 	}
 
 	prev_child := p.current_node.Children[nb_children-1]
@@ -987,8 +1002,8 @@ func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
 	case Option_long, Option_short:
 		node_type = Option_argument
 	default:
-		return fmt.Errorf("Consume_assign: node %s cannot have assignment '=', invalid Token: %v",
-			prev_child.Type, p.current_token)
+		return fmt.Errorf("Consume_assign: node %s cannot have assignment '=', invalid Token: %s",
+			prev_child.Type, p.current_token.GoString())
 	}
 
 	prev_child.AddNode(node_type, argument)
@@ -1000,7 +1015,9 @@ func (p *DocoptParser) Consume_option_alternative() error {
 	if p.current_node.Type != Option_alternative_group {
 		nb := len(p.current_node.Children)
 		if nb == 0 {
-			return fmt.Errorf("%s: comma unexpected without alternative option name, invalid Token: %v", p.current_node.Type, p.current_token)
+			return fmt.Errorf("%s: comma unexpected without alternative option name, invalid Token: %s",
+				p.current_node.Type,
+				p.current_token.GoString())
 		}
 
 		p.current_node = p.current_node.Replace_children_with_group(Option_alternative_group)
@@ -1012,8 +1029,8 @@ func (p *DocoptParser) Consume_option_alternative() error {
 		switch p.current_token.Type {
 		case lexer.EOF, LONG_BLANK, NEWLINE:
 			if len(p.current_node.Children) <= 1 {
-				return fmt.Errorf("%s: %s unexpected without matchin alternative option name, invalid Token: %v",
-					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token)
+				return fmt.Errorf("%s: %s unexpected without matchin alternative option name, invalid Token: %s",
+					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token.GoString())
 			}
 			// leaving condition OK
 			return nil
@@ -1034,10 +1051,10 @@ func (p *DocoptParser) Consume_option_alternative() error {
 				p.NextToken()
 				continue
 			default:
-				return fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
+				return fmt.Errorf("%s: unexpected PUNC, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 			} // end switch PUNCT
 		default:
-			return fmt.Errorf("%s: unexpected Token, invalid Token: %v", p.current_node.Type, p.current_token)
+			return fmt.Errorf("%s: unexpected Token, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 		} // end switch Token.Type
 	}
 
@@ -1060,7 +1077,7 @@ forLoopOptionLine:
 			// leaving condition option without description
 			if len(p.current_node.Children) == 0 {
 				err = fmt.Errorf("%s: %s unexpected empty option, invalid Token: %s",
-					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token)
+					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token.GoString())
 			}
 			break forLoopOptionLine
 		case LONG_BLANK:
@@ -1087,11 +1104,11 @@ forLoopOptionLine:
 				// consume ARGUMENT assigned
 				p.NextToken()
 			default:
-				err = fmt.Errorf("%s: unexpected PUNC, invalid Token: %v", p.current_node.Type, p.current_token)
+				err = fmt.Errorf("%s: unexpected PUNC, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 				break forLoopOptionLine
 			}
 		default:
-			err = fmt.Errorf("%s: Consume_option_line invalid Token: %v", p.current_node.Type, p.current_token)
+			err = fmt.Errorf("%s: Consume_option_line invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 			break forLoopOptionLine
 		}
 	} // end forLoopOptionLine
@@ -1167,4 +1184,20 @@ func (p *DocoptParser) ensure_node(node_type DocoptNodeType) {
 	if p.current_node.Type != node_type {
 		p.current_node = p.current_node.AddNode(node_type, nil)
 	}
+}
+
+// Reduce_node() Reduce multiple node to a new node
+func Reduce_node(n *DocoptAst, new_node_type DocoptNodeType) (*DocoptAst, error) {
+	parent := n.Parent
+	if parent == nil {
+		return nil, fmt.Errorf("%s: Reduce_node error: Parent is nil", n.Type)
+	}
+	if !n.Detach_from_parent() {
+		return nil, fmt.Errorf("%s: Reduce_node error: wrong Children in Parent node", n.Type)
+	}
+
+	// n and the ast will be lost and garbage collected
+
+	parent.AddNode(new_node_type, nil)
+	return parent, nil
 }

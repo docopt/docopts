@@ -42,18 +42,13 @@ children:
   - node: Usage
     token: { type: USAGE, value: "Usage:" }
   - node: Usage_line
-    usage_line_input: "docopts [ options ] -h <msg> : [ <argv>... ]"
+    usage_line_input: "docopts [options] -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
     - node: Usage_Expr
       children:
-      - node: Usage_optional_group
-        children:
-        - node: Usage_Expr
-          children:
-          - node: Usage_command
-            token: { type: IDENT, value: "options" }
+      - node: Usage_options_shortcut
       - node: Usage_short_option
         token: { type: SHORT, value: "-h" }
       - node: Usage_argument
@@ -68,18 +63,13 @@ children:
             repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
-    usage_line_input: "docopts [ options ] [ --no-declare ] -A <name> -h <msg> : [ <argv>... ]"
+    usage_line_input: "docopts [options] [ --no-declare ] -A <name> -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
     - node: Usage_Expr
       children:
-      - node: Usage_optional_group
-        children:
-        - node: Usage_Expr
-          children:
-          - node: Usage_command
-            token: { type: IDENT, value: "options" }
+      - node: Usage_options_shortcut
       - node: Usage_optional_group
         children:
         - node: Usage_Expr
@@ -104,18 +94,13 @@ children:
             repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
-    usage_line_input: "docopts [ options ] -G <prefix> -h <msg> : [ <argv>... ]"
+    usage_line_input: "docopts [options] -G <prefix> -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
     - node: Usage_Expr
       children:
-      - node: Usage_optional_group
-        children:
-        - node: Usage_Expr
-          children:
-          - node: Usage_command
-            token: { type: IDENT, value: "options" }
+      - node: Usage_options_shortcut
       - node: Usage_short_option
         token: { type: SHORT, value: "-G" }
       - node: Usage_argument
@@ -134,18 +119,13 @@ children:
             repeat: true
             token: { type: ARGUMENT, value: "<argv>" }
   - node: Usage_line
-    usage_line_input: "docopts [ options ] --no-mangle -h <msg> : [ <argv>... ]"
+    usage_line_input: "docopts [options] --no-mangle -h <msg> : [ <argv>... ]"
     children:
     - node: Prog_name
       token: { type: PROG_NAME, value: "docopts" }
     - node: Usage_Expr
       children:
-      - node: Usage_optional_group
-        children:
-        - node: Usage_Expr
-          children:
-          - node: Usage_command
-            token: { type: IDENT, value: "options" }
+      - node: Usage_options_shortcut
       - node: Usage_long_option
         token: { type: LONG, value: "--no-mangle" }
       - node: Usage_short_option
