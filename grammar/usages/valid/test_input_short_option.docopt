@@ -1,6 +1,10 @@
 This is input for unit testing
 
 Usage: myprog  -m <pipo>
+       myprog  -A ARG
+       myprog  -B BARG
 
 Options:
-  -m, --merge  some option with long alernative without argument
+  -m, --merge             some option with long alernative without argument
+  -A ARG                  this option has not long alernative
+  -B BARG, --blong=BARG   this option has not long alernative

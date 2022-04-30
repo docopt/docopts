@@ -1,7 +1,5 @@
 # docopt Grammar
 
-// extract the Usage: section (case-insensitive) until the next empty line
-
 ## Goal
 
 * We start with our `lexer_state` before testing handcrafted optimized lexer/scanner
@@ -20,7 +18,10 @@
 => start building ast from our grammar: `docopt_language.ebnf`
 * matching engine
  * parse AST for match
-  * Match_Usage_Expr / Match_Usage_Group <==
+  * `Match_Usage_Expr` / `Match_Usage_Group`
+    * `Match_options`
+     * Test_Match_Usage_node_Usage_short_option Get_OptionRule with no alternative -A <==
+  * allow `LONG_BLANK` in `Consume_group`
  * compare recieved os.Args to valid argument or option
 * parse Options: default value
 * Refactor String() method to our token with a go generate? => can use GoString()
@@ -46,6 +47,7 @@
 * https://github.com/docopt/docopt/issues/190
 * https://github.com/docopt/docopt.go/issues/61
 * https://github.com/docopt/docopts/issues/17
+* Array values duplicated with OneOrMore options (...) - https://github.com/docopt/docopt.go/issues/77
 
 ## Lexer
 

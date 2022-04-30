@@ -119,6 +119,8 @@ func Test_transform_Options_section_to_map(t *testing.T) {
 	if options["-s"] != options["--separator"] {
 		t.Errorf("transform_Options_section_to_map: options[\"-s\"] != options[\"--separator\"]")
 	}
+
+	assert.Nil(options["-A"].Long)
 }
 
 func consume_me(p *DocoptParser) (Reason, error) {
@@ -323,51 +325,7 @@ func Test_Match_Usage_node_Usage_long_option(t *testing.T) {
 	assert.Equal(true, m.opts[option_name].(bool), "Usage_long_option present must be true")
 
 	// --------------------------------------- retest as Repeat-able Usage_long_option
-	node.Repeat = true
-	m.i = 0
-	// reset map
-	m.opts = DocoptOpts{}
-	helper_ensure_matched(t, m.Match_Usage_node, node)
-
-	assert.Len(m.opts, 1)
-	assert.Equal(1, m.opts[option_name].(int), "Repeat-able Usage_long_option must be a counter")
-	assert.Equal(1, m.i, "m.i invalid index")
-
-	// Repeat-able counted 2 times
-	// another time (we rewind the argument index)
-	m.i = 0
-	helper_ensure_matched(t, m.Match_Usage_node, node)
-	assert.Equal(2, m.opts[option_name].(int), "2 times Repeat-able Usage_long_option must be a counter")
-
-	// ---------------------- Usage_long_option with argument
-	option_value := "FILENAME"
-	node.Children = []*DocoptAst{
-		&DocoptAst{
-			Type: Usage_argument,
-			Token: &lexer.Token{
-				Type:  ARGUMENT,
-				Value: option_value,
-			},
-		},
-	}
-	node.Repeat = false
-
-	option_argument := "some_file.txt"
-	m.argv = append(m.argv, option_argument)
-	m.i = 0
-	helper_ensure_matched(t, m.Match_Usage_node, node)
-	assert.Equal(2, m.i, "m.i invalid index")
-	assert.Equal(option_argument, m.opts[option_name].(string), "Usage_long_option must have an argument")
-
-	// ---------------------- Usage_long_option with argument Repeat-able
-	node.Repeat = true
-	m.argv = append(m.argv, option_argument, option_argument)
-	assert.Len(m.argv, 4)
-	m.i = 0
-	helper_ensure_matched(t, m.Match_Usage_node, node)
-	// move to one option
-	assert.Equal(2, m.i, "m.i invalid index")
-	assert.Equal([]string{option_argument}, m.opts[option_name].([]string), "Repeat-able Usage_long_option must have []string arguments")
+	helper_test_Usage_option_Repeat_common(t, m, node, option_name)
 }
 
 // helper_find_node(p, p.usage_node.Children[2], "LONG --speed")
@@ -426,6 +384,7 @@ func Test_Match_Usage_node_Usage_short_option(t *testing.T) {
 
 	// --------------------------------------- check for alternative long
 	// we use a more complex tree from the parser
+	// -m, --merge
 	_, p, err := helper_load_usage(t, "test_input_short_option.docopt")
 	assert.Nil(err)
 
@@ -448,55 +407,88 @@ func Test_Match_Usage_node_Usage_short_option(t *testing.T) {
 
 	helper_ensure_matched(t, m.Match_Usage_node, node)
 	assert.Equal(true, m.opts[long_option_name].(bool), "Usage_short_option present with alt must be true")
+	// short option doesn't exist because we have a long alias in m.options
 	_, exists := m.opts[option_name]
-	assert.Equal(false, exists, "Usage_short_option -m with alt must not be set in m.opts")
+	assert.False(exists, "Usage_short_option -m with alt must not be set in m.opts")
 
-	//// --------------------------------------- retest as Repeat-able Usage_short_option
-	//node.Repeat = true
-	//m.i = 0
-	//// reset map
-	//m.opts = DocoptOpts{}
-	//helper_ensure_matched(t, m.Match_Usage_node, node)
-	//
-	//assert.Len(m.opts, 1)
-	//assert.Equal(1, m.opts[option_name].(int), "Repeat-able Usage_long_option must be a counter")
-	//assert.Equal(1, m.i, "m.i invalid index")
-	//
-	//// Repeat-able counted 2 times
-	//// another time (we rewind the argument index)
-	//m.i = 0
-	//helper_ensure_matched(t, m.Match_Usage_node, node)
-	//assert.Equal(2, m.opts[option_name].(int), "2 times Repeat-able Usage_long_option must be a counter")
-	//
-	//// ---------------------- Usage_long_option with argument
-	//option_value := "FILENAME"
-	//node.Children = []*DocoptAst{
-	//	&DocoptAst{
-	//		Type: Usage_argument,
-	//		Token: &lexer.Token{
-	//			Type:  ARGUMENT,
-	//			Value: option_value,
-	//		},
-	//	},
-	//}
-	//node.Repeat = false
-	//
-	//option_argument := "some_file.txt"
-	//m.argv = append(m.argv, option_argument)
-	//m.i = 0
-	//helper_ensure_matched(t, m.Match_Usage_node, node)
-	//assert.Equal(2, m.i, "m.i invalid index")
-	//assert.Equal(option_argument, m.opts[option_name].(string), "Usage_long_option must have an argument")
-	//
-	//// ---------------------- Usage_long_option with argument Repeat-able
-	//node.Repeat = true
-	//m.argv = append(m.argv, option_argument, option_argument)
-	//assert.Len(m.argv, 4)
-	//m.i = 0
-	//helper_ensure_matched(t, m.Match_Usage_node, node)
-	//// move to one option
-	//assert.Equal(2, m.i, "m.i invalid index")
-	//assert.Equal([]string{option_argument}, m.opts[option_name].([]string), "Repeat-able Usage_long_option must have []string arguments")
+	// --------------------------------------- retest as Repeat-able Usage_short_option (remove alternative long)
+	m.options = nil
+	helper_test_Usage_option_Repeat_common(t, m, node, option_name)
+
+	// --------------------------------------- Usage_short_option that has no alternative
+	m.options = &options
+	option_name = "-A"
+	o, exists := m.Get_OptionRule(option_name)
+	assert.True(exists)
+	assert.Nil(o.Long)
+
+	m.i = 0
+	arg_value := "some_argument"
+	m.argv = Split_argv([]string{"-A", arg_value})
+	m.opts = DocoptOpts{}
+
+	if n, found := helper_find_node(p, p.usage_node.Children[2], "SHORT -A"); found {
+		node = n
+	} else {
+		t.Errorf("node not found for -A")
+	}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	assert.Len(m.opts, 1)
+	opt, exists := m.opts[option_name].(string)
+	assert.True(exists, "Usage_short_option -A without alt must be set in m.opts")
+	assert.Equal(opt, arg_value)
+}
+
+func helper_test_Usage_option_Repeat_common(t *testing.T, m *MatchEngine, node *DocoptAst, option_name string) {
+	assert := assert.New(t)
+	// same testing code for Usage_short_option and Usage_long_option
+	node.Repeat = true
+	m.i = 0
+	// reset map
+	m.opts = DocoptOpts{}
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+
+	assert.Len(m.opts, 1)
+	_, exists := m.opts[option_name]
+	assert.True(exists, "option_name key must exist in m.opts")
+	assert.Equal(1, m.opts[option_name].(int), "Repeat-able: must be a counter")
+	assert.Equal(1, m.i, "m.i invalid index")
+
+	// Repeat-able counted 2 times
+	// another time (we rewind the argument index)
+	m.i = 0
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	assert.Equal(2, m.opts[option_name].(int), "2 times Repeat-able must be a counter")
+
+	// ---------------------- option with argument
+	option_value := "FILENAME"
+	node.Children = []*DocoptAst{
+		&DocoptAst{
+			Type: Usage_argument,
+			Token: &lexer.Token{
+				Type:  ARGUMENT,
+				Value: option_value,
+			},
+		},
+	}
+	node.Repeat = false
+
+	option_argument := "some_file.txt"
+	m.argv = append(m.argv, option_argument)
+	m.i = 0
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	assert.Equal(2, m.i, "m.i invalid index")
+	assert.Equal(option_argument, m.opts[option_name].(string), "option must have an argument")
+
+	// ---------------------- Usage_short_option with argument Repeat-able
+	node.Repeat = true
+	m.argv = append(m.argv, option_argument, option_argument)
+	assert.Len(m.argv, 4)
+	m.i = 0
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	// move to one option
+	assert.Equal(2, m.i, "m.i invalid index")
+	assert.Equal([]string{option_argument}, m.opts[option_name].([]string), "Repeat-able option must have []string arguments")
 }
 
 func Test_Split_argv(t *testing.T) {
@@ -592,6 +584,25 @@ func Test_Match_Usage_Expr(t *testing.T) {
 	matched, err = m.Match_Usage_Expr(expr)
 	assert.Nil(err)
 	assert.True(matched, "Match_Usage_Expr must succed")
+}
+
+func Test_Get_OptionRule(t *testing.T) {
+	assert := assert.New(t)
+	_, p, _ := helper_load_usage(t, "docopts.docopt")
+	options, err := p.transform_Options_section_to_map()
+	assert.Nil(err)
+
+	m := &MatchEngine{}
+	assert.Nil(m.options)
+
+	// initialize
+	m.options = &options
+	assert.Greater(len(*m.options), 0, "OptionsMap must have elements")
+
+	// an option without alternative long name
+	o, ok := m.Get_OptionRule("-A")
+	assert.True(ok)
+	assert.Nil(o.Long)
 }
 
 // TODO:

@@ -190,7 +190,23 @@ func (m *MatchEngine) Match_empty_argv(expr *DocoptAst) (bool, error) {
 	return true, nil
 }
 
+// Match_options() check if the current argv[i] can be in Usage_options_shortcut
+// the argument must be a option SHORT or LONG
+// seek in OptionsMap => match
 func (m *MatchEngine) Match_options() (bool, error) {
+	a := m.argv[m.i]
+	s := len(a)
+	is_short := s == 2 && a[0] == '-' && a[1] != '-'
+	start_with_2dash := a[0] == '-' && a[1] == '-'
+
+	if start_with_2dash && s < 4 || !is_short {
+		return false, nil
+	}
+
+	//if o, ok := m.Get_OptionRule(a); ok {
+	//	m.opts[o.Long]
+	//}
+
 	return false, fmt.Errorf("Match_options not implemented")
 }
 
@@ -202,6 +218,7 @@ func (m *MatchEngine) Match_Usage_Group(g *DocoptAst) (matched bool, err error) 
 
 	nb := len(g.Children)
 	if nb != 1 {
+		// group surround a single node Usage_Expr
 		err = fmt.Errorf("Expected only one Children got %d, for Group: %s", nb, g.Type)
 		return
 	}
@@ -210,10 +227,7 @@ func (m *MatchEngine) Match_Usage_Group(g *DocoptAst) (matched bool, err error) 
 	old_i := m.i
 
 	// [options]
-	if g.Type == Usage_optional_group &&
-		len(expr.Children) == 1 &&
-		expr.Children[0].Type == Usage_argument &&
-		expr.Children[0].Token.Value == "options" {
+	if g.Type == Usage_options_shortcut {
 		matched, err = m.Match_options()
 	} else {
 		matched, err = m.Match_Usage_Expr(expr)
@@ -364,6 +378,8 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 		if is_short && a == k {
 			// replace short option by its long version if it exists
 			if alternative, ok := m.Get_OptionRule(k); ok {
+				// ok even if alternative.Long is nil: Match_Usage_option uses Match_Assign
+				// which will use default option's short name (k) in such case
 				matched, err = m.Match_Usage_option(n, &a, alternative.Long)
 			} else {
 				matched, err = m.Match_Usage_option(n, &a, &k)
@@ -371,7 +387,7 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 			matched = true
 		} else {
 			// not matched
-			if alternative, ok := m.Get_OptionRule(k); ok {
+			if alternative, ok := m.Get_OptionRule(k); ok && alternative.Long != nil {
 				m.opts[*alternative.Long] = false
 			} else {
 				m.opts[k] = false
