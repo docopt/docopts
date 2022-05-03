@@ -25,18 +25,40 @@ children:
         children:
         - node: Usage_Expr
           children:
-          - node: Usage_short_option
-            token: { type: SHORT, value: "-o" }
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "OUTPUT" }
+          - node: Usage_replaced
+            children:
+            - node: Option_alternative_group
+              children:
+              - node: Option_short
+                token: { type: SHORT, value: "-o" }
+                children:
+                - node: Option_argument
+                  token: { type: ARGUMENT, value: "OUTPUT" }
+            - node: Usage_old
+              children:
+              - node: Usage_short_option
+                token: { type: SHORT, value: "-o" }
+              - node: Usage_argument
+                token: { type: ARGUMENT, value: "OUTPUT" }
       - node: Usage_optional_group
         children:
         - node: Usage_Expr
           children:
-          - node: Usage_short_option
-            token: { type: SHORT, value: "-t" }
-          - node: Usage_argument
-            token: { type: ARGUMENT, value: "TEST" }
+          - node: Usage_replaced
+            children:
+            - node: Option_alternative_group
+              children:
+              - node: Option_short
+                token: { type: SHORT, value: "-t" }
+                children:
+                - node: Option_argument
+                  token: { type: ARGUMENT, value: "TEST" }
+            - node: Usage_old
+              children:
+              - node: Usage_short_option
+                token: { type: SHORT, value: "-t" }
+              - node: Usage_argument
+                token: { type: ARGUMENT, value: "TEST" }
 - node: Free_section
 - node: Options_section
   children:

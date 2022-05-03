@@ -36,9 +36,10 @@ type pending_usage_string struct {
 	collected    []string
 }
 
-// Serialize_DocoptAst() serialize DocoptAst to YAML to stdout
+// Serialize_DocoptAst() serialize DocoptAst to YAML to a []string
 // (for cmd/docopt-analyze/main.go -y)
-// output a YAML suitable for Load_ast_from_yaml()
+//
+// Creates a YAML suitable for Load_ast_from_yaml()
 //
 // call:
 //   var out []string
@@ -46,6 +47,9 @@ type pending_usage_string struct {
 //
 // Always call from the Root with empty `indent` and nil `usage_string`
 // Result of the serialization is stored in `out`
+//
+// An extra YAML key is computed: `usage_line_input:` which is a rebuild
+// of original usage line composed from the AST.
 func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usage_string, out *[]string) {
 	if n.Type == Root {
 		*out = append(*out, fmt.Sprintf("---\n"))
@@ -74,7 +78,8 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 
 	if n.Token != nil {
 		*out = append(*out, fmt.Sprintf("%stoken: { type: %s, value: %q }\n", indent, n.Token.Regex_name, n.Token.Value))
-		if usage_string != nil {
+		// Option_alternative_group in Usage_replaced are not part of original AST
+		if usage_string != nil && !n.Has_Parent(Option_alternative_group) {
 			// repeat-able long option with argument the elipsis will be put at the end of the children loop
 			if n.Repeat && nb_children == 0 {
 				usage_string.collected = append(usage_string.collected, n.Token.Value+"...")
@@ -91,6 +96,7 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 
 	if nb_children > 0 {
 		close_token := ""
+		// handle usage_string for groups
 		if n.Type == Usage_optional_group {
 			usage_string.collected = append(usage_string.collected, "[")
 			close_token = "]"
@@ -106,6 +112,7 @@ func Serialize_DocoptAst(n *DocoptAst, indent string, usage_string *pending_usag
 		*out = append(*out, fmt.Sprintf("%schildren:\n", indent))
 		for i := 0; i < nb_children; i++ {
 			Serialize_DocoptAst(n.Children[i], indent, usage_string, out)
+			// alternative element in group
 			if close_token != "" && i < nb_children-1 {
 				usage_string.collected = append(usage_string.collected, "|")
 			}

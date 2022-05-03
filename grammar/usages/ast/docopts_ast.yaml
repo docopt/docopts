@@ -49,10 +49,26 @@ children:
     - node: Usage_Expr
       children:
       - node: Usage_options_shortcut
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-h" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-h" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+          - node: Option_long
+            token: { type: LONG, value: "--help" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<msg>" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
@@ -76,14 +92,41 @@ children:
           children:
           - node: Usage_long_option
             token: { type: LONG, value: "--no-declare" }
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-A" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<name>" }
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-h" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-A" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<name>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-A" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<name>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-h" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+          - node: Option_long
+            token: { type: LONG, value: "--help" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<msg>" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
@@ -101,14 +144,41 @@ children:
     - node: Usage_Expr
       children:
       - node: Usage_options_shortcut
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-G" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<prefix>" }
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-h" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-G" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<prefix>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-G" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<prefix>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-h" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+          - node: Option_long
+            token: { type: LONG, value: "--help" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<msg>" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group
@@ -128,10 +198,26 @@ children:
       - node: Usage_options_shortcut
       - node: Usage_long_option
         token: { type: LONG, value: "--no-mangle" }
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-h" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "<msg>" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-h" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+          - node: Option_long
+            token: { type: LONG, value: "--help" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "<msg>" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-h" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<msg>" }
       - node: Usage_argument
         token: { type: ARGUMENT, value: ":" }
       - node: Usage_optional_group

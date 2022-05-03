@@ -28,6 +28,8 @@ const (
 	Usage_required_group
 	Usage_Expr
 	Usage_options_shortcut
+	Usage_replaced
+	Usage_old
 	Free_section
 	Section_name
 	Section_node
@@ -40,6 +42,7 @@ const (
 	Option_alternative_group
 	Option_description
 	Description_node
+	// This DocoptNodeType must be the last one
 	Last_node_type
 )
 
@@ -120,4 +123,78 @@ func (n *DocoptAst) Detach_from_parent() bool {
 		}
 	}
 	return found
+}
+
+// Find_recursive_by_Token() Search recursively in the AST from `start_node` for a node
+// than match `t` Type and Value.
+// Returns: position int parent's Children index, node pointer found, and a bool for the search success
+func (start_node *DocoptAst) Find_recursive_by_Token(t *lexer.Token, parent_index int) (int, *DocoptAst, bool) {
+	if start_node.Token != nil && start_node.Token.Type == t.Type && start_node.Token.Value == t.Value {
+		return parent_index, start_node, true
+	}
+
+	for i, n := range start_node.Children {
+		if pos, n2, ok := n.Find_recursive_by_Token(t, i); ok {
+			return pos, n2, true
+		}
+	}
+	return -1, nil, false
+}
+
+func (parent *DocoptAst) AppendNode(n *DocoptAst, override_parrent *DocoptAst) {
+	if override_parrent != nil {
+		n.Parent = override_parrent
+	}
+	parent.Children = append(parent.Children, n)
+}
+
+func (n *DocoptAst) Deep_copy() *DocoptAst {
+	new_node := *n
+	new_node.Children = []*DocoptAst{}
+	var child_copy *DocoptAst
+	for _, c := range n.Children {
+		if len(c.Children) > 0 {
+			child_copy = c.Deep_copy()
+		} else {
+			// copy node without Children direcly
+			node_copy := *c
+			child_copy = &node_copy
+		}
+		(&new_node).AppendNode(child_copy, &new_node)
+	}
+	return &new_node
+}
+
+func (n *DocoptAst) Deep_copy_exclude(exclude *[]DocoptNodeType) *DocoptAst {
+	if exclude == nil {
+		return n.Deep_copy()
+	}
+
+	for _, x := range *exclude {
+		if n.Type == x {
+			return nil
+		}
+	}
+
+	new_node := *n
+	new_node.Children = []*DocoptAst{}
+	var child_copy *DocoptAst
+	for _, c := range n.Children {
+		child_copy = c.Deep_copy_exclude(exclude)
+		if child_copy != nil {
+			(&new_node).AppendNode(child_copy, &new_node)
+		}
+	}
+	return &new_node
+}
+
+func (n *DocoptAst) Has_Parent(t DocoptNodeType) bool {
+	if n.Parent != nil {
+		if n.Parent.Type == t {
+			return true
+		} else {
+			return n.Parent.Has_Parent(t)
+		}
+	}
+	return false
 }

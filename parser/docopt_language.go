@@ -38,6 +38,7 @@ type DocoptParser struct {
 	Errors       []error
 	ast          *DocoptAst
 	current_node *DocoptAst
+	// pointing to toplevel section node
 	options_node *DocoptAst
 	usage_node   *DocoptAst
 
@@ -56,7 +57,10 @@ const (
 	Reason_PROG_NAME_sequence
 	Reason_EOF_reached
 	Reason_Continue
+	// End Of Group
 	Reason_EOG_reached
+	// End Of Option
+	Reason_EOO_reached
 )
 
 type Reason struct {
@@ -64,7 +68,7 @@ type Reason struct {
 	Leaving bool
 }
 
-// golang doesn't have const complex type
+// golang doesn't have const complex type assingment
 var (
 	Error              = Reason{Reason_Error, true}
 	TWO_NEWLINE        = Reason{Reason_TWO_NEWLINE, true}
@@ -72,6 +76,7 @@ var (
 	EOF_reached        = Reason{Reason_PROG_NAME_sequence, true}
 	Continue           = Reason{Reason_Continue, false}
 	END_OF_Group       = Reason{Reason_EOG_reached, true}
+	END_OF_Option      = Reason{Reason_EOO_reached, true}
 )
 
 type Consume_method func() error
@@ -161,6 +166,12 @@ func ParserInit(source []byte) (*DocoptParser, error) {
 	def := *p.Parse_def[Usage_optional_group]
 	p.Parse_def[Usage_required_group] = &def
 
+	p.Parse_def[Option_line] = &Consumer_Definition{
+		create_self_node:  true,
+		save_current_node: true,
+		consume_func:      Consume_Option_line,
+	}
+
 	return p, nil
 }
 
@@ -246,13 +257,21 @@ func consumer(name string, method Consume_method) Consume_func {
 	}
 }
 
-// Parse() main parser entry point, for parsing docopt syntax
+// Parse() parser main entry point, for parsing docopt syntax
 // pre-condition: lexer must be initialized with the []byte of the
 // text to parse, See: ParserInit()
 func (p *DocoptParser) Parse() *DocoptAst {
 	p.CreateNode(Root, nil)
+	p.Parse_raw()
+	p.Option_ast_replace()
 
-	// list parsing_step
+	return p.ast
+}
+
+// Parse_raw() Parser first pass
+// Parses the whole docopt syntax and build raw AST
+func (p *DocoptParser) Parse_raw() *DocoptAst {
+	// parsing_step: our Grammar
 	parse := []Consume_func{
 		consumer("Consume_Prologue", p.Consume_Prologue),
 		consumer("Consume_Usage", p.Consume_Usage),
@@ -269,6 +288,95 @@ func (p *DocoptParser) Parse() *DocoptAst {
 	}
 
 	return p.ast
+}
+
+func (p *DocoptParser) Option_ast_replace() error {
+	options, err := p.transform_Options_section_to_map()
+	if err != nil {
+		return err
+	}
+
+	// loop all Option_line
+	for _, ol := range p.options_node.Children {
+		if ol.Type != Option_line {
+			continue
+		}
+
+		for _, o := range ol.Children {
+			if o.Type != Option_long && o.Type != Option_short {
+				continue
+			}
+
+			k := o.Token.Value
+
+			// search in all Usage_line
+			for _, ul := range p.usage_node.Children {
+				if ul.Type != Usage_line {
+					continue
+				}
+				if pos, n, found := ul.Find_recursive_by_Token(o.Token, -1); found {
+					parent := n.Parent
+
+					// is Option handling an argument?
+					if options[k].Arg_count > 0 {
+						nb := len(n.Children)
+						if nb > 0 && n.Children[0].Type == Usage_argument {
+							if n.Children[0].Token.Value != *options[k].Argument_name {
+								return fmt.Errorf("Option_ast_replace: argument name mismatch")
+							}
+							// else: we have a normal match with a child.
+							// ex: --long=ARG
+							// it's OK we do nothing.
+
+						} else if nb == 0 && len(parent.Children) > pos && parent.Children[pos+1].Type == Usage_argument {
+							// we found an argument separated from Option node just following our node
+							if parent.Children[pos+1].Token.Value != *options[k].Argument_name {
+								// or definition mismatch
+								return fmt.Errorf("Option_ast_replace: argument name mismatch")
+							} else {
+								// the following node is and Usage_argument with the expected Argument_name
+
+								detached_arg := parent.Detach_child(pos + 1)
+								replaced := &DocoptAst{
+									Type:   Usage_replaced,
+									Parent: parent,
+								}
+
+								// we copy the Option_line first children Option_long and Option_short only
+								group := replaced.AddNode(Option_alternative_group, nil)
+								for _, opt_node := range ol.Children {
+									if opt_node.Type == Option_long || opt_node.Type == Option_short {
+										copy_node := opt_node.Deep_copy_exclude(&[]DocoptNodeType{Option_description})
+										group.AppendNode(copy_node, group)
+									}
+								}
+
+								// moving replaced option from Usage into a nde Usage_old node
+								old := &DocoptAst{
+									Type:     Usage_old,
+									Parent:   replaced,
+									Children: []*DocoptAst{parent.Children[pos], detached_arg},
+								}
+								// updating parent link
+								for _, c := range old.Children {
+									c.Parent = old
+								}
+
+								// this Usage_old node become a child of `replaced`
+								replaced.AppendNode(old, replaced)
+
+								// finally we replace the positon of the option we found with the new Usage_replaced
+								// sub-tree
+								parent.Children[pos] = replaced
+							}
+						} // enf of replace two node: Usage_short_option or Usage_long_option followed by Usage_argument
+					}
+				}
+			} // end for Usage_line loop
+		} // end for Option_long / Option_short
+	} // end for Option_line loop
+
+	return nil
 }
 
 // OptionRule is used to convert Options_section to OptionsMap
@@ -291,6 +399,7 @@ func (p *DocoptParser) transform_Options_section_to_map() (OptionsMap, error) {
 
 	options = make(OptionsMap)
 	nb_children := len(p.options_node.Children)
+	var k *string
 	if nb_children > 0 {
 		for _, o := range p.options_node.Children {
 			if o.Type != Option_line {
@@ -298,21 +407,24 @@ func (p *DocoptParser) transform_Options_section_to_map() (OptionsMap, error) {
 			}
 
 			r := &OptionRule{}
-			for _, s := range o.Children {
-				if s.Type == Option_long {
-					r.Long = &s.Token.Value
-					options[*r.Long] = r
-					if len(s.Children) == 1 && s.Children[0].Type == Option_argument {
-						r.Arg_count = 1
-						r.Argument_name = &s.Children[0].Token.Value
-					}
+			for _, opt := range o.Children {
+				k = nil
+
+				if opt.Type == Option_long {
+					k = &opt.Token.Value
+					r.Long = k
 				}
-				if s.Type == Option_short {
-					r.Short = &s.Token.Value
-					options[*r.Short] = r
-					if len(s.Children) == 1 && s.Children[0].Type == Option_argument {
+				// append to OptionsMap both long and short option
+				if opt.Type == Option_short {
+					k = &opt.Token.Value
+					r.Short = k
+				}
+
+				if k != nil {
+					options[*k] = r
+					if len(opt.Children) == 1 && opt.Children[0].Type == Option_argument {
 						r.Arg_count = 1
-						r.Argument_name = &s.Children[0].Token.Value
+						r.Argument_name = &opt.Children[0].Token.Value
 					}
 				}
 			}
@@ -416,7 +528,7 @@ func (p *DocoptParser) Consume_Prologue() error {
 		p.NextToken()
 
 		if p.current_token.Type == USAGE {
-			// TODO: should we leav prologue and handle usage_node creation outside of Consume_Prologue?
+			// TODO: should we leave prologue and handle usage_node creation outside of Consume_Prologue?
 			// leaving Prologue
 			p.usage_node = p.ast.AddNode(Usage_section, nil)
 			p.usage_node.AddNode(Usage, p.current_token)
@@ -921,6 +1033,8 @@ func (p *DocoptParser) Change_lexer_state(new_state string) error {
 	return p.s.ChangeState(new_state)
 }
 
+// Toplevel consumer, called by Parse()
+// as element of the: parsing_step
 func (p *DocoptParser) Consume_Options() error {
 	section_node := p.ast.AddNode(Options_section, nil)
 	p.options_node = section_node
@@ -962,7 +1076,7 @@ func (p *DocoptParser) Consume_Options() error {
 			return nil
 		case LONG_BLANK:
 			if p.next_token.Type == SHORT || p.next_token.Type == LONG {
-				if err = p.Consume_option_line(); err != nil {
+				if _, err = p.Consume_loop(Option_line); err != nil {
 					return err
 				}
 			}
@@ -971,7 +1085,8 @@ func (p *DocoptParser) Consume_Options() error {
 			continue
 		}
 
-		// unmatch Options_node
+		// unmatched Options_node
+		// TODO parse error
 		p.current_node.AddNode(n, p.current_token)
 	}
 
@@ -989,7 +1104,7 @@ func (p *DocoptParser) Consume_assign(argument *lexer.Token) error {
 	nb_children := len(p.current_node.Children)
 	if nb_children == 0 {
 		// Consume_assign must called after having assigned a option LONG in Usage_Expr
-		// or any option in Options_line called with oe without equal sign
+		// or any option in Option_line called with oe without equal sign
 		return fmt.Errorf("Consume_assign: current_node must have an option child, invalid Token: %s", p.current_token.GoString())
 	}
 
@@ -1061,67 +1176,77 @@ func (p *DocoptParser) Consume_option_alternative() error {
 	return fmt.Errorf("%s: parser stoped", p.current_node.Type)
 }
 
-func (p *DocoptParser) Consume_option_line() error {
-	// we did look a head on token: p.current_token is an option LONG or SHORT
+// Consume_Usage_line() : Consume_token_method
+// called be Consume_loop() for parsing an Option_line
+//
+// Sample of token list for the next line of input
+// LONG_BLANK SHORT ARGUMENT PUNCT LONG_BLANK PUNCT ARGUMENT LONG_BLANK LINE_OF_TEXT NEWLINE
+//
+//           -h <msg>, --help=<msg>        The help message in docopt format.
+//                                         Without argument outputs this help.
+//                                         If - is given, read the help message from
+//                                         standard input.
+//                                         If no argument is given, print docopts's own
+//                                         help message and quit.
+//           --another_Option_line         Option_line start at NEWLINE + LONG_BLANK + (LONG or SHORT)
+func Consume_Option_line(p *DocoptParser) (Reason, error) {
+	// we did look ahead one token: p.current_token is an option LONG or SHORT
 	// the option argument will be consumed during the first loop
-	saved_node := p.current_node
-	option_line := p.current_node.AddNode(Option_line, nil)
-	p.current_node = option_line
 	var err error = nil
-forLoopOptionLine:
-	for p.run {
-		p.NextToken()
+	var reason Reason = Continue
 
-		switch p.current_token.Type {
-		case lexer.EOF, NEWLINE:
-			// leaving condition option without description
-			if len(p.current_node.Children) == 0 {
-				err = fmt.Errorf("%s: %s unexpected empty option, invalid Token: %s",
-					p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token.GoString())
-			}
-			break forLoopOptionLine
-		case LONG_BLANK:
-			// LONG_BLANK in Consume_option_line occurs after options are comsumed
-			// leaving condition of Consume_Usage_line
-			err = p.Consume_option_description()
-			break forLoopOptionLine
-		case SHORT:
-			p.current_node.AddNode(Option_short, p.current_token)
-		case LONG:
-			p.current_node.AddNode(Option_long, p.current_token)
-		case ARGUMENT:
-			if err = p.Consume_assign(p.current_token); err != nil {
-				break forLoopOptionLine
-			}
-		case PUNCT:
-			switch p.current_token.Value {
-			case ",":
-				continue
-			case "=":
-				if err := p.Consume_assign(p.next_token); err != nil {
-					break forLoopOptionLine
-				}
+	switch p.current_token.Type {
+	case lexer.EOF, NEWLINE:
+		// could be a leaving condition: option without description
+		if len(p.current_node.Children) == 0 {
+			err = fmt.Errorf("%s: %s unexpected empty option, invalid Token: %s",
+				p.current_node.Type, p.symbols_name[p.current_token.Type], p.current_token.GoString())
+		} else {
+			reason = END_OF_Option
+		}
+	case LONG_BLANK:
+		// LONG_BLANK in Consume_Option_line occurs after options are comsumed.
+		//
+		// TODO: what about a LONG_BLANK (ex: 2 spaces) in option? : -m,  --long
+		//       look ahead to accept if followed be LONG or SHORT depending of the previous order
+		// leaving condition of Consume_Usage_line
+		if err = p.Consume_Option_description(); err == nil {
+			reason = END_OF_Option
+		}
+	case SHORT:
+		p.current_node.AddNode(Option_short, p.current_token)
+	case LONG:
+		p.current_node.AddNode(Option_long, p.current_token)
+	case ARGUMENT:
+		err = p.Consume_assign(p.current_token)
+	case PUNCT:
+		switch p.current_token.Value {
+		case ",":
+			// ignored consumed
+			// TODO: Must be followed by LONG or SHORT
+		case "=":
+			if err = p.Consume_assign(p.next_token); err == nil {
 				// consume ARGUMENT assigned
 				p.NextToken()
-			default:
-				err = fmt.Errorf("%s: unexpected PUNC, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
-				break forLoopOptionLine
 			}
 		default:
-			err = fmt.Errorf("%s: Consume_option_line invalid Token: %s", p.current_node.Type, p.current_token.GoString())
-			break forLoopOptionLine
+			err = fmt.Errorf("%s: unexpected PUNC, invalid Token: %s", p.current_node.Type, p.current_token.GoString())
 		}
-	} // end forLoopOptionLine
+	default:
+		err = fmt.Errorf("%s: Consume_Option_line invalid Token: %s", p.current_node.Type, p.current_token.GoString())
+	} // end switch p.current_token.Type
 
-	if p.run {
-		p.current_node = saved_node
-		return err
+	if err != nil {
+		return Error, err
 	} else {
-		return fmt.Errorf("%s: parser stoped", p.current_node.Type)
+		return reason, err
 	}
 }
 
-// option description occurs after option has been parsed and can continue on multiple line
+// Consume_Option_description() is NOT a Consume_token_method actually.
+// It uses a persistent index `current_line` for counting multiline Description_node.
+//
+// Option description occurs after option has been parsed and can continue on multiple line
 // indented by LONG_BLANK. The description is terminated when a new option SHORT or LONG
 // is matched at the beginning of the line: NEWLINE LONG_BLANK (SHORT | LONG)
 //
@@ -1135,7 +1260,7 @@ forLoopOptionLine:
 //                                 If no argument is given, print docopts's own
 //                                 help message and quit.
 // => LONG_BLANK + option ==> leaving
-func (p *DocoptParser) Consume_option_description() error {
+func (p *DocoptParser) Consume_Option_description() error {
 	description := p.current_node.AddNode(Option_description, nil)
 	current_line := 0
 
@@ -1161,7 +1286,7 @@ func (p *DocoptParser) Consume_option_description() error {
 			return nil
 		case LONG_BLANK:
 			if current_line > 0 && (p.next_token.Type == SHORT || p.next_token.Type == LONG) {
-				// LONG_BLANK need to be re extracted for starting the next Options_line
+				// LONG_BLANK need to be re extracted for starting the next Option_line
 				p.reject_current_token()
 				return nil
 			}

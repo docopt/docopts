@@ -51,10 +51,21 @@ children:
       token: { type: PROG_NAME, value: "myprog" }
     - node: Usage_Expr
       children:
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-A" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "ARG" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-A" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "ARG" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-A" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "ARG" }
   - node: Usage_line
     usage_line_input: "myprog -B BARG"
     children:
@@ -62,10 +73,26 @@ children:
       token: { type: PROG_NAME, value: "myprog" }
     - node: Usage_Expr
       children:
-      - node: Usage_short_option
-        token: { type: SHORT, value: "-B" }
-      - node: Usage_argument
-        token: { type: ARGUMENT, value: "BARG" }
+      - node: Usage_replaced
+        children:
+        - node: Option_alternative_group
+          children:
+          - node: Option_short
+            token: { type: SHORT, value: "-B" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "BARG" }
+          - node: Option_long
+            token: { type: LONG, value: "--blong" }
+            children:
+            - node: Option_argument
+              token: { type: ARGUMENT, value: "BARG" }
+        - node: Usage_old
+          children:
+          - node: Usage_short_option
+            token: { type: SHORT, value: "-B" }
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "BARG" }
 - node: Free_section
 - node: Options_section
   children:

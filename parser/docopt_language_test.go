@@ -328,30 +328,20 @@ func Test_Match_Usage_node_Usage_long_option(t *testing.T) {
 	helper_test_Usage_option_Repeat_common(t, m, node, option_name)
 }
 
-// helper_find_node(p, p.usage_node.Children[2], "LONG --speed")
+// Call: helper_find_node(p, p.usage_node.Children[2], "LONG --speed")
+// wrapper on Find_recursive_by_Token()
+// `p` is used to revert Token Type from a string to a valid Token rune
 func helper_find_node(p *DocoptParser, start *DocoptAst, node_desc string) (*DocoptAst, bool) {
 	r := strings.Split(node_desc, " ")
-	var token_type rune
-	if t, ok := p.all_symbols[r[0]]; ok {
-		token_type = t
+	t := &lexer.Token{
+		// Type is a rune from lexer's Symbols
+		// map fail match will panic, OK
+		Type:  p.all_symbols[r[0]],
+		Value: r[1],
 	}
-	token_value := r[1]
 
-	explore_node := []*DocoptAst{start}
-	nb_node := 1
-
-	for i := 0; i < nb_node; i++ {
-		n := explore_node[i]
-		if helper_node_is_type(n, token_type, token_value) {
-			return n, true
-		}
-		nb_children := len(n.Children)
-		if nb_children > 0 {
-			explore_node = append(explore_node, n.Children...)
-			nb_node += nb_children
-		}
-	}
-	return nil, false
+	_, n, ok := start.Find_recursive_by_Token(t, -1)
+	return n, ok
 }
 
 func helper_node_is_type(n *DocoptAst, t rune, v string) bool {
@@ -415,28 +405,30 @@ func Test_Match_Usage_node_Usage_short_option(t *testing.T) {
 	m.options = nil
 	helper_test_Usage_option_Repeat_common(t, m, node, option_name)
 
-	// --------------------------------------- Usage_short_option that has no alternative
-	m.options = &options
-	option_name = "-A"
-	o, exists := m.Get_OptionRule(option_name)
-	assert.True(exists)
-	assert.Nil(o.Long)
+	// DISABLED
+	//
+	// // --------------------------------------- Usage_short_option that has no alternative
+	// m.options = &options
+	// option_name = "-A"
+	// o, exists := m.Get_OptionRule(option_name)
+	// assert.True(exists)
+	// assert.Nil(o.Long)
 
-	m.i = 0
-	arg_value := "some_argument"
-	m.argv = Split_argv([]string{"-A", arg_value})
-	m.opts = DocoptOpts{}
+	// m.i = 0
+	// arg_value := "some_argument"
+	// m.argv = Split_argv([]string{"-A", arg_value})
+	// m.opts = DocoptOpts{}
 
-	if n, found := helper_find_node(p, p.usage_node.Children[2], "SHORT -A"); found {
-		node = n
-	} else {
-		t.Errorf("node not found for -A")
-	}
-	helper_ensure_matched(t, m.Match_Usage_node, node)
-	assert.Len(m.opts, 1)
-	opt, exists := m.opts[option_name].(string)
-	assert.True(exists, "Usage_short_option -A without alt must be set in m.opts")
-	assert.Equal(opt, arg_value)
+	// if n, found := helper_find_node(p, p.usage_node.Children[2], "SHORT -A"); found {
+	// 	node = n
+	// } else {
+	// 	t.Errorf("node not found for -A")
+	// }
+	// helper_ensure_matched(t, m.Match_Usage_node, node)
+	// assert.Len(m.opts, 1)
+	// opt, exists := m.opts[option_name].(string)
+	// assert.True(exists, "Usage_short_option -A without alt must be set in m.opts")
+	// assert.Equal(opt, arg_value)
 }
 
 func helper_test_Usage_option_Repeat_common(t *testing.T, m *MatchEngine, node *DocoptAst, option_name string) {

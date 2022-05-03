@@ -26,35 +26,37 @@ func _() {
 	_ = x[Usage_required_group-15]
 	_ = x[Usage_Expr-16]
 	_ = x[Usage_options_shortcut-17]
-	_ = x[Free_section-18]
-	_ = x[Section_name-19]
-	_ = x[Section_node-20]
-	_ = x[Options_section-21]
-	_ = x[Options_node-22]
-	_ = x[Option_line-23]
-	_ = x[Option_short-24]
-	_ = x[Option_long-25]
-	_ = x[Option_argument-26]
-	_ = x[Option_alternative_group-27]
-	_ = x[Option_description-28]
-	_ = x[Description_node-29]
-	_ = x[Last_node_type-30]
+	_ = x[Usage_replaced-18]
+	_ = x[Usage_old-19]
+	_ = x[Free_section-20]
+	_ = x[Section_name-21]
+	_ = x[Section_node-22]
+	_ = x[Options_section-23]
+	_ = x[Options_node-24]
+	_ = x[Option_line-25]
+	_ = x[Option_short-26]
+	_ = x[Option_long-27]
+	_ = x[Option_argument-28]
+	_ = x[Option_alternative_group-29]
+	_ = x[Option_description-30]
+	_ = x[Description_node-31]
+	_ = x[Last_node_type-32]
 }
 
 const (
 	_DocoptNodeType_name_0 = "Unmatched_node"
-	_DocoptNodeType_name_1 = "NONE_nodeRootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprUsage_options_shortcutFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_nodeLast_node_type"
+	_DocoptNodeType_name_1 = "NONE_nodeRootProloguePrologue_nodeUsage_sectionUsageUsage_lineProg_nameUsage_short_optionUsage_long_optionUsage_argumentUsage_unmatched_punctUsage_commandUsage_optional_groupUsage_required_groupUsage_ExprUsage_options_shortcutUsage_replacedUsage_oldFree_sectionSection_nameSection_nodeOptions_sectionOptions_nodeOption_lineOption_shortOption_longOption_argumentOption_alternative_groupOption_descriptionDescription_nodeLast_node_type"
 )
 
 var (
-	_DocoptNodeType_index_1 = [...]uint16{0, 9, 13, 21, 34, 47, 52, 62, 71, 89, 106, 120, 141, 154, 174, 194, 204, 226, 238, 250, 262, 277, 289, 300, 312, 323, 338, 362, 380, 396, 410}
+	_DocoptNodeType_index_1 = [...]uint16{0, 9, 13, 21, 34, 47, 52, 62, 71, 89, 106, 120, 141, 154, 174, 194, 204, 226, 240, 249, 261, 273, 285, 300, 312, 323, 335, 346, 361, 385, 403, 419, 433}
 )
 
 func (i DocoptNodeType) String() string {
 	switch {
 	case i == -1:
 		return _DocoptNodeType_name_0
-	case 1 <= i && i <= 30:
+	case 1 <= i && i <= 32:
 		i -= 1
 		return _DocoptNodeType_name_1[_DocoptNodeType_index_1[i]:_DocoptNodeType_index_1[i+1]]
 	default:
