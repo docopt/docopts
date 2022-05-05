@@ -19,13 +19,13 @@
 * matching engine
  * parse AST for match
   * `Match_Usage_Expr` / `Match_Usage_Group`
-    * `Match_options`
-     * Test_Match_Usage_node_Usage_short_option Get_OptionRule with no alternative -A <==
+    * `Match_options` (`Usage_options_shortcut`)
   * allow `LONG_BLANK` in `Consume_group`
  * compare recieved os.Args to valid argument or option
 * parse Options: default value
 * Refactor String() method to our token with a go generate? => can use GoString()
 * full error handling support  and reporting
+ * refactor error passing and output format of error reporting
 * Update ebnf language (add link to ebnf description) [`grammar/docopt_language.ebnf`](grammar/docopt_language.ebnf)
 * refactor test with assert package + assert failure code path
 * Options: parsing section allow `LONG_BLANK` after comma if followed by `Option_short` or `Option_long` ?

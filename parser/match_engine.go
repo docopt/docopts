@@ -266,27 +266,31 @@ const (
 func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bool, error) {
 	matched := false
 	var t MachAssignType
-	if len(n.Children) > 0 && n.Children[0].Type == Usage_argument {
-		// option has a required argument
-		if len(m.argv)-(m.i+1) > 0 {
-			old_i := m.i
-			// will also be moved +1 at the end eating 2 argv
-			m.i++
+	if len(n.Children) > 0 {
+		if n.Children[0].Type == Usage_argument || n.Children[0].Type == Option_argument {
+			// option has a required argument
+			if len(m.argv)-(m.i+1) > 0 {
+				old_i := m.i
+				// will also be moved +1 at the end eating 2 argv
+				m.i++
 
-			if n.Repeat {
-				t = String_repeat
+				if n.Repeat {
+					t = String_repeat
+				} else {
+					t = String_type
+				}
+				// we force the key assignment with the option's name k
+				if err := m.Match_Assign(t, n.Children[0], k); err != nil {
+					m.i = old_i
+					return false, err
+				}
+				matched = true
 			} else {
-				t = String_type
+				// no more argument in argv[]
+				return false, fmt.Errorf("option: %s require an argument", *k)
 			}
-			// we force the key assignment with the option's name k
-			if err := m.Match_Assign(t, n.Children[0], k); err != nil {
-				m.i = old_i
-				return false, err
-			}
-			matched = true
 		} else {
-			// no more argument in argv[]
-			return false, fmt.Errorf("option: %s require an argument", *k)
+			return false, fmt.Errorf("Unexpected child '%s' for node Type: %s", n.Children[0].Type, n.Type)
 		}
 	} else {
 		// option has no argument (true or false)
@@ -365,7 +369,7 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 			return
 		}
 		matched = true
-	case Usage_long_option:
+	case Usage_long_option, Option_long:
 		start_with_2dash := a[0] == '-' && a[1] == '-'
 		if start_with_2dash && a == k {
 			matched, err = m.Match_Usage_option(n, &a, &k)
@@ -373,14 +377,18 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 			// not matched
 			m.opts[k] = false
 		}
-	case Usage_short_option:
+	case Usage_short_option, Option_short:
 		is_short := len(a) == 2 && a[0] == '-' && a[1] != '-'
 		if is_short && a == k {
 			// replace short option by its long version if it exists
 			if alternative, ok := m.Get_OptionRule(k); ok {
-				// ok even if alternative.Long is nil: Match_Usage_option uses Match_Assign
-				// which will use default option's short name (k) in such case
-				matched, err = m.Match_Usage_option(n, &a, alternative.Long)
+				if alternative.Long == nil {
+					// short option with an option definition but without alternative long
+					// in this case k == alternative.Short
+					matched, err = m.Match_Usage_option(n, &a, alternative.Short)
+				} else {
+					matched, err = m.Match_Usage_option(n, &a, alternative.Long)
+				}
 			} else {
 				matched, err = m.Match_Usage_option(n, &a, &k)
 			}

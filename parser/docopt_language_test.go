@@ -123,7 +123,7 @@ func Test_transform_Options_section_to_map(t *testing.T) {
 	assert.Nil(options["-A"].Long)
 }
 
-func consume_me(p *DocoptParser) (Reason, error) {
+func helper_consumer_function(p *DocoptParser) (Reason, error) {
 	p.current_node.AddNode(NONE_node, nil)
 	var dummy Reason_Value = 33
 	return Reason{dummy, true}, nil
@@ -154,7 +154,7 @@ func Test_Consume_loop(t *testing.T) {
 		create_self_node: true,
 		create_node:      true,
 		toplevel_node:    Usage_Expr,
-		consume_func:     consume_me,
+		consume_func:     helper_consumer_function,
 	}
 
 	reason, err := p.Consume_loop(our_def)
@@ -405,30 +405,29 @@ func Test_Match_Usage_node_Usage_short_option(t *testing.T) {
 	m.options = nil
 	helper_test_Usage_option_Repeat_common(t, m, node, option_name)
 
-	// DISABLED
-	//
-	// // --------------------------------------- Usage_short_option that has no alternative
-	// m.options = &options
-	// option_name = "-A"
-	// o, exists := m.Get_OptionRule(option_name)
-	// assert.True(exists)
-	// assert.Nil(o.Long)
+	// --------------------------------------- Usage_short_option that has no alternative
+	m.options = &options
+	option_name = "-A"
+	o, exists := m.Get_OptionRule(option_name)
+	assert.True(exists)
+	assert.Nil(o.Long)
 
-	// m.i = 0
-	// arg_value := "some_argument"
-	// m.argv = Split_argv([]string{"-A", arg_value})
-	// m.opts = DocoptOpts{}
+	m.i = 0
+	arg_value := "some_argument"
+	m.argv = Split_argv([]string{"-A", arg_value})
+	m.opts = DocoptOpts{}
 
-	// if n, found := helper_find_node(p, p.usage_node.Children[2], "SHORT -A"); found {
-	// 	node = n
-	// } else {
-	// 	t.Errorf("node not found for -A")
-	// }
-	// helper_ensure_matched(t, m.Match_Usage_node, node)
-	// assert.Len(m.opts, 1)
-	// opt, exists := m.opts[option_name].(string)
-	// assert.True(exists, "Usage_short_option -A without alt must be set in m.opts")
-	// assert.Equal(opt, arg_value)
+	if n, found := helper_find_node(p, p.usage_node.Children[2], "SHORT -A"); found {
+		node = n
+	} else {
+		t.Errorf("node not found for -A")
+	}
+	assert.Equal(Option_short, node.Type)
+	helper_ensure_matched(t, m.Match_Usage_node, node)
+	assert.Len(m.opts, 1)
+	opt, exists := m.opts[option_name].(string)
+	assert.True(exists, "Usage_short_option -A without alt must be set in m.opts")
+	assert.Equal(opt, arg_value)
 }
 
 func helper_test_Usage_option_Repeat_common(t *testing.T, m *MatchEngine, node *DocoptAst, option_name string) {
