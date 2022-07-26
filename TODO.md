@@ -69,3 +69,7 @@ parse additionnal format?
 
 * json merge
 * toml merge (ini)
+
+## testing
+
+* https://github.com/docopt/docopt/issues/207 (value with space)

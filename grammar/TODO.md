@@ -20,6 +20,8 @@
  * parse AST for match
   * `Match_Usage_Expr` / `Match_Usage_Group`
     * `Match_options` (`Usage_options_shortcut`)
+     * option in OptionsMap is repeatable? <==
+     * docopt legacy use a argv parser: parseArgv() that also uses options
   * allow `LONG_BLANK` in `Consume_group`
  * compare recieved os.Args to valid argument or option
 * parse Options: default value

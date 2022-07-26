@@ -290,6 +290,9 @@ func (p *DocoptParser) Parse_raw() *DocoptAst {
 	return p.ast
 }
 
+// Option_ast_replace() Parser 2nd pass
+// walk through Options definition AST and replace part of the usage AST
+// with the matching node from Option_line.
 func (p *DocoptParser) Option_ast_replace() error {
 	options, err := p.transform_Options_section_to_map()
 	if err != nil {
@@ -302,6 +305,7 @@ func (p *DocoptParser) Option_ast_replace() error {
 			continue
 		}
 
+		// loop over LONG and SHORT definition
 		for _, o := range ol.Children {
 			if o.Type != Option_long && o.Type != Option_short {
 				continue
@@ -314,6 +318,8 @@ func (p *DocoptParser) Option_ast_replace() error {
 				if ul.Type != Usage_line {
 					continue
 				}
+
+				// search the option in the Usage_line
 				if pos, n, found := ul.Find_recursive_by_Token(o.Token, -1); found {
 					parent := n.Parent
 
@@ -369,7 +375,7 @@ func (p *DocoptParser) Option_ast_replace() error {
 								// sub-tree
 								parent.Children[pos] = replaced
 							}
-						} // enf of replace two node: Usage_short_option or Usage_long_option followed by Usage_argument
+						} // end of replace two node: Usage_short_option or Usage_long_option followed by Usage_argument
 					}
 				}
 			} // end for Usage_line loop
@@ -386,10 +392,18 @@ type OptionRule struct {
 	Arg_count     int
 	Default_value *string
 	Argument_name *string
+	// pointer to the Option in Usage_line if it's definded in Usage
+	Usage_line_option *DocoptAst
 }
 
 type OptionsMap map[string]*OptionRule
 
+// transform_Options_section_to_map() walk through the options_node AST and produce a
+// [string]map OptionsMap to the OptionRule of each option definition.
+//
+// In order to detect if an option definition is Repeatable we have to link it with
+// is its Usage. This is not done as this step because it needs to link Option_line and Usage_line's Options
+// This will be done by Parse 2nd pass: Option_ast_replace()
 func (p *DocoptParser) transform_Options_section_to_map() (OptionsMap, error) {
 	// nil map
 	var options OptionsMap

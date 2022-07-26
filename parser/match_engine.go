@@ -192,22 +192,52 @@ func (m *MatchEngine) Match_empty_argv(expr *DocoptAst) (bool, error) {
 
 // Match_options() check if the current argv[i] can be in Usage_options_shortcut
 // the argument must be a option SHORT or LONG
-// seek in OptionsMap => match
+// seek in OptionsMap in order to find a match
 func (m *MatchEngine) Match_options() (bool, error) {
 	a := m.argv[m.i]
-	s := len(a)
-	is_short := s == 2 && a[0] == '-' && a[1] != '-'
-	start_with_2dash := a[0] == '-' && a[1] == '-'
+	// s := len(a)
+	// is_short := s == 2 && a[0] == '-' && a[1] != '-'
+	// start_with_2dash := a[0] == '-' && a[1] == '-'
 
-	if start_with_2dash && s < 4 || !is_short {
+	// if !start_with_2dash || start_with_2dash && s < 4 || !is_short {
+	// 	return false, nil
+	// }
+
+	if o, ok := m.Get_OptionRule(a); !ok {
 		return false, nil
+	} else {
+		// we found an option match in m.options
+		var t MachAssignType
+		arg_index := -1
+		if o.Arg_count > 0 {
+			arg_index = m.i + 1
+			if len(m.argv)-arg_index <= 0 {
+				// no argument left in argv
+				return false, fmt.Errorf("option: %s require an argument", a)
+			}
+			t = String_type
+		} else {
+			t = Bool_type
+		}
+
+		var k *string
+		// MachAssignType + 1 means a repeatable type in Match_Assign()
+		repeatable := Assign_Type_non_repeat
+		if o.Repeat {
+			repeatable = Assign_Type_repeat
+		}
+
+		if o.Long != nil {
+			k = o.Long
+		} else {
+			k = &a
+		}
+
+		if err := m.Match_Assign(t+repeatable, k, arg_index); err != nil {
+			return false, err
+		}
 	}
-
-	//if o, ok := m.Get_OptionRule(a); ok {
-	//	m.opts[o.Long]
-	//}
-
-	return false, fmt.Errorf("Match_options not implemented")
+	return true, nil
 }
 
 func (m *MatchEngine) Match_Usage_Group(g *DocoptAst) (matched bool, err error) {
@@ -256,8 +286,12 @@ func (m *MatchEngine) Get_OptionRule(k string) (*OptionRule, bool) {
 
 type MachAssignType int
 
+// in MachAssignType computation we use the fact that repeatable type immediately follow base type + 1
+// keep it ordered that way. See Match_Assign() call
 const (
-	String_type MachAssignType = 1 + iota
+	Assign_Type_non_repeat                = 0
+	Assign_Type_repeat                    = 1
+	String_type            MachAssignType = 10 + iota
 	String_repeat
 	Bool_type
 	Bool_repeat
@@ -270,18 +304,12 @@ func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bo
 		if n.Children[0].Type == Usage_argument || n.Children[0].Type == Option_argument {
 			// option has a required argument
 			if len(m.argv)-(m.i+1) > 0 {
-				old_i := m.i
-				// will also be moved +1 at the end eating 2 argv
-				m.i++
-
 				if n.Repeat {
 					t = String_repeat
 				} else {
 					t = String_type
 				}
-				// we force the key assignment with the option's name k
-				if err := m.Match_Assign(t, n.Children[0], k); err != nil {
-					m.i = old_i
+				if err := m.Match_Assign(t, k, m.i+1); err != nil {
 					return false, err
 				}
 				matched = true
@@ -299,7 +327,7 @@ func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bo
 		} else {
 			t = Bool_type
 		}
-		if err := m.Match_Assign(t, n, k); err != nil {
+		if err := m.Match_Assign(t, k, -1); err != nil {
 			return false, err
 		}
 		matched = true
@@ -307,38 +335,27 @@ func (m *MatchEngine) Match_Usage_option(n *DocoptAst, a *string, k *string) (bo
 	return matched, nil
 }
 
-func (m *MatchEngine) Match_Assign(t MachAssignType, n *DocoptAst, force_key *string) error {
-	var k *string
-	if force_key != nil {
-		k = force_key
-	} else {
-		k = &n.Token.Value
-	}
+// Match_Assign() perform m.opts map assigment to the give MachAssignType
+// handle repeatable argument assignment.
+// Assignment are string or bool, if repeatable it becomse []string or counter
+func (m *MatchEngine) Match_Assign(t MachAssignType, k *string, arg_index int) error {
 	switch t {
-	case String_type, String_repeat:
-		a := m.argv[m.i]
-		if n.Repeat || t == String_repeat {
-			if val, present := m.opts[*k].([]string); present {
-				m.opts[*k] = append(val, a)
-			} else {
-				m.opts[*k] = []string{a}
-			}
+	case String_type:
+		m.opts[*k] = m.argv[arg_index]
+	case String_repeat:
+		a := m.argv[arg_index]
+		if val, present := m.opts[*k].([]string); present {
+			m.opts[*k] = append(val, a)
 		} else {
-			// Single
-			m.opts[*k] = a
+			m.opts[*k] = []string{a}
 		}
-	case Bool_type, Bool_repeat:
-		if n.Repeat || t == Bool_repeat {
-			//  command take no value (as option without argument)
-			// check key exists
-			if val, present := m.opts[*k].(int); present {
-				m.opts[*k] = val + 1
-			} else {
-				m.opts[*k] = 1
-			}
+	case Bool_type:
+		m.opts[*k] = true
+	case Bool_repeat:
+		if val, present := m.opts[*k].(int); present {
+			m.opts[*k] = val + 1
 		} else {
-			// Single
-			m.opts[*k] = true
+			m.opts[*k] = 1
 		}
 	default:
 		return fmt.Errorf("Match_Assign: unsupported MachAssignType: %d", t)
@@ -351,11 +368,17 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 	matched = false
 	a := m.argv[m.i]
 	k := n.Token.Value
+
+	repeatable := 0
+	if n.Repeat {
+		repeatable = 1
+	}
+
 	// TODO: handle option default value
 	switch n.Type {
 	case Usage_command:
 		if a == k {
-			err = m.Match_Assign(Bool_type, n, nil)
+			err = m.Match_Assign(Bool_type+repeatable, &k, -1)
 			if err != nil {
 				return
 			}
@@ -364,7 +387,7 @@ func (m *MatchEngine) Match_Usage_node(n *DocoptAst) (matched bool, err error) {
 			m.opts[k] = false
 		}
 	case Usage_argument:
-		err = m.Match_Assign(String_type, n, nil)
+		err = m.Match_Assign(String_type+repeatable, &k, m.i)
 		if err != nil {
 			return
 		}
