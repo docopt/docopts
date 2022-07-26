@@ -1,0 +1,59 @@
+---
+node: Root
+children:
+- node: Prologue
+- node: Usage_section
+  children:
+  - node: Usage
+    token: { type: USAGE, value: "Usage:" }
+  - node: Usage_line
+    usage_line_input: "my_program [ <file>... ]"
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            repeat: true
+            token: { type: ARGUMENT, value: "<file>" }
+  - node: Usage_line
+    usage_line_input: "my_program [ <file> ]..."
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        repeat: true
+        children:
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<file>" }
+  - node: Usage_line
+    usage_line_input: "my_program [ <file> [ <file>... ] ]"
+    children:
+    - node: Prog_name
+      token: { type: PROG_NAME, value: "my_program" }
+    - node: Usage_Expr
+      children:
+      - node: Usage_optional_group
+        children:
+        - node: Usage_Expr
+          children:
+          - node: Usage_argument
+            token: { type: ARGUMENT, value: "<file>" }
+          - node: Usage_optional_group
+            children:
+            - node: Usage_Expr
+              children:
+              - node: Usage_argument
+                repeat: true
+                token: { type: ARGUMENT, value: "<file>" }
+- node: Free_section
+- node: Options_section
+- node: Free_section

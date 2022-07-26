@@ -1,0 +1,3 @@
+Usage: my_program [<file>...]
+       my_program [<file>]...
+       my_program [<file> [<file> ...]]

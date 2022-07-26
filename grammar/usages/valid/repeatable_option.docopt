@@ -1,0 +1,5 @@
+Usage: prog [options] (-f FILE)...
+
+Options:
+  -f FILE     in file repeatable option
+  --verbose   verbose mode
