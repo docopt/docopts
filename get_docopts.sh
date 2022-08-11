@@ -100,6 +100,11 @@ URL="$BASE_URL/$RELEASE/$BINARY_DOWNLOAD"
 
 echo "Fetching from: $URL"
 
+if [[ "$OS_URL" == "darwin" ]]; then
+  # sha256sum doesn't exist on macOS, workaround: https://unix.stackexchange.com/a/426838/152866
+  function sha256sum() { openssl sha256 "$2" | awk '{print $2}'; }
+fi
+
 # verification
 if wget -O $BINARY_DOWNLOAD "$URL" ; then
   file $BINARY_DOWNLOAD
