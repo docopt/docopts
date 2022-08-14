@@ -17,7 +17,6 @@ import (
 )
 
 // vars defined at compile time
-// https://github.com/ahmetb/govvv
 var (
 	Version        string
 	BuildDate      string

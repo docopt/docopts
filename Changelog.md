@@ -1,4 +1,3 @@
 # Change history
 
-See deployment.yml
-
+See the [GitHub Releases](https://github.com/docopt/docopts/releases).
