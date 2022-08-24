@@ -4,12 +4,10 @@
 #
 # Our hack for macos bash version too old for unit testing
 
-# was in .travis.yml
 # brew update takes very long time
-# according to https://docs.travis-ci.com/user/reference/osx#homebrew
 # homebrew is already updated, but it's still really slow
-#- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
-#- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install bash; fi
+#- if [[ "$RUNNER_OS" == "macOS" ]]; then brew update ; fi
+#- if [[ "$RUNNER_OS" == "macOS" ]]; then brew install bash; fi
 
 pathshow ()
 {
@@ -17,7 +15,7 @@ pathshow ()
     eval "echo \$$var | tr : $'\n'"
 }
 
-if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+if [[ "$RUNNER_OS" == "macOS" ]]; then
   if ((BASH_VERSINFO[0] <= 3)) ; then
 
     # The following hack kept a bash5 binary in our repository
