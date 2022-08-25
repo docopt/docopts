@@ -4,11 +4,6 @@
 #
 # Our hack for macos bash version too old for unit testing
 
-# brew update takes very long time
-# homebrew is already updated, but it's still really slow
-#- if [[ "$RUNNER_OS" == "macOS" ]]; then brew update ; fi
-#- if [[ "$RUNNER_OS" == "macOS" ]]; then brew install bash; fi
-
 pathshow ()
 {
     local var=${1:-PATH};
@@ -17,14 +12,7 @@ pathshow ()
 
 if [[ "$RUNNER_OS" == "macOS" ]]; then
   if ((BASH_VERSINFO[0] <= 3)) ; then
-
-    # The following hack kept a bash5 binary in our repository
-    # only for our speedup pupose.
-
-    # we simply install it
-    bash_bin=/usr/local/bin/bash
-    gzip -dc ./bash-5.0.16_x86_64-apple-darwin17.7.0.gz | \
-      sudo bash -c "cat > $bash_bin && chmod a+x $bash_bin"
+    HOMEBREW_NO_AUTO_UPDATE=1 brew install bash # quick install, no brew update (c.f. https://apple.stackexchange.com/a/293252/167983)
   fi
 fi
 
