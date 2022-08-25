@@ -17,6 +17,7 @@ import (
 )
 
 // vars defined at compile time
+// See .goreleaser.yaml ldflags section
 var (
 	Version        string
 	BuildDate      string
