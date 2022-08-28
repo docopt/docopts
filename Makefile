@@ -8,7 +8,7 @@ GOVERSION := $$(go version)
 # keep docopts: as first target for development
 
 docopts: docopts.go Makefile
-	GOVERSION=$(GOVERSION) goreleaser build --rm-dist --snapshot --single-target -o $@
+	go build -o $@
 
 install_builddep:
 	go mod tidy
@@ -35,5 +35,8 @@ README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_he
 clean:
 	rm -f docopts-* docopts README.tmp dist/*
 
-release: clean all test
+snapshot: install_builddep
+	GOVERSION=$(GOVERSION) goreleaser build --rm-dist --snapshot --single-target -o docopts
+
+release: clean all test snapshot
 	GOVERSION=$(GOVERSION) goreleaser release

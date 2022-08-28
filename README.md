@@ -374,6 +374,7 @@ you have Go installed. Or find a local golang developer that you
 trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
 
 local build:
+(also done with our Makefile default target: `make`)
 
 ```
 go build docopts.go
@@ -385,7 +386,7 @@ cross compile for 32 bit:
 env GOOS=linux GOARCH=386 go build docopts.go
 ```
 
-or via Makefile (note that this installs extra, development only dependencies):
+or via Makefile:
 
 ```
 make all
