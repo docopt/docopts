@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Usage: ./travis/cp_to_travis.sh LOCAL_FILENAME
+# Usage: ./ci/cp_to_travis.sh LOCAL_FILENAME
 #
 # require: a bounce host MUST be set before!
 

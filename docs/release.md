@@ -44,25 +44,24 @@ git checkout master
 git commit -a
 ```
 
-TRAVIS CI is gone, #54
-> ## 5. push on origin for a travis build
->
-> ```
-> git push origin master
-> ```
->
-> ## 6. remove travis hack macos if any
->
-> ```
-> sed -i -e '/travis.reverse_ssh_tunnel.sh/ s/^\([^#]\)/#\1/' .travis.yml
-> ```
->
-> ## 7. push on docopts for a travis build
->
-> ```
-> git commit -a
-> git push docopts master
-> ```
+## 5. push on origin for a ci build
+
+```
+git push origin master
+```
+
+## 6. remove reverse ssh hack macos if any
+
+```
+sed -i -e '/ci.reverse_ssh_tunnel.sh/ s/^\([^#]\)/#\1/' .github/workflows/ci.yml
+```
+
+## 7. push on docopts for a ci build
+
+```
+git commit -a
+git push docopts master
+```
 
 ## 8. tag the new release
 

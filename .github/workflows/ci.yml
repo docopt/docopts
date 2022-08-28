@@ -27,8 +27,8 @@ jobs:
       run: |
         bash --version ; type bash
         # hack for speedup on mac build with our own bash5
-        ./travis/get_bash5_macos.sh
-        ./travis/get_bats-core.sh
+        ./ci/get_bash5_macos.sh
+        ./ci/get_bats-core.sh
         go get github.com/docopt/docopt-go
         # get our official repos too
         go get github.com/docopt/docopts
@@ -38,4 +38,4 @@ jobs:
       # For debugging, create reverse SSH tunnel (this should be run on failure too)
       # - name: Debug
       #   if: runner.os == "macOS"
-      #   run: bash -x ./travis/reverse_ssh_tunnel.sh
+      #   run: bash -x ./ci/reverse_ssh_tunnel.sh

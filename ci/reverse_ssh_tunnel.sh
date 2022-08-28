@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 #
-# Usage: add this line to .travis.yml at the end of the script: section
-#  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then bash -x ./travis/reverse_ssh_tunnel.sh ; fi
+# Usage: uncomment the reverse_ssh_tunnel lines in .github/workflows/ci.yml at the bottom of the file
 # required: a bounce host MUST be set before!
 # NOTE: ansible playbook to build the bounce_host not provided yet.
 
