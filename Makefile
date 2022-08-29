@@ -36,7 +36,7 @@ clean:
 	rm -f docopts-* docopts README.tmp dist/*
 
 snapshot: install_builddep
-	GOVERSION=$(GOVERSION) goreleaser build --rm-dist --snapshot --single-target -o docopts
+	GOVERSION=$(GOVERSION) goreleaser build --rm-dist --snapshot -o docopts
 
 release: clean all test snapshot
 	GOVERSION=$(GOVERSION) goreleaser release
