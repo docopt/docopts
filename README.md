@@ -20,6 +20,21 @@ This is a bug fix release: v0.6.4-with-no-mangle-double-dash
 This release will be maintained for compatibility, only fixes will be provided. The 0.6.4 version is fully compatible with
 the previous version of `docopts`. Except for `-` handling in global mode, which produces an error.
 
+## Table of Contents
+
+- [SYNOPSIS](#synopsis)
+- [DESCRIPTION](#description)
+- [OPTIONS](#options)
+- [COMPATIBILITY](#compatibility)
+- [`docopts.sh` helper](#docoptssh-helper)
+- [EXAMPLES](#examples)
+- [Docopts History](#docopts-history)
+- [Roadmap: A new shell API is proposed](#roadmap-a-new-shell-api-is-proposed)
+- [Install](#install)
+- [Compiling](#compiling)
+- [Features](#features)
+- [Developers](#developers)
+
 ## SYNOPSIS
 
 [make README.md]: # (./docopts --help | get_usage)
