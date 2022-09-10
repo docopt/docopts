@@ -4,6 +4,7 @@
 
 PREFIX ?= /usr/local
 GOVERSION := $$(go version)
+RELEASE_NOTES := $$(awk -v RS='\#\# *|\#\# ' 'NR==2 { print }' CHANGELOG.md)
 
 # keep docopts: as first target for development
 
@@ -35,8 +36,11 @@ README.md: examples/legacy_bash/rock_hello_world.sh examples/legacy_bash/rock_he
 clean:
 	rm -f docopts-* docopts README.tmp dist/*
 
+test_release_notes:
+	echo "\n## $(RELEASE_NOTES)"
+
 snapshot: install_builddep
 	GOVERSION=$(GOVERSION) goreleaser build --rm-dist --snapshot -o docopts
 
 release: clean all test snapshot
-	GOVERSION=$(GOVERSION) goreleaser release
+	GOVERSION=$(GOVERSION) goreleaser release --release-notes "## $(RELEASE_NOTES)"

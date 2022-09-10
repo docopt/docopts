@@ -15,9 +15,8 @@ git add ./tests/VERSION
 
 Increment the `./VERSION` number
 
-edit `./deployment.yml`
-
-- add the new tag name release matching ./VERSION
+edit `CHANGELOG.md`:
+- add a new heading at the top of the file with `## <insert heading here>` (only the first `##` will be used)
 - the description you want, changes etc.
 
 ## 2. rebuild all
@@ -82,7 +81,7 @@ git tag
 
 ## 9. build the release
 
-The following will build all binary version from `deployment.yml`
+The following will build all binary version from `.goreleaser.yml`
 
 ```
 make snapshot

@@ -70,7 +70,7 @@ git push origin "$(cat VERSION)"
 
 In `docopts` project folder.
 
-You need to create the release text in `deployment.yml` first.
+You need to create the release text in `CHANGELOG.md` first.
 
 Dry-run to create release files and binaries in the `dist/` dir:
 
