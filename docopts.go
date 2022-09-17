@@ -17,7 +17,7 @@ import (
 )
 
 // vars defined at compile time
-// https://github.com/ahmetb/govvv
+// See .goreleaser.yaml ldflags section
 var (
 	Version        string
 	BuildDate      string

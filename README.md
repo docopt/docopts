@@ -373,15 +373,10 @@ We encourage you to build your own binary, which is easy once
 you have Go installed. Or find a local golang developer that you
 trust and ask her, in exchange for a beer or two, if she could build it for you. ;)
 
-Requires a [Go workspace](https://golang.org/doc/code.html#Organization).
-
 local build:
 (also done with our Makefile default target: `make`)
 
 ```
-go get github.com/docopt/docopt-go
-go get github.com/docopt/docopts
-cd src/github.com/docopt/docopts
 go build docopts.go
 ```
 
@@ -394,7 +389,6 @@ env GOOS=linux GOARCH=386 go build docopts.go
 or via Makefile:
 
 ```
-cd src/github.com/docopt/docopts
 make all
 make test
 ```

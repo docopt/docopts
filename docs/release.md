@@ -15,9 +15,8 @@ git add ./tests/VERSION
 
 Increment the `./VERSION` number
 
-edit `./deployment.yml`
-
-- add the new tag name release matching ./VERSION
+edit `CHANGELOG.md`:
+- add a new heading at the top of the file with `## <insert heading here>` (only the first `##` will be used)
 - the description you want, changes etc.
 
 ## 2. rebuild all
@@ -81,13 +80,10 @@ git tag
 
 ## 9. build the release
 
-With [deploy.sh](https://github.com/opensource-expert/deploy.sh) installed in our PATH
-Note: `deploy.sh` use `docopts` and `docopts.sh` in the PATH
-
-The following will build all binary version from `deployment.yml`
+The following will build all binary version from `.goreleaser.yml`
 
 ```
-deploy.sh build
+make snapshot
 ```
 
 ## 10. push the tag on docopts
@@ -98,11 +94,7 @@ git push docopts $(cat ./VERSION)
 
 ## 11. deploy the release
 
-load github env
-
 ```
-. ./env
-export GITHUB_USER=docopt
-export GITHUB_REPO=docopts
-deploy.sh deploy
+export GITHUB_TOKEN="your token here"
+make release
 ```

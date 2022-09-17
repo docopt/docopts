@@ -1,5 +1,4 @@
 docopts
 *.swp
 env
-build/docopts_*
-build/docopts.go
+dist/

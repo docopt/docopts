@@ -1,0 +1,41 @@
+# https://goreleaser.com
+
+# https://goreleaser.com/customization/hooks/
+before:
+  hooks:
+    - go mod tidy
+# https://goreleaser.com/customization/build/
+builds:
+  - env:
+      - CGO_ENABLED=0
+    targets:
+      - darwin_amd64
+      - darwin_arm64
+      - freebsd_amd64
+      - linux_386
+      - linux_amd64
+      - linux_arm
+      - windows_amd64
+    # https://goreleaser.com/customization/templates/
+    # defaults: https://goreleaser.com/cookbooks/using-main.version
+    ldflags:
+      - -X "main.Version={{.Version}}"
+      - -X "main.BuildDate={{.Date}}"
+      - -X "main.GitCommit={{.ShortCommit}}"
+      - -X "main.GoBuildVersion={{.Env.GOVERSION}}" # https://goreleaser.com/customization/build/#passing-environment-variables-to-ldflags
+archives:
+  - format: binary # https://goreleaser.com/customization/archive/#disable-archiving
+checksum:
+  name_template: 'sha256sum.txt'
+# https://goreleaser.com/customization/snapshots/
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+# https://goreleaser.com/customization/release/
+release:
+  draft: true
+  github:
+    owner: docopt
+    name: docopts
+# https://goreleaser.com/customization/changelog/
+changelog:
+  use: github-native
