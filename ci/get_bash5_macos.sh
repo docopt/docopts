@@ -28,6 +28,5 @@ type bash
 MY_BASH_VERSINFO=$(bash --version | sed -n -e '1 s/^.*version \([0-9.]\{1,\}\).*/\1/ p')
 if [[ ! $MY_BASH_VERSINFO =~ ^[4-9] ]] ; then
   echo "install bash5 failed"
-  # ./travis/reverse_ssh_tunnel.sh
   exit 1
 fi
