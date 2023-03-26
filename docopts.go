@@ -79,6 +79,8 @@ Options:
                                 with -A argument.
   --debug                       Output extra parsing information for debugging.
                                 Output cannot be used in bash eval.
+  -f, --function                Return instead of exit. Useful inside shell
+                                functions.
 `
 
 // testing trick, out can be mocked to catch stdout and validate
@@ -210,6 +212,12 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 	var new_name string
 	var err error
 	var out_buf string
+	var var_format_str string = "%s=%s\n"
+	var output_format_str string = "%s"
+	if d.Exit_function {
+	  var_format_str = "%s=%s "
+	  output_format_str = "local %s"
+	}
 
 	varmap := make(map[string]string)
 
@@ -241,11 +249,13 @@ func (d *Docopts) Print_bash_global(args docopt.Opts) error {
 			varmap[new_name] = key
 		}
 
-		out_buf += fmt.Sprintf("%s=%s\n", new_name, To_bash(args[key]))
+		out_buf += fmt.Sprintf(var_format_str, new_name, To_bash(args[key]))
 	}
 
 	// final output
-	fmt.Fprintf(out, "%s", out_buf)
+	if (len(out_buf) > 0) {
+		fmt.Fprintf(out, output_format_str, out_buf)
+	}
 
 	return nil
 }
@@ -414,6 +424,7 @@ func main() {
 	separator := arguments["--separator"].(string)
 	d.Mangle_key = !arguments["--no-mangle"].(bool)
 	d.Output_declare = !arguments["--no-declare"].(bool)
+	d.Exit_function = arguments["--function"].(bool)
 	global_prefix, err := arguments.String("-G")
 	if err == nil {
 		d.Global_prefix = global_prefix
