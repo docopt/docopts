@@ -94,11 +94,12 @@ docopt_get_version_string() {
 
 # Doc:
 # convert a repeatable option parsed by docopts into a bash 4 ARRAY
+# WARNING: this function does not preserve arguments containing whitespaces
 #   ARGS['FILE,#']=3
 #   ARGS['FILE,0']=somefile1
 #   ARGS['FILE,1']=somefile2
 #   ARGS['FILE,2']=somefile3
-# Usage: myarray=( $(docopt_get_values ARGS FILE") )
+# Usage: myarray=( $(docopt_get_values ARGS FILE) )
 docopt_get_values() {
     local opt=$2
     local ref="\${$1[$opt,#]}"
