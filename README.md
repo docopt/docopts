@@ -308,10 +308,8 @@ else
     echo "--long-option-with-argument was not given"
 fi
 
-i=0
-while [[ $i -lt ${args[<argument-with-multiple-values>,#]} ]] ; do
+for (( i=0 ; i < args[<argument-with-multiple-values>,#] ; i++ )); do
     echo "$i: ${args[<argument-with-multiple-values>,$i]}"
-    i=$[$i+1]
 done
 ```
 
